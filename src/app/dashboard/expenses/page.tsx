@@ -18,7 +18,8 @@ import {
   CreditCard,
   Notebook,
   Loader2,
-  Sparkles
+  Sparkles,
+  Wallet
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
 import { parseNaturalLanguageTransactions } from "@/utils/nlpParser";
@@ -33,7 +34,7 @@ interface ExpenseRow {
 function AddEntryContent() {
   const searchParams = useSearchParams();
   const dateParam = searchParams.get("date");
-  const { transactions, saveDailyRecord, user, formatCurrency, addNotification } = useAccounting();
+  const { transactions, saveDailyRecord, user, formatCurrency, addNotification, updateSettings } = useAccounting();
 
   // Tab State: manual form vs AI natural language parser
   const [activeFormTab, setActiveFormTab] = useState<"manual" | "ai">("manual");
@@ -54,6 +55,9 @@ function AddEntryContent() {
   // Notes & Visual alerts
   const [notes, setNotes] = useState("");
   const [isSaved, setIsSaved] = useState(false);
+
+  // Opening Balance input state
+  const [openingBalanceInput, setOpeningBalanceInput] = useState("");
 
   // Date-Based State Loader: scans transactions when selected date changes
   useEffect(() => {
@@ -78,6 +82,19 @@ function AddEntryContent() {
     }
   }, [date, transactions]);
 
+  // Sync opening balance whenever date, user start balance, or transactions update
+  useEffect(() => {
+    const activeFormMonth = date.substring(0, 7);
+    const baseOpeningBalance = user?.startingBalance ?? 0;
+    let priorPL = 0;
+    transactions.forEach(t => {
+      if (t.date && t.date < `${activeFormMonth}-01`) {
+        priorPL += (t.onlineAmount + t.cashAmount - t.expensesAmount);
+      }
+    });
+    setOpeningBalanceInput((baseOpeningBalance + priorPL).toString());
+  }, [date, transactions, user?.startingBalance]);
+
   // Dynamic calculations
   const parsedOnline = parseFloat(onlineAmount) || 0;
   const parsedCash = parseFloat(cashAmount) || 0;
@@ -89,6 +106,27 @@ function AddEntryContent() {
   }, 0);
 
   const netPL = totalRevenue - totalExpenses;
+
+  const getMonthLabel = (monthStr: string) => {
+    if (!monthStr || monthStr === "All") return "All Time";
+    try {
+      const [year, month] = monthStr.split("-").map(Number);
+      const d = new Date(year, month - 1, 1);
+      return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    } catch {
+      return monthStr;
+    }
+  };
+
+  // Accumulated prior PL & current calculated opening balance
+  const activeFormMonth = date.substring(0, 7);
+  let accumulatedPriorPL = 0;
+  transactions.forEach(t => {
+    if (t.date && t.date < `${activeFormMonth}-01`) {
+      accumulatedPriorPL += (t.onlineAmount + t.cashAmount - t.expensesAmount);
+    }
+  });
+  const currentCalculatedOpening = (user?.startingBalance ?? 0) + accumulatedPriorPL;
 
   const handleAddExpenseRow = () => {
     setExpensesList(prev => [
@@ -166,7 +204,7 @@ function AddEntryContent() {
     setNlpText("");
   };
 
-  const handleSaveEntry = (e: React.FormEvent) => {
+  const handleSaveEntry = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const structuredExpenses = expensesList
@@ -177,7 +215,7 @@ function AddEntryContent() {
       }))
       .filter(exp => exp.title !== "" && exp.amount > 0);
 
-    saveDailyRecord({
+    await saveDailyRecord({
       date,
       title: "Daily Store Operations",
       category: "Shop Ledger",
@@ -187,6 +225,13 @@ function AddEntryContent() {
       expenses: structuredExpenses,
       notes: notes.trim()
     });
+
+    // Check if the user entered a custom opening balance that does not match current calculated
+    const inputVal = parseFloat(openingBalanceInput) || 0;
+    if (inputVal !== currentCalculatedOpening) {
+      const newStarting = inputVal - accumulatedPriorPL;
+      await updateSettings({ startingBalance: newStarting });
+    }
 
     setIsSaved(true);
     setTimeout(() => {
@@ -304,6 +349,51 @@ function AddEntryContent() {
               </div>
             </div>
           </div>
+
+          {/* Distinct premium Opening Balance section */}
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-3xl p-6 border border-purple-100 bg-gradient-to-r from-purple-50/40 via-indigo-50/20 to-white shadow-md relative overflow-hidden"
+          >
+            {/* Ambient background blur circles */}
+            <div className="absolute -top-12 -left-12 w-28 h-28 bg-purple-200/40 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-indigo-200/40 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-500 border border-purple-400/20 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
+                  <Wallet className="w-6 h-6" />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-display font-black text-lg text-slate-800 tracking-tight flex items-center gap-1.5">
+                    <span>Opening Period Balance</span>
+                    <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md border border-purple-200/50">Ledger Base</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-semibold mt-0.5">
+                    Initial funds active for {getMonthLabel(activeFormMonth)}. Previous month carry-forward flow is integrated automatically.
+                  </p>
+                </div>
+              </div>
+
+              <div className="w-full sm:w-48 flex-shrink-0 relative">
+                <label className="block text-[10px] font-black text-purple-700 uppercase tracking-widest mb-1.5 text-left sm:text-right">
+                  Enter / Edit Capital
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="0"
+                    value={openingBalanceInput}
+                    onChange={(e) => setOpeningBalanceInput(e.target.value)}
+                    className="w-full pl-8 pr-4 py-3 text-base font-black border border-purple-200/60 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-purple-950 shadow-inner text-left"
+                  />
+                  <span className="text-sm font-black text-purple-550 absolute left-3.5 top-3.5">{user?.currencySymbol || "₹"}</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Grid: Money Earned and Money Spent */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">

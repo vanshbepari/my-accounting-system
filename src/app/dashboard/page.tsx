@@ -16,7 +16,8 @@ import {
   Zap,
   Edit2,
   Filter,
-  CheckCircle
+  CheckCircle,
+  Wallet
 } from "lucide-react";
 import Link from "next/link";
 import { useAccounting } from "@/context/AccountingContext";
@@ -69,7 +70,7 @@ function AnimatedCounter({ value, formatFn }: AnimatedCounterProps) {
 }
 
 export default function DashboardPage() {
-  const { transactions, dailySummaries, selectedMonth, setSelectedMonth, formatCurrency } = useAccounting();
+  const { transactions, dailySummaries, selectedMonth, setSelectedMonth, formatCurrency, user } = useAccounting();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedDates, setExpandedDates] = useState<{ [date: string]: boolean }>({});
@@ -108,6 +109,18 @@ export default function DashboardPage() {
   const totalRevenue = filteredTxs.reduce((acc, t) => acc + t.onlineAmount + t.cashAmount, 0);
   const totalExpenses = filteredTxs.reduce((acc, t) => acc + t.expensesAmount, 0);
   const netPL = totalRevenue - totalExpenses;
+
+  // Calculate opening balance: starting balance + accumulated PL of all prior months
+  const baseOpeningBalance = user?.startingBalance ?? 0;
+  let accumulatedPriorPL = 0;
+  if (!isAllTime) {
+    transactions.forEach(t => {
+      if (t.date && t.date < `${activeMonth}-01`) {
+        accumulatedPriorPL += (t.onlineAmount + t.cashAmount - t.expensesAmount);
+      }
+    });
+  }
+  const openingBalance = baseOpeningBalance + accumulatedPriorPL;
 
   // Toggle detail rows
   const toggleExpandDate = (date: string) => {
@@ -170,6 +183,16 @@ export default function DashboardPage() {
   });
 
   const statCards = [
+    {
+      title: "Opening Balance",
+      rawVal: openingBalance,
+      subtitle: isAllTime ? "Initial Starting Balance" : `Opening Reserves for ${getMonthLabel(activeMonth)}`,
+      icon: Wallet,
+      color: "from-purple-500/10 to-indigo-500/10 border-purple-100/30 text-purple-600",
+      iconBg: "bg-purple-500/10 border-purple-500/20 text-purple-600",
+      trendColor: "text-purple-500 bg-purple-500/10 border-purple-500/20",
+      trend: "Previous period carry forward"
+    },
     {
       title: "Total Revenue",
       rawVal: totalRevenue,
@@ -271,8 +294,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Grid: Big Three Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* Grid: Big Four Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
           return (
