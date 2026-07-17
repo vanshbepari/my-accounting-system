@@ -259,34 +259,96 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-        const fetchPromise = Promise.all([
-          fetchUserTransactions(userId),
-          fetchUserSettings(userId),
-          supabase.from("forecasting").select("*").eq("user_id", userId).maybeSingle(),
-          supabase.from("targeting").select("*").eq("user_id", userId).maybeSingle(),
-          fetchUserBudgets(userId),
-          fetchUserNotifications(userId)
+        // Load each dataset with local catch scopes to prevent single query failures from aborting the entire bootstrap
+        const loadTransactions = async () => {
+          try {
+            return await fetchUserTransactions(userId);
+          } catch (e) {
+            console.error("[loadUserData] fetchUserTransactions failed:", e);
+            return [];
+          }
+        };
+
+        const loadSettings = async () => {
+          try {
+            return await fetchUserSettings(userId);
+          } catch (e) {
+            console.error("[loadUserData] fetchUserSettings failed:", e);
+            return {
+              businessName: "",
+              currencyCode: "INR",
+              currencySymbol: "₹",
+              ownerName: undefined,
+              startingBalance: 15000,
+              mobileNumber: undefined,
+              country: undefined,
+              onboarded: false
+            };
+          }
+        };
+
+        const loadForecast = async () => {
+          try {
+            const { data } = await supabase.from("forecasting").select("*").eq("user_id", userId).maybeSingle();
+            return data;
+          } catch (e) {
+            console.error("[loadUserData] fetch forecasting failed:", e);
+            return null;
+          }
+        };
+
+        const loadTarget = async () => {
+          try {
+            const { data } = await supabase.from("targeting").select("*").eq("user_id", userId).maybeSingle();
+            return data;
+          } catch (e) {
+            console.error("[loadUserData] fetch targeting failed:", e);
+            return null;
+          }
+        };
+
+        const loadBudgets = async () => {
+          try {
+            return await fetchUserBudgets(userId);
+          } catch (e) {
+            console.error("[loadUserData] fetchUserBudgets failed:", e);
+            return [];
+          }
+        };
+
+        const loadNotifications = async () => {
+          try {
+            return await fetchUserNotifications(userId);
+          } catch (e) {
+            console.error("[loadUserData] fetchUserNotifications failed:", e);
+            return [];
+          }
+        };
+
+        // Fetch all datasets in parallel resiliently
+        const [txs, settings, forecastData, targetData, loadedBudgets, loadedNotifications] = await Promise.all([
+          loadTransactions(),
+          loadSettings(),
+          loadForecast(),
+          loadTarget(),
+          loadBudgets(),
+          loadNotifications()
         ]);
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Database fetch timed out")), 5000)
-        );
 
-        const [txs, settings, forecastRes, targetRes, loadedBudgets, loadedNotifications] = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
-        if (forecastRes && forecastRes.data) {
-          setGrowthRate(Number(forecastRes.data.growth_rate));
-          setSavingsRate(Number(forecastRes.data.savings_rate));
-          setHorizon(Number(forecastRes.data.horizon));
+        if (forecastData) {
+          setGrowthRate(Number(forecastData.growth_rate));
+          setSavingsRate(Number(forecastData.savings_rate));
+          setHorizon(Number(forecastData.horizon));
         } else {
           setGrowthRate(10);
           setSavingsRate(15);
-          setHorizon(6);
+          setHorizon(3);
         }
 
-        if (targetRes && targetRes.data) {
-          setRevenueTarget(Number(targetRes.data.revenue_target));
-          setNetProfitTarget(Number(targetRes.data.net_profit_target));
-          setExpenseCeiling(Number(targetRes.data.expense_ceiling));
+        if (targetData) {
+          setRevenueTarget(Number(targetData.revenue_target));
+          setNetProfitTarget(Number(targetData.net_profit_target));
+          setExpenseCeiling(Number(targetData.expense_ceiling));
         } else {
           setRevenueTarget(50000);
           setNetProfitTarget(20000);
@@ -335,6 +397,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         setSelectedMonth(currentMonth);
       } catch (err: unknown) {
+        lastLoadedUserIdRef.current = null; // Clear so subsequent tries can re-attempt loading
         const errorMsg = err instanceof Error ? err.message : String(err);
         console.error("[loadUserData] error:", errorMsg);
         addNotification("Data Load Error", "Could not load your data. Please refresh.", "danger");
