@@ -170,7 +170,7 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     currencyCode: data?.currency_code ?? "INR",
     currencySymbol: data?.currency_symbol ?? "₹",
     ownerName: data?.owner_name ?? undefined,
-    startingBalance: data?.starting_balance ? Number(data.starting_balance) : 15000,
+    startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : 0,
     mobileNumber: data?.mobile_number ?? undefined,
     country: data?.country ?? undefined,
     onboarded: data?.onboarded ?? false,

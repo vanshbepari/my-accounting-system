@@ -505,7 +505,7 @@ export default function ReportsPage() {
     if (!activeMonth) return { opening: 0, netMovement: 0, carryForward: 0, dailyBalances: [] };
 
     // Standard starting index balance base
-    const baseOpeningBalance = user?.startingBalance ?? 15000; 
+    const baseOpeningBalance = user?.startingBalance ?? 0; 
 
     // Sum of net profit/loss for all months/days before this selected activeMonth
     let accumulatedPriorPL = 0;

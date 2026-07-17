@@ -9,7 +9,8 @@ import {
   Globe,
   Save,
   ShieldCheck,
-  Phone
+  Phone,
+  Wallet
 } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
 
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const [userName, setUserName] = useState(user?.name || "Corporate Owner");
   const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || "");
   const [selectedCountry, setSelectedCountry] = useState(user?.country || "India");
+  const [startingBalance, setStartingBalance] = useState(user?.startingBalance || 0);
 
   const [isSaved, setIsSaved] = useState(false);
 
@@ -31,6 +33,7 @@ export default function SettingsPage() {
       setUserName(user.name || "Corporate Owner");
       setMobileNumber(user.mobileNumber || "");
       setSelectedCountry(user.country || "India");
+      setStartingBalance(user.startingBalance || 0);
     }
   }, [user]);
 
@@ -49,6 +52,7 @@ export default function SettingsPage() {
       country: selectedCountry,
       currencyCode,
       currencySymbol,
+      startingBalance: Number(startingBalance) || 0,
     });
 
     setIsSaved(true);
@@ -157,6 +161,22 @@ export default function SettingsPage() {
                       ))}
                     </select>
                     <Globe className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
+                  </div>
+                </div>
+
+                {/* Starting Balance */}
+                <div>
+                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
+                    Starting Ledger Balance ({user?.currencySymbol || "₹"})
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={startingBalance}
+                      onChange={(e) => setStartingBalance(Number(e.target.value))}
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                    />
+                    <Wallet className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
                 </div>
               </div>

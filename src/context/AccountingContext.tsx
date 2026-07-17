@@ -196,9 +196,9 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const lastLoadedUserIdRef = useRef<string | null>(null);
 
   // Targets and Forecast state properties
-  const [revenueTarget, setRevenueTarget] = useState(50000);
-  const [netProfitTarget, setNetProfitTarget] = useState(20000);
-  const [expenseCeiling, setExpenseCeiling] = useState(15000);
+  const [revenueTarget, setRevenueTarget] = useState(0);
+  const [netProfitTarget, setNetProfitTarget] = useState(0);
+  const [expenseCeiling, setExpenseCeiling] = useState(0);
   const [growthRate, setGrowthRate] = useState(10);
   const [savingsRate, setSavingsRate] = useState(15);
   const [horizon, setHorizon] = useState(3);
@@ -250,7 +250,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         businessName: "My Business",
         currencyCode: "INR",
         currencySymbol: "₹",
-        startingBalance: 15000,
+        startingBalance: 0,
         onboarded: true, // Default to true during the brief load phase to avoid flash redirections
       };
       setUser(initialProfile);
@@ -279,7 +279,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               currencyCode: "INR",
               currencySymbol: "₹",
               ownerName: undefined,
-              startingBalance: 15000,
+              startingBalance: 0,
               mobileNumber: undefined,
               country: undefined,
               onboarded: false
@@ -350,9 +350,9 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setNetProfitTarget(Number(targetData.net_profit_target));
           setExpenseCeiling(Number(targetData.expense_ceiling));
         } else {
-          setRevenueTarget(50000);
-          setNetProfitTarget(20000);
-          setExpenseCeiling(15000);
+          setRevenueTarget(0);
+          setNetProfitTarget(0);
+          setExpenseCeiling(0);
         }
 
         const fullProfile: UserProfile = { 
@@ -361,7 +361,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           businessName: settings.businessName || "My Retail Shop",
           currencyCode: settings.currencyCode,
           currencySymbol: settings.currencySymbol,
-          startingBalance: settings.startingBalance ?? 15000,
+          startingBalance: settings.startingBalance ?? 0,
           mobileNumber: settings.mobileNumber,
           country: settings.country,
           onboarded: settings.onboarded,
@@ -663,7 +663,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               businessName: settings.businessName || "My Retail Shop",
               currencyCode: settings.currencyCode,
               currencySymbol: settings.currencySymbol,
-              startingBalance: settings.startingBalance ?? 15000,
+              startingBalance: settings.startingBalance ?? 0,
               mobileNumber: settings.mobileNumber,
               country: settings.country,
               onboarded: settings.onboarded,

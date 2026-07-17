@@ -167,7 +167,7 @@ export default function ForecastPage() {
     const totalProjNet = totalProjRevenue - totalProjExpenses;
     
     // Estimate runway / ending cash
-    const startingBalance = user?.startingBalance || 15000;
+    const startingBalance = user?.startingBalance || 0;
     const currentHistNet = historicalMonthlyData.reduce((acc, d) => acc + d.net, 0);
     const estimatedStartingBalance = startingBalance + currentHistNet;
     const projectedEndingBalance = estimatedStartingBalance + totalProjNet;
