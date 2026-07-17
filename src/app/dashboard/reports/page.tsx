@@ -2535,17 +2535,16 @@ export default function ReportsPage() {
                         const color = BREAKDOWN_COLORS[idx % BREAKDOWN_COLORS.length];
                         const isHovered = activeExpenseIndex === idx;
                         return (
-                          <motion.div
+                          <div
                             key={item.name}
-                            whileHover={{ scale: 1.03 }}
                             onMouseEnter={() => setActiveExpenseIndex(idx)}
                             onMouseLeave={() => setActiveExpenseIndex(null)}
                             onClick={(e) => {
                               e.stopPropagation();
                               setActiveExpenseIndex(activeExpenseIndex === idx ? null : idx);
                             }}
-                            className={`w-full h-20 sm:h-24 rounded-2xl sm:rounded-full border bg-white shadow-sm flex flex-row items-center px-2 py-2 sm:px-4 sm:py-3 transition-all duration-200 cursor-pointer min-w-0 justify-start text-left overflow-hidden space-x-2 sm:space-x-3.5 ${
-                              isHovered ? "border-primary shadow-md ring-2 ring-primary/10" : "border-slate-200/80"
+                            className={`w-full h-20 sm:h-24 rounded-2xl sm:rounded-full border bg-white shadow-sm flex flex-row items-center px-2 py-2 sm:px-4 sm:py-3 transition-colors duration-200 cursor-pointer min-w-0 justify-start text-left overflow-hidden space-x-2 sm:space-x-3.5 ${
+                              isHovered ? "border-primary shadow-md ring-2 ring-primary/10 text-primary" : "border-slate-200/80 text-slate-800"
                             }`}
                           >
                             <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
@@ -2557,7 +2556,7 @@ export default function ReportsPage() {
                                 {item.percentage.toFixed(0)}% • {formatCurrency(item.value)}
                               </span>
                             </div>
-                          </motion.div>
+                          </div>
                         );
                       })}
                     </div>
