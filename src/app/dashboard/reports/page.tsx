@@ -2463,15 +2463,16 @@ export default function ReportsPage() {
                               r="45"
                               fill="transparent"
                               stroke={segment.color}
-                              strokeWidth={10}
+                              strokeWidth={11}
                               strokeDasharray={`${segment.length} 282.743`}
                               strokeDashoffset={-segment.offset}
                               animate={{
-                                strokeWidth: isHovered ? 14 : 10,
-                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.4
+                                scale: isHovered ? 1.05 : 1,
+                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.45
                               }}
-                              transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
-                              className="cursor-pointer origin-center"
+                              transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
+                              style={{ transformOrigin: "60px 60px" }}
+                              className="cursor-pointer"
                               onMouseEnter={() => setActiveExpenseIndex(segment.idx)}
                               onMouseLeave={() => setActiveExpenseIndex(null)}
                               onClick={(e) => {
