@@ -2467,11 +2467,9 @@ export default function ReportsPage() {
                               strokeDasharray={`${segment.length} 282.743`}
                               strokeDashoffset={-segment.offset}
                               animate={{
-                                scale: isHovered ? 1.05 : 1,
-                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.45
+                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.35
                               }}
-                              transition={{ type: "tween", duration: 0.2, ease: "easeOut" }}
-                              style={{ transformOrigin: "60px 60px" }}
+                              transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
                               className="cursor-pointer"
                               onMouseEnter={() => setActiveExpenseIndex(segment.idx)}
                               onMouseLeave={() => setActiveExpenseIndex(null)}
