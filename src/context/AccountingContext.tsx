@@ -480,14 +480,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             meta?.picture ||
             `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=2563eb`;
 
-          // Await loading user settings from Supabase
-          await loadUserData(sessionUser.id, {
+          // Trigger background asynchronous load of user settings
+          loadUserData(sessionUser.id, {
             id: sessionUser.id,
             name,
             email,
             avatar,
             isLoggedIn: true,
-          });
+          }).catch((err) => console.error("[initAuth] loadUserData error:", err));
         }
       } catch (err) {
         console.error("Auth initialization error:", err);
@@ -519,14 +519,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           meta?.picture ||
           `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=2563eb`;
 
-        // Await loading user settings from Supabase
-        await loadUserData(session.user.id, {
+        // Trigger background asynchronous load of user settings
+        loadUserData(session.user.id, {
           id: session.user.id,
           name,
           email,
           avatar,
           isLoggedIn: true,
-        });
+        }).catch((err) => console.error("[onAuthStateChange] loadUserData error:", err));
 
         setIsAuthReady(true);
 
