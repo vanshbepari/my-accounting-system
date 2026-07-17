@@ -60,11 +60,7 @@ export default function OnboardingPage() {
   };
 
   if (!isAuthReady || !user || user.onboarded) {
-    return (
-      <div className="min-h-screen bg-brand-dark flex flex-col justify-center items-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return null;
   }
 
   return (

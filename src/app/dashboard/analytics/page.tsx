@@ -117,14 +117,7 @@ export default function AnalyticsPage() {
     return insightsList;
   }, [transactions, totalExpenses, pieChartData]);
 
-  if (!mounted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-xs text-text-secondary font-medium">Aggregating analytical datasets...</p>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8">

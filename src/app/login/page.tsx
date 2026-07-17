@@ -140,13 +140,7 @@ function LoginContent() {
 // ── Outer page wraps LoginContent in Suspense (required by Next.js for useSearchParams) ──
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-brand-dark flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-primary animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       <LoginContent />
     </Suspense>
   );

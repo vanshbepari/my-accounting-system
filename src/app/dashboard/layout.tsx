@@ -32,23 +32,11 @@ export default function DashboardLayout({
 
   // Show a blank dark screen while checking Supabase auth session
   // This prevents flashing the dashboard before we know if they're logged in
-  if (!isAuthReady) {
-    return (
-      <div className="min-h-screen bg-brand-dark flex flex-col justify-center items-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (!isAuthReady) return null;
 
-  // Auth is ready but user is not logged in — show spinner while redirect fires
+  // Auth is ready but user is not logged in — show empty space while redirect fires
   // (prevents any flash of dashboard content during the navigation)
-  if (!user?.isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-brand-dark flex flex-col justify-center items-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (!user?.isLoggedIn) return null;
 
 
   // If user is logged in, show the complete double-bar workspace dashboard layout

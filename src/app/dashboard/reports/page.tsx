@@ -1689,14 +1689,7 @@ export default function ReportsPage() {
   };
 
 
-  if (!mounted) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 text-center space-y-4">
-        <div className="w-14 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-        <p className="text-xs text-text-secondary font-semibold tracking-wide uppercase">Initializing Analytics Dataset...</p>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-10">
