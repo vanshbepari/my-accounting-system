@@ -2436,11 +2436,12 @@ export default function ReportsPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center my-6 space-y-6 w-full">
-                    {/* Interactive Donut Chart */}
-                    <div className="relative w-48 h-48 xs:w-52 xs:h-52 sm:w-64 sm:h-64 flex items-center justify-center shrink-0">
+                    {/* Interactive Donut Chart — zero Framer Motion, pure CSS transitions */}
+                    <div className="relative w-48 h-48 xs:w-52 xs:h-52 sm:w-64 sm:h-64 flex items-center justify-center shrink-0" style={{ contain: 'layout style paint' }}>
                       <svg
                         viewBox="0 0 120 120"
-                        className="w-full h-full transform -rotate-90 select-none"
+                        className="w-full h-full select-none"
+                        style={{ overflow: 'visible' }}
                       >
                         {/* Background subtle ring */}
                         <circle
@@ -2452,11 +2453,13 @@ export default function ReportsPage() {
                           strokeWidth="10"
                         />
                         
-                        {/* Colored segments */}
+                        {/* Colored segments — plain <circle> with CSS transition */}
                         {segments.map((segment) => {
                           const isHovered = activeExpenseIndex === segment.idx;
+                          // Subtract circumference/4 (70.686) to rotate start from 3-o'clock to 12-o'clock
+                          const adjustedOffset = -(segment.offset + 70.686);
                           return (
-                            <motion.circle
+                            <circle
                               key={segment.name}
                               cx="60"
                               cy="60"
@@ -2465,12 +2468,13 @@ export default function ReportsPage() {
                               stroke={segment.color}
                               strokeWidth={11}
                               strokeDasharray={`${segment.length} 282.743`}
-                              strokeDashoffset={-segment.offset}
-                              animate={{
-                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.35
+                              strokeDashoffset={adjustedOffset}
+                              style={{
+                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.35,
+                                transition: 'opacity 0.18s ease-out',
+                                willChange: 'opacity',
+                                cursor: 'pointer',
                               }}
-                              transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
-                              className="cursor-pointer"
                               onMouseEnter={() => setActiveExpenseIndex(segment.idx)}
                               onMouseLeave={() => setActiveExpenseIndex(null)}
                               onClick={(e) => {
@@ -2482,50 +2486,34 @@ export default function ReportsPage() {
                         })}
                       </svg>
 
-                      {/* Solid central display card - Tapping resets filters */}
+                      {/* Solid central display card — pure CSS transitions, no AnimatePresence */}
                       <div 
                         onClick={() => setActiveExpenseIndex(null)}
                         className="absolute w-[68%] h-[68%] bg-white rounded-full shadow-lg border border-slate-100/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none"
                       >
-                        <AnimatePresence mode="wait">
-                          {activeExpenseIndex !== null && segments[activeExpenseIndex] ? (
-                            <motion.div
-                              key={`hovered-${activeExpenseIndex}`}
-                              initial={{ opacity: 0, scale: 0.9, y: 5 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.9, y: -5 }}
-                              transition={{ duration: 0.15 }}
-                              className="flex flex-col items-center w-full"
-                            >
-                              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400 truncate max-w-full">
-                                {segments[activeExpenseIndex].name}
-                              </span>
-                              <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900 truncate max-w-full">
-                                {formatCurrency(segments[activeExpenseIndex].value)}
-                              </span>
-                              <span className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-widest mt-0.5">
-                                {segments[activeExpenseIndex].percentage.toFixed(0)}% Share
-                              </span>
-                            </motion.div>
-                          ) : (
-                            <motion.div
-                              key="total-expenses"
-                              initial={{ opacity: 0, scale: 0.9, y: 5 }}
-                              animate={{ opacity: 1, scale: 1, y: 0 }}
-                              exit={{ opacity: 0, scale: 0.9, y: -5 }}
-                              transition={{ duration: 0.15 }}
-                              className="flex flex-col items-center w-full"
-                            >
-                              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400">Total</span>
-                              <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900">
-                                {formatCurrency(monthlyMetrics.expenses)}
-                              </span>
-                              <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-450 mt-0.5 uppercase tracking-widest">
-                                Expenses
-                              </span>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        {activeExpenseIndex !== null && segments[activeExpenseIndex] ? (
+                          <div className="flex flex-col items-center w-full">
+                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400 truncate max-w-full">
+                              {segments[activeExpenseIndex].name}
+                            </span>
+                            <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900 truncate max-w-full">
+                              {formatCurrency(segments[activeExpenseIndex].value)}
+                            </span>
+                            <span className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-widest mt-0.5">
+                              {segments[activeExpenseIndex].percentage.toFixed(0)}% Share
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center w-full">
+                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400">Total</span>
+                            <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900">
+                              {formatCurrency(monthlyMetrics.expenses)}
+                            </span>
+                            <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-450 mt-0.5 uppercase tracking-widest">
+                              Expenses
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
