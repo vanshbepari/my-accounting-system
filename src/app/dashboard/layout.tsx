@@ -23,12 +23,12 @@ export default function DashboardLayout({
   React.useEffect(() => {
     if (isAuthReady) {
       if (!user?.isLoggedIn) {
-        window.location.replace("/login");
+        router.replace("/login");
       } else if (!user.onboarded) {
-        window.location.replace("/onboarding");
+        router.replace("/onboarding");
       }
     }
-  }, [isAuthReady, user]);
+  }, [isAuthReady, user, router]);
 
   // Show a blank dark screen while checking Supabase auth session
   // This prevents flashing the dashboard before we know if they're logged in

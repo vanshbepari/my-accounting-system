@@ -4,10 +4,12 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, User, Store, Phone, Globe, ChevronRight, Loader2 } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
+import { useRouter } from "next/navigation";
 
 export default function OnboardingPage() {
   const { user, isAuthReady, updateSettings } = useAccounting();
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   // Form states
   const [ownerName, setOwnerName] = useState("");
@@ -18,15 +20,15 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (isAuthReady) {
       if (!user?.isLoggedIn) {
-        window.location.replace("/login");
+        router.replace("/login");
       } else if (user?.onboarded) {
-        window.location.replace("/dashboard");
+        router.replace("/dashboard");
       } else {
         // Pre-populate owner name from OAuth metadata if available
         setOwnerName(user.name || "");
       }
     }
-  }, [isAuthReady, user]);
+  }, [isAuthReady, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,8 +51,8 @@ export default function OnboardingPage() {
         onboarded: true
       });
       
-      // Redirect to main dashboard
-      window.location.replace("/dashboard");
+      // Redirect to main dashboard client-side
+      router.replace("/dashboard");
     } catch (err) {
       console.error("[Onboarding] Submission failed:", err);
       setLoading(false);
