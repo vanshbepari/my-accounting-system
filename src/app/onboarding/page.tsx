@@ -7,7 +7,7 @@ import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext"
 import { useRouter } from "next/navigation";
 
 export default function OnboardingPage() {
-  const { user, isAuthReady, updateSettings } = useAccounting();
+  const { user, isAuthReady, updateSettings, saveTargets, saveForecastSettings } = useAccounting();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -48,8 +48,17 @@ export default function OnboardingPage() {
         country,
         currencyCode,
         currencySymbol,
+        startingBalance: 0,
         onboarded: true
       });
+      
+      // Initialize targeting and forecasting rows to zero/default to override DB schema default mock metrics
+      try {
+        await saveTargets(0, 0, 0);
+        await saveForecastSettings(0, 0, 3);
+      } catch (err) {
+        console.error("[Onboarding] Failed to save target/forecast defaults:", err);
+      }
       
       // Redirect to main dashboard client-side
       router.replace("/dashboard");

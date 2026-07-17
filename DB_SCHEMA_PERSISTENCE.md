@@ -15,7 +15,7 @@ Manages profile information, localized currency preferences, and global settings
 - `currency_code` (text, Required): Three-letter currency identifier (e.g., `INR`, `USD`).
 - `currency_symbol` (text, Required): Symbol symbol (e.g., `₹`, `$`).
 - `owner_name` (text, Optional): Full name of the business owner.
-- `starting_balance` (numeric, Required): Baseline reserve starting balance (defaults to `15000`).
+- `starting_balance` (numeric, Required): Baseline reserve starting balance (defaults to `0`).
 
 ### `forecasting`
 Stores user-specific cash flow forecasting options.
@@ -28,9 +28,9 @@ Stores user-specific cash flow forecasting options.
 ### `targeting`
 Stores user-specific financial targets and milestones.
 - `user_id` (uuid, Primary Key, references `auth.users`): Restricts records to the authenticated owner.
-- `revenue_target` (numeric, Required): Monthly revenue target (defaults to `50000`).
-- `net_profit_target` (numeric, Required): Monthly net profit milestone (defaults to `20000`).
-- `expense_ceiling` (numeric, Required): Monthly maximum budget cap for expenses (defaults to `15000`).
+- `revenue_target` (numeric, Required): Monthly revenue target (defaults to `0`).
+- `net_profit_target` (numeric, Required): Monthly net profit milestone (defaults to `0`).
+- `expense_ceiling` (numeric, Required): Monthly maximum budget cap for expenses (defaults to `0`).
 - `updated_at` (timestamp, Required): Time of the last targets save.
 
 ### `daily_entries`
