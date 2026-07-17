@@ -71,7 +71,7 @@ export default function LandingPage() {
         {/* ── HERO SECTION ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 md:pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
+
             {/* Left Column: Premium Text Elements */}
             <div className="lg:col-span-6 space-y-8 text-left">
               {/* Badge */}
@@ -124,7 +124,7 @@ export default function LandingPage() {
                     <Loader2 className="w-5 h-5 text-primary animate-spin" />
                   ) : (
                     <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                      <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z"/>
+                      <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z" />
                     </svg>
                   )}
                   <span>{loading ? "Connecting to Google…" : "Sign in with Google"}</span>
@@ -207,11 +207,10 @@ export default function LandingPage() {
                           initial={{ height: 0 }}
                           animate={{ height: `${val}%` }}
                           transition={{ duration: 1.2, delay: idx * 0.05 }}
-                          className={`w-full rounded-t-sm bg-gradient-to-t ${
-                            idx === 6 || idx === 9 
-                              ? "from-secondary to-primary" 
+                          className={`w-full rounded-t-sm bg-gradient-to-t ${idx === 6 || idx === 9
+                              ? "from-secondary to-primary"
                               : "from-emerald-500/50 to-emerald-400"
-                          }`}
+                            }`}
                         />
                         <span className="text-[8px] text-slate-500 scale-95 font-mono">{20 + idx}</span>
                       </div>
@@ -274,7 +273,7 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            
+
             {/* Bento box 1: NLP keying (8 cols) */}
             <div className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
               <div className="space-y-4 max-w-lg">
@@ -465,14 +464,14 @@ export default function LandingPage() {
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
           <div className="glass-card rounded-3xl p-10 md:p-16 bg-gradient-to-tr from-primary/5 to-secondary/5 border border-border-color relative overflow-hidden space-y-6">
             <div className="absolute top-0 right-1/4 w-[30vw] h-[30vw] bg-primary/10 rounded-full blur-[80px] -z-10 pointer-events-none" />
-            
+
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
               Manage your business balances today
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
               Launch your secure corporate space instantly. Sign in with Google to aggregate daily accounts cleanly in under 2 minutes.
             </p>
-            
+
             <div className="pt-4 flex justify-center">
               <button
                 onClick={handleGoogleLogin}
@@ -483,7 +482,7 @@ export default function LandingPage() {
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 ) : (
                   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z"/>
+                    <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z" />
                   </svg>
                 )}
                 <span>{loading ? "Connecting to Google…" : "Sign in with Google"}</span>

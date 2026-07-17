@@ -16,13 +16,17 @@ export default function DashboardLayout({
 }) {
   const { user, isAuthReady } = useAccounting();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const router = useRouter();
 
   // Handle protected route redirect
   React.useEffect(() => {
-    if (isAuthReady && !user?.isLoggedIn) {
-      // Use window.location.replace to completely bypass Next.js App Router action dispatch errors during early mount / SSR hydration
-      window.location.replace("/login");
+    if (isAuthReady) {
+      if (!user?.isLoggedIn) {
+        window.location.replace("/login");
+      } else if (!user.onboarded) {
+        window.location.replace("/onboarding");
+      }
     }
   }, [isAuthReady, user]);
 
@@ -51,10 +55,10 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col bg-brand-bg transition-colors duration-300">
       {/* Sidebar - fixed on desktop, width managed inside Sidebar */}
-      <Sidebar />
+      <Sidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
 
       {/* Main workspace container */}
-      <div className="flex-1 md:pl-[260px] transition-all duration-300 flex flex-col min-h-screen">
+      <div className="flex-1 md:pl-[80px] transition-all duration-300 flex flex-col min-h-screen">
         {/* Top Navbar */}
         <TopNavbar onMobileMenuToggle={() => setMobileSidebarOpen(!mobileSidebarOpen)} />
 

@@ -8,9 +8,10 @@ import {
   Briefcase,
   Globe,
   Save,
-  ShieldCheck
+  ShieldCheck,
+  Phone
 } from "lucide-react";
-import { useAccounting } from "@/context/AccountingContext";
+import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
 
 export default function SettingsPage() {
   const { user, updateSettings } = useAccounting();
@@ -18,42 +19,37 @@ export default function SettingsPage() {
   // Settings states initialized with user context
   const [shopName, setShopName] = useState(user?.businessName || "My Retail Shop");
   const [userName, setUserName] = useState(user?.name || "Corporate Owner");
-  const [shopCurrency, setShopCurrency] = useState(`${user?.currencyCode || "INR"} (${user?.currencySymbol || "₹"})`);
+  const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || "");
+  const [selectedCountry, setSelectedCountry] = useState(user?.country || "India");
 
   const [isSaved, setIsSaved] = useState(false);
 
   // Sync state when user context is fully loaded from Supabase
   React.useEffect(() => {
     if (user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShopName(user.businessName || "My Retail Shop");
       setUserName(user.name || "Corporate Owner");
-      setShopCurrency(`${user.currencyCode || "INR"} (${user.currencySymbol || "₹"})`);
-
+      setMobileNumber(user.mobileNumber || "");
+      setSelectedCountry(user.country || "India");
     }
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !userName) return;
+    if (!shopName || !userName || !mobileNumber || !selectedCountry) return;
 
-    const updates: {
-      businessName: string;
-      ownerName: string;
-      currencyCode?: string;
-      currencySymbol?: string;
-    } = {
-      businessName: shopName,
-      ownerName: userName,
-    };
+    const matchedCountry = SUPPORTED_COUNTRIES.find(c => c.country === selectedCountry);
+    const currencyCode = matchedCountry?.currencyCode || "INR";
+    const currencySymbol = matchedCountry?.currencySymbol || "₹";
 
-    const match = shopCurrency.match(/^([A-Z]{3}) \((.+)\)$/);
-    if (match) {
-      updates.currencyCode = match[1];
-      updates.currencySymbol = match[2];
-    }
-
-    await updateSettings(updates);
+    await updateSettings({
+      businessName: shopName.trim(),
+      ownerName: userName.trim(),
+      mobileNumber: mobileNumber.trim(),
+      country: selectedCountry,
+      currencyCode,
+      currencySymbol,
+    });
 
     setIsSaved(true);
     setTimeout(() => {
@@ -68,10 +64,10 @@ export default function SettingsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6">
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
-            Corporate Configs
+            System Preferences
           </h1>
           <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Manage shop profile credentials, localized currency symbols, tax rates, and database logs.
+            Manage shop profile credentials, base currency settings, and system values.
           </p>
         </div>
       </div>
@@ -87,7 +83,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-base text-text-primary">Business Settings</h3>
-                  <p className="text-[10px] text-text-secondary">Configure corporate information and metadata</p>
+                  <p className="text-[10px] text-text-secondary">Configure corporate information and base country values</p>
                 </div>
               </div>
 
@@ -126,27 +122,43 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Currency */}
+                {/* Mobile Number */}
                 <div>
                   <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
-                    Base Currency
+                    Mobile Number
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      required
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                    />
+                    <Phone className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
+                  </div>
+                </div>
+
+                {/* Base Country */}
+                <div>
+                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
+                    Base Country & Currency
                   </label>
                   <div className="relative">
                     <select
-                      value={shopCurrency}
-                      onChange={(e) => setShopCurrency(e.target.value)}
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
                       className="appearance-none w-full pl-9 pr-10 py-2.5 text-xs font-semibold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
                     >
-                      <option>INR (₹)</option>
-                      <option>USD ($)</option>
-                      <option>EUR (€)</option>
-                      <option>GBP (£)</option>
+                      {SUPPORTED_COUNTRIES.map((c) => (
+                        <option key={c.country} value={c.country}>
+                          {c.country} ({c.currencyCode} - {c.currencySymbol})
+                        </option>
+                      ))}
                     </select>
                     <Globe className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
                 </div>
-
-
               </div>
 
               <div className="flex items-center justify-between pt-4 border-t border-border-color">

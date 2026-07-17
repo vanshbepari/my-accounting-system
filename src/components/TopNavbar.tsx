@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, ChevronDown, Check, Trash2, Menu, Award, LogOut } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
@@ -10,6 +11,7 @@ interface TopNavbarProps {
 }
 
 export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
+  const pathname = usePathname();
   const {
     user,
     selectedMonth,
@@ -23,20 +25,22 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // Close profile dropdown on outside click
+  // Close dropdown panels when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
       }
     };
-    if (profileOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [profileOpen]);
+  }, []);
 
   // Dynamically build month list from real transaction data + always show current + last 12 months
   const months = useMemo(() => {
@@ -99,26 +103,28 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
 
         {/* Right side: Month selector, notifications, profile */}
         <div className="flex items-center space-x-2 sm:space-x-4">
-          {/* Month Selector dropdown - hidden on mobile, shown on desktop */}
-          <div className="relative hidden md:block">
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="appearance-none pl-4 pr-10 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer shadow-sm hover:bg-slate-100"
-            >
-              {months.map(m => (
-                <option key={m.value} value={m.value}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
-              <ChevronDown className="w-3.5 h-3.5" />
+          {/* Month Selector dropdown - hidden on mobile, shown on desktop ONLY on main dashboard */}
+          {pathname === "/dashboard" && (
+            <div className="relative hidden md:block">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="appearance-none pl-4 pr-10 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer shadow-sm hover:bg-slate-100"
+              >
+                {months.map(m => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
+                <ChevronDown className="w-3.5 h-3.5" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Notification bell popover */}
-          <div className="relative">
+          <div className="relative" ref={notifRef}>
             <button
               onClick={() => {
                 setNotifOpen(!notifOpen);
@@ -137,14 +143,12 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
             {/* Notifications Dropdown Panel */}
             <AnimatePresence>
               {notifOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 12, scale: 0.96 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                    className="absolute right-0 mt-3 w-80 sm:w-96 glass-card rounded-2xl shadow-xl z-50 overflow-hidden border border-border-color"
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden border border-border-color/80"
                   >
                     <div className="p-4 border-b border-border-color flex items-center justify-between bg-slate-50/50">
                       <span className="font-display font-bold text-xs text-text-primary uppercase tracking-wider">
@@ -202,7 +206,6 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
                       )}
                     </div>
                   </motion.div>
-                </>
               )}
             </AnimatePresence>
           </div>
@@ -231,14 +234,12 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
 
               <AnimatePresence>
                 {profileOpen && (
-                  <>
-                    <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
-                    <motion.div
-                      initial={{ opacity: 0, y: 12, scale: 0.96 }}
+                  <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.96 }}
-                      transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                      className="absolute right-0 mt-3 w-56 glass-card rounded-2xl shadow-xl z-50 p-4 border border-border-color"
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl z-50 p-4 border border-border-color/80"
                     >
                       <div className="flex flex-col items-center text-center pb-3 border-b border-border-color mb-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -278,7 +279,6 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
                         <span>Sign Out</span>
                       </button>
                     </motion.div>
-                  </>
                 )}
               </AnimatePresence>
             </div>

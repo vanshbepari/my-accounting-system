@@ -123,10 +123,11 @@ export default function Navbar({ onLoginClick }: NavbarProps = {}) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-b border-border-color bg-white/95 overflow-hidden"
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: "auto" }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+            className="md:hidden bg-white border-b border-border-color shadow-2xl overflow-hidden"
           >
             <div className="px-4 pt-3 pb-6 space-y-2 text-left">
               {navLinks.map((link) => {

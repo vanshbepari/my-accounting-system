@@ -87,11 +87,10 @@ function LoginContent() {
 
           {/* Logout status notice */}
           {logoutStatus && (
-            <div className={`flex items-center space-x-2 border rounded-xl px-4 py-2.5 mb-5 text-left ${
-              logoutStatus === "success" 
-                ? "bg-green-500/10 border-green-500/20" 
+            <div className={`flex items-center space-x-2 border rounded-xl px-4 py-2.5 mb-5 text-left ${logoutStatus === "success"
+                ? "bg-green-500/10 border-green-500/20"
                 : "bg-red-500/10 border-red-500/20"
-            }`}>
+              }`}>
               {logoutStatus === "success" ? (
                 <ShieldCheck className="w-4 h-4 text-green-400 flex-shrink-0" />
               ) : (
@@ -116,7 +115,7 @@ function LoginContent() {
               <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
             ) : (
               <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z"/>
+                <path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.466 0-6.277-2.85-6.277-6.36 0-3.51 2.811-6.36 6.277-6.36 1.497 0 2.87.525 3.957 1.4l3.11-3.15C19.123 2.115 15.932 1 12.24 1 6.032 1 1 6.07 1 12.36s5.032 11.36 11.24 11.36c6.438 0 10.748-4.57 10.748-11.08 0-.69-.06-1.36-.178-2.355H12.24z" />
               </svg>
             )}
             <span>{loading ? "Connecting to Google…" : "Continue with Google"}</span>

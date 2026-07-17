@@ -198,11 +198,11 @@ export default function DashboardPage() {
       color: netPL >= 0
         ? "from-emerald-500/10 to-teal-500/10 border-emerald-100/30 text-emerald-600"
         : "from-rose-500/10 to-pink-500/10 border-rose-100/30 text-rose-600",
-      iconBg: netPL >= 0 
+      iconBg: netPL >= 0
         ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
         : "bg-rose-500/10 border-rose-500/20 text-rose-600",
-      trendColor: netPL >= 0 
-        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" 
+      trendColor: netPL >= 0
+        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
         : "text-rose-500 bg-rose-500/10 border-rose-500/20",
       trend: netPL >= 0 ? "🟢 Net Margin achieved" : "🔴 Deficit recorded"
     }
@@ -254,7 +254,7 @@ export default function DashboardPage() {
           >
             ◀
           </button>
-          
+
           <div className="flex-grow sm:flex-grow-0 min-w-[150px] text-center px-4 py-2.5 border border-border-color rounded-xl bg-slate-50 shadow-inner flex items-center justify-center">
             <span className="font-display font-black text-xs sm:text-sm text-text-primary tracking-wide uppercase">
               {getMonthLabel(activeMonth)}

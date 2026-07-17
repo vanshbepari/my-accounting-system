@@ -146,7 +146,9 @@ const Skeleton3DBar = ({ heightPct }: { heightPct: number }) => {
 
 // Custom interactive tooltip with glassmorphism dark mode
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const CustomTooltip = ({ active, payload, label, formatCurrency }: any) => {
+const CustomTooltip = ({ active, payload, label, formatCurrency: propFormatCurrency }: any) => {
+  const { formatCurrency: contextFormatCurrency } = useAccounting();
+  const formatCurrency = propFormatCurrency || contextFormatCurrency;
   if (active && payload && payload.length) {
     const dateStr = payload[0].payload.dateFull;
     let formattedDate = "";
@@ -366,163 +368,7 @@ export default function ReportsPage() {
     return trendChartData.every(d => d.Revenue === 0 && d.Expenses === 0);
   }, [trendChartData]);
 
-  const performanceScore = useMemo(() => {
-    const rev = monthlyMetrics.revenue;
-    const exp = monthlyMetrics.expenses;
-    const profit = monthlyMetrics.profit;
-    const revGrowth = monthlyMetrics.revGrowth;
-    
-    if (rev === 0) return 0;
-    
-    const margin = (profit / rev) * 100;
-    const expRatio = (exp / rev) * 100;
-    
-    let score = 60; // base benchmark score
-    
-    // Profit margin rating (up to +25 points)
-    if (margin > 0) score += Math.min(25, margin * 0.5);
-    else score -= Math.min(30, Math.abs(margin) * 0.5);
-    
-    // Growth rating (up to +15 points)
-    if (revGrowth > 0) score += Math.min(15, revGrowth * 0.25);
-    else score -= Math.min(15, Math.abs(revGrowth) * 0.25);
-    
-    // Expense management ratio rating
-    if (expRatio < 40) score += 15;
-    else if (expRatio < 60) score += 5;
-    else if (expRatio > 80) score -= 15;
-    
-    return Math.max(10, Math.min(100, Math.round(score)));
-  }, [monthlyMetrics]);
-
-  // 3. Smart Business Insights Generator (AI Cards)
-  const smartInsights = useMemo(() => {
-    const list: { title: string; desc: string; type: "success" | "warning" | "info" | "purple"; badge: string }[] = [];
-    if (!activeMonth || transactions.length === 0) {
-      return [
-        {
-          title: "Setup Sandbox Sheet",
-          desc: "Complete at least one transaction to activate the real-time financial insights generator.",
-          type: "info" as const,
-          badge: "Ready"
-        }
-      ];
-    }
-
-    const metrics = monthlyMetrics;
-
-    // A. Revenue Growth Insight
-    if (metrics.revGrowth > 0) {
-      list.push({
-        title: "Revenue Growth Acceleration",
-        desc: `Your gross monthly revenue has expanded by ${metrics.revGrowth.toFixed(1)}% compared to the previous month. Keep up the high trading momentum!`,
-        type: "success",
-        badge: `+${metrics.revGrowth.toFixed(0)}% MoM`
-      });
-    } else if (metrics.revGrowth < 0) {
-      list.push({
-        title: "Revenue Correction Indicator",
-        desc: `Sales shrunk by ${Math.abs(metrics.revGrowth).toFixed(1)}% this month. Consider launching seasonal promotions or optimizing customer acquisition.`,
-        type: "warning",
-        badge: `${metrics.revGrowth.toFixed(0)}%`
-      });
-    }
-
-    // B. Expense Control Insight
-    if (metrics.expGrowth < metrics.revGrowth) {
-      list.push({
-        title: "Optimal Expense Management",
-        desc: "Excellent! Your revenues are expanding faster than your overhead costs, widening your monthly operating margin.",
-        type: "success",
-        badge: "Healthy Overhead"
-      });
-    } else if (metrics.expenses > 0 && metrics.expGrowth > 0) {
-      list.push({
-        title: "Overhead Warning Alert",
-        desc: `Expenses increased by ${metrics.expGrowth.toFixed(1)}% this month, outstripping income velocity. Conduct a thorough audit of operating outlays.`,
-        type: "warning",
-        badge: `Costs up ${metrics.expGrowth.toFixed(0)}%`
-      });
-    }
-
-    // C. Best Performing Month
-    try {
-      const monthGroups: Record<string, number> = {};
-      transactions.forEach(t => {
-        const m = t.date.substring(0, 7);
-        monthGroups[m] = (monthGroups[m] || 0) + (t.onlineAmount + t.cashAmount - t.expensesAmount);
-      });
-      let bestMonthKey = "";
-      let maxPL = -Infinity;
-      Object.entries(monthGroups).forEach(([m, pl]) => {
-        if (pl > maxPL) {
-          maxPL = pl;
-          bestMonthKey = m;
-        }
-      });
-      if (bestMonthKey) {
-        list.push({
-          title: "Peak Trading Period Peak",
-          desc: `Your all-time best operating period is ${getMonthLabel(bestMonthKey)} yielding a record net surplus of ${formatCurrency(maxPL)}.`,
-          type: "purple",
-          badge: "Historical Peak"
-        });
-      }
-    } catch {}
-
-    // D. Weekend Sales Grouping
-    try {
-      const activeMonthTxs = transactions.filter(t => t.date.startsWith(activeMonth));
-      let weekendRev = 0, weekendCount = 0;
-      let weekdayRev = 0, weekdayCount = 0;
-
-      activeMonthTxs.forEach(t => {
-        const d = new Date(t.date).getDay();
-        const rev = t.onlineAmount + t.cashAmount;
-        if (d === 0 || d === 6) { // Sun || Sat
-          weekendRev += rev;
-          weekendCount++;
-        } else {
-          weekdayRev += rev;
-          weekdayCount++;
-        }
-      });
-
-      const avgWeekend = weekendCount > 0 ? weekendRev / weekendCount : 0;
-      const avgWeekday = weekdayCount > 0 ? weekdayRev / weekdayCount : 0;
-
-      if (avgWeekend > avgWeekday && avgWeekday > 0) {
-        const ratio = ((avgWeekend - avgWeekday) / avgWeekday) * 100;
-        list.push({
-          title: "Weekend Sales Surge detected",
-          desc: `Weekend daily transaction averages are consistently ${ratio.toFixed(0)}% higher than standard weekdays. Consider allocating advertising budget here.`,
-          type: "info",
-          badge: "Weekend Surge"
-        });
-      } else if (avgWeekday > avgWeekend && avgWeekend > 0) {
-        const ratio = ((avgWeekday - avgWeekend) / avgWeekend) * 100;
-        list.push({
-          title: "Weekday Trade Dominance",
-          desc: `Weekdays yield ${ratio.toFixed(0)}% higher business volumes on average. Align staff resources to support the weekday load.`,
-          type: "info",
-          badge: "Weekday Focus"
-        });
-      }
-    } catch {}
-
-    // E. Expense consumption ratio
-    if (metrics.revenue > 0) {
-      const ratio = (metrics.expenses / metrics.revenue) * 100;
-      list.push({
-        title: "Capital Conservation Factor",
-        desc: `Overhead costs are currently consuming ${ratio.toFixed(1)}% of your gross monthly revenues. Maintaining this below 60% ensures high runway safety.`,
-        type: ratio > 60 ? "warning" : "success",
-        badge: `${ratio.toFixed(0)}% Cost Burn`
-      });
-    }
-
-    return list;
-  }, [activeMonth, transactions, monthlyMetrics, formatCurrency]);
+  // Note: Financial Health Score and AI-Style Insights are defined below cashFlowMetrics to access runway and category allocations.
 
   // 4. Monthly Comparison Details
   const monthCompData = useMemo(() => {
@@ -628,17 +474,31 @@ export default function ReportsPage() {
     }));
 
     if (parsedData.length === 0) {
-      // Stunning visual sandbox placeholders if zero costs logged
-      return [
-        { name: "Rent", value: 12000, percentage: 35 },
-        { name: "Salary", value: 15000, percentage: 44 },
-        { name: "Stock", value: 5000, percentage: 15 },
-        { name: "Utilities", value: 2000, percentage: 6 }
-      ];
+      // No expense data logged — return empty so the UI shows a proper empty state
+      return [];
     }
 
     return parsedData.sort((a, b) => b.value - a.value);
   }, [activeMonth, transactions]);
+
+  // 6.5 Segments for Donut Chart calculation
+  const segments = useMemo(() => {
+    const totalValue = expenseBreakdownData.reduce((sum, item) => sum + item.value, 0);
+    let accumulatedValue = 0;
+    return expenseBreakdownData.map((item, idx) => {
+      const color = BREAKDOWN_COLORS[idx % BREAKDOWN_COLORS.length];
+      const length = (item.percentage / 100) * 282.743;
+      const offset = totalValue > 0 ? (accumulatedValue / totalValue) * 282.743 : 0;
+      accumulatedValue += item.value;
+      return {
+        ...item,
+        color,
+        length,
+        offset,
+        idx
+      };
+    });
+  }, [expenseBreakdownData]);
 
   // 7. Cash Flow waterfall analytics
   const cashFlowMetrics = useMemo(() => {
@@ -694,6 +554,173 @@ export default function ReportsPage() {
       dailyBalances
     };
   }, [activeMonth, transactions, monthlyMetrics, dailySummaries, user]);
+
+  const financialHealthMetrics = useMemo(() => {
+    const rev = monthlyMetrics.revenue;
+    const exp = monthlyMetrics.expenses;
+    const profit = monthlyMetrics.profit;
+    const revGrowth = monthlyMetrics.revGrowth;
+    const carryForward = cashFlowMetrics.carryForward;
+
+    if (rev === 0) {
+      return {
+        score: 0,
+        rating: "Critical",
+        marginScore: 0,
+        overheadScore: 0,
+        runwayScore: 0,
+        growthScore: 0,
+        marginVal: 0,
+        overheadVal: 0,
+        runwayMonths: 0,
+      };
+    }
+
+    const marginVal = (profit / rev) * 100;
+    const overheadVal = (exp / rev) * 100;
+    const runwayMonths = exp > 0 ? carryForward / exp : 12;
+
+    // 1. Profit Margin Score (max 30 pts)
+    let marginScore = 0;
+    if (marginVal >= 30) marginScore = 30;
+    else if (marginVal > 0) marginScore = Math.round(marginVal * 1.0);
+
+    // 2. Overhead Control Score (max 25 pts)
+    let overheadScore = 0;
+    if (overheadVal < 40) overheadScore = 25;
+    else if (overheadVal < 80) overheadScore = Math.round((80 - overheadVal) * 0.625);
+
+    // 3. Cash Runway Safety Score (max 25 pts)
+    let runwayScore = 0;
+    if (runwayMonths >= 6) runwayScore = 25;
+    else if (runwayMonths >= 1) runwayScore = Math.round((runwayMonths - 1) * 5);
+
+    // 4. Revenue Growth Velocity Score (max 20 pts)
+    let growthScore = 0;
+    if (revGrowth >= 10) growthScore = 20;
+    else if (revGrowth > 0) growthScore = Math.round(revGrowth * 2.0);
+
+    const totalScore = Math.max(10, Math.min(100, marginScore + overheadScore + runwayScore + growthScore));
+
+    let rating = "Critical";
+    if (totalScore >= 80) rating = "Excellent";
+    else if (totalScore >= 65) rating = "Good";
+    else if (totalScore >= 45) rating = "Fair";
+
+    return {
+      score: totalScore,
+      rating,
+      marginScore,
+      overheadScore,
+      runwayScore,
+      growthScore,
+      marginVal,
+      overheadVal,
+      runwayMonths,
+    };
+  }, [monthlyMetrics, cashFlowMetrics]);
+
+  const smartInsights = useMemo(() => {
+    const list: { title: string; desc: string; type: "success" | "warning" | "info" | "purple"; badge: string }[] = [];
+    if (!activeMonth || transactions.length === 0) {
+      return [
+        {
+          title: "Setup Sandbox Sheet",
+          desc: "Complete at least one transaction to activate the real-time financial insights generator.",
+          type: "info" as const,
+          badge: "Ready"
+        }
+      ];
+    }
+
+    const metrics = monthlyMetrics;
+    const carryForward = cashFlowMetrics.carryForward;
+    const daysInMonth = getDaysInMonth(activeMonth);
+    const dailyBurn = metrics.expenses / (daysInMonth || 30);
+    const dailyRevAvg = metrics.revenue / (daysInMonth || 30);
+    const profitMarginRatio = metrics.revenue > 0 ? (metrics.profit / metrics.revenue) : 0;
+    const marginVal = profitMarginRatio * 100;
+
+    // 1. Break-Even Threshold Analysis
+    const breakEvenMonthly = metrics.expenses;
+    const breakEvenDaily = dailyBurn;
+    const salesFloorForHealthyMargin = dailyBurn / 0.8;
+
+    if (metrics.profit > 0) {
+      list.push({
+        title: "Break-Even Threshold Analysis",
+        desc: `With a daily operating expense burn of ${formatCurrency(breakEvenDaily)} (${formatCurrency(metrics.expenses)}/mo), your current average daily sales of ${formatCurrency(dailyRevAvg)} are covering costs cleanly. To secure a safe 20% profit margin buffer, maintain a daily sales floor of ${formatCurrency(salesFloorForHealthyMargin)}. Currently, you operate ${dailyRevAvg >= salesFloorForHealthyMargin ? "above" : "slightly below"} this threshold.`,
+        type: "info",
+        badge: "Break-Even"
+      });
+    } else {
+      list.push({
+        title: "Break-Even Deficit Warning",
+        desc: `Your daily operating expense burn of ${formatCurrency(breakEvenDaily)} (${formatCurrency(metrics.expenses)}/mo) is outstripping average daily sales of ${formatCurrency(dailyRevAvg)}. You require an additional ${formatCurrency(breakEvenMonthly - metrics.revenue)} in monthly sales to reach break-even. Target an immediate daily sales floor of ${formatCurrency(breakEvenDaily)} just to cover costs.`,
+        type: "warning",
+        badge: "Break-Even Deficit"
+      });
+    }
+
+    // 2. Cash Runway Safety Index
+    const runwayVal = metrics.expenses > 0 ? (carryForward / metrics.expenses) : 12;
+    const targetBuffer = metrics.expenses * 6;
+    const bufferGap = targetBuffer - carryForward;
+
+    list.push({
+      title: "Cash Runway Safety Index",
+      desc: `Your liquid carry forward balance of ${formatCurrency(carryForward)} provides an estimated runway of ${runwayVal.toFixed(1)} months under the current monthly expense structure of ${formatCurrency(metrics.expenses)}. To secure the recommended 6-month operating safety reserve (${formatCurrency(targetBuffer)}), you need to accumulate an additional ${formatCurrency(Math.max(0, bufferGap))} in cash reserves. Discretionary expansion investments should be deferred until reserves cross this safety threshold.`,
+      type: "purple",
+      badge: runwayVal >= 6 ? "Runway Safe" : "Runway Low"
+    });
+
+    // 3. Overhead Allocation Audit
+    let topExpName = "None";
+    let topExpVal = 0;
+    let topExpPct = 0;
+    if (expenseBreakdownData && expenseBreakdownData.length > 0) {
+      topExpName = expenseBreakdownData[0].name;
+      topExpVal = expenseBreakdownData[0].value;
+      topExpPct = expenseBreakdownData[0].percentage;
+    }
+
+    if (topExpVal > 0) {
+      const savings10 = topExpVal * 0.1;
+      const potentialMargin = ((metrics.profit + savings10) / (metrics.revenue || 1)) * 100;
+      list.push({
+        title: "Overhead Allocation Audit",
+        desc: `Your primary cost center is '${topExpName}', consuming ${topExpPct.toFixed(1)}% of total expenses (${formatCurrency(topExpVal)}). A 10% efficiency trim in this sector would save ${formatCurrency(savings10)}/month, directly transferring to your bottom line and increasing your net profit margin from ${marginVal.toFixed(1)}% to ${potentialMargin.toFixed(1)}%.`,
+        type: "warning",
+        badge: "Cost Trim"
+      });
+    }
+
+    // 4. Profit Margin Calibration
+    if (marginVal < 15) {
+      list.push({
+        title: "Profit Margin Calibration",
+        desc: `Your net margin is currently low at ${marginVal.toFixed(1)}% (target benchmark is 20-30%). With daily overhead at ${formatCurrency(breakEvenDaily)}, consider a structured 5-8% price optimization on low-overhead retail items or renegotiating recurring SaaS subscriptions to lift the margin index.`,
+        type: "warning",
+        badge: "Margin Weak"
+      });
+    } else if (marginVal < 30) {
+      list.push({
+        title: "Profit Margin Calibration",
+        desc: `Operating margin is stable at ${marginVal.toFixed(1)}%. To scale profit into the premium 30%+ tier, prioritize up-selling high-margin services, streamline digital UPI receipts to lower cash handling fees, and automate client invoices.`,
+        type: "success",
+        badge: "Margin Healthy"
+      });
+    } else {
+      list.push({
+        title: "Profit Margin Calibration",
+        desc: `Outstanding profit margin of ${marginVal.toFixed(1)}% is in the top decile of retail efficiency! With a monthly net profit of ${formatCurrency(metrics.profit)}, you have high capital reinvestment capacity. Consider allocating 15% of this surplus to digital customer acquisition or SEO optimization to drive next-quarter growth.`,
+        type: "success",
+        badge: "Margin Premium"
+      });
+    }
+
+    return list;
+  }, [activeMonth, transactions, monthlyMetrics, cashFlowMetrics, expenseBreakdownData, formatCurrency]);
 
   // 8. Advanced Smart Decisions Summary Paragraph
   const smartAdvancedSummary = useMemo(() => {
@@ -1891,6 +1918,146 @@ export default function ReportsPage() {
             className="space-y-8"
           >
             
+            {/* SECTION 1.5 — FINANCIAL HEALTH SCORE RADIAL CARD */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="glass-card rounded-3xl border border-slate-100 bg-gradient-to-tr from-white via-slate-50/10 to-transparent shadow-xl shadow-slate-100/30 p-6 sm:p-8 text-left transition-all duration-500 hover:border-slate-200/80 hover:shadow-2xl relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
+                <div className="md:col-span-4 flex flex-col items-center justify-center relative">
+                  <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
+                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="42"
+                        className="stroke-slate-100"
+                        strokeWidth="7"
+                        fill="transparent"
+                      />
+                      <motion.circle
+                        cx="50"
+                        cy="50"
+                        r="42"
+                        className={`stroke-current ${
+                          financialHealthMetrics.score >= 80 ? "text-emerald-500" :
+                          financialHealthMetrics.score >= 65 ? "text-primary" :
+                          financialHealthMetrics.score >= 45 ? "text-amber-500" : "text-rose-500"
+                        }`}
+                        strokeWidth="7"
+                        fill="transparent"
+                        strokeDasharray={2 * Math.PI * 42}
+                        initial={{ strokeDashoffset: 2 * Math.PI * 42 }}
+                        animate={{ strokeDashoffset: 2 * Math.PI * 42 * (1 - financialHealthMetrics.score / 100) }}
+                        transition={{ duration: 1.2, ease: "easeOut" }}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-4xl font-black text-slate-800 tracking-tighter leading-none">
+                        {financialHealthMetrics.score}
+                      </span>
+                      <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest mt-1">
+                        SCORE
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <span className={`text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-1 rounded-full mt-4 border ${
+                    financialHealthMetrics.rating === "Excellent" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+                    financialHealthMetrics.rating === "Good" ? "bg-indigo-50 text-indigo-600 border-indigo-100" :
+                    financialHealthMetrics.rating === "Fair" ? "bg-amber-50 text-amber-600 border-amber-105" :
+                    "bg-rose-50 text-rose-600 border-rose-100"
+                  }`}>
+                    {financialHealthMetrics.rating} Health Rating
+                  </span>
+                </div>
+
+                <div className="md:col-span-8 space-y-5">
+                  <div>
+                    <h3 className="font-display font-black text-xl text-text-primary tracking-tight flex items-center gap-2">
+                      <Award className="w-5.5 h-5.5 text-primary stroke-[2.2]" />
+                      <span>Financial Health Audit Index</span>
+                    </h3>
+                    <p className="text-xs text-text-secondary mt-1 font-semibold leading-relaxed">
+                      A real-time evaluation of corporate health based on gross margins, expense ratios, carry-forward cash buffers, and sales growth rates.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
+                      <div className="flex justify-between text-xs font-bold text-text-primary">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          Operating Margin
+                        </span>
+                        <span>{financialHealthMetrics.marginScore}/30 pts</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(financialHealthMetrics.marginScore / 30) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-extrabold block uppercase tracking-wider">
+                        Current margin: {financialHealthMetrics.marginVal.toFixed(1)}%
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
+                      <div className="flex justify-between text-xs font-bold text-text-primary">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-indigo-500" />
+                          Overhead Ratio
+                        </span>
+                        <span>{financialHealthMetrics.overheadScore}/25 pts</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${(financialHealthMetrics.overheadScore / 25) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-extrabold block uppercase tracking-wider">
+                        Current expense ratio: {financialHealthMetrics.overheadVal.toFixed(1)}%
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
+                      <div className="flex justify-between text-xs font-bold text-text-primary">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-purple-500" />
+                          Cash Reserves Runway
+                        </span>
+                        <span>{financialHealthMetrics.runwayScore}/25 pts</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-purple-500 rounded-full" style={{ width: `${(financialHealthMetrics.runwayScore / 25) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-extrabold block uppercase tracking-wider">
+                        Runway reserve: {financialHealthMetrics.runwayMonths.toFixed(1)} months
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 p-3 rounded-2xl bg-slate-50 border border-slate-100/50">
+                      <div className="flex justify-between text-xs font-bold text-text-primary">
+                        <span className="flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                          Revenue MoM Growth
+                        </span>
+                        <span>{financialHealthMetrics.growthScore}/20 pts</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-slate-200/60 rounded-full overflow-hidden">
+                        <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${(financialHealthMetrics.growthScore / 20) * 100}%` }} />
+                      </div>
+                      <span className="text-[9px] text-slate-400 font-extrabold block uppercase tracking-wider">
+                        Growth rate: {monthlyMetrics.revGrowth.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            
             {/* SECTION 2 — REVENUE VS EXPENSE ANALYTICS */}
             <div className="glass-card rounded-3xl border border-slate-100 bg-gradient-to-b from-white to-slate-50/50 shadow-xl shadow-slate-100/30 p-6 sm:p-8 text-left transition-all duration-500 ease-out hover:border-slate-200/80 hover:shadow-2xl hover:shadow-slate-100/50 group relative overflow-hidden">
               
@@ -1902,7 +2069,7 @@ export default function ReportsPage() {
                     <span className="text-xs text-text-secondary">Chronological breakdown of inflows, outlays, and margins.</span>
                     <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white shadow-sm border border-slate-800">
                       <Award className="w-3 h-3 text-yellow-400" />
-                      <span>Efficiency Score: {performanceScore}/100</span>
+                      <span>Financial Health Score: {financialHealthMetrics.score}/100</span>
                     </span>
                   </div>
                 </div>
@@ -1998,9 +2165,9 @@ export default function ReportsPage() {
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Operating Health</span>
                     <h4 className={`text-lg font-black tracking-tight leading-none mt-1 ${
-                      performanceScore >= 80 ? "text-emerald-600" : performanceScore >= 65 ? "text-primary" : performanceScore >= 50 ? "text-amber-600" : "text-rose-600"
+                      financialHealthMetrics.score >= 80 ? "text-emerald-600" : financialHealthMetrics.score >= 65 ? "text-primary" : financialHealthMetrics.score >= 45 ? "text-amber-600" : "text-rose-600"
                     }`}>
-                      {performanceScore >= 80 ? "Excellent" : performanceScore >= 65 ? "Optimal" : performanceScore >= 50 ? "Stable" : "Deficit"}
+                      {financialHealthMetrics.rating}
                     </h4>
                     <span className="text-[10px] font-extrabold text-slate-400 mt-1 block">
                       Index Rating
@@ -2259,7 +2426,7 @@ export default function ReportsPage() {
             {/* SECTION 6 & SECTION 7 — EXPENSE BREAKDOWN & LIQUIDITY WATERFALL */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
               
-              {/* SECTION 6 — EXPENSE BREAKDOWN ANALYTICS (Donut chart) */}
+              {/* SECTION 6 — EXPENSE BREAKDOWN ANALYTICS (Flowing Bubbles Grid) */}
               <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-100 bg-gradient-to-b from-white to-slate-50/50 shadow-xl shadow-slate-100/30 text-left justify-between flex flex-col hover:border-slate-200/80 hover:shadow-2xl hover:shadow-slate-100/50 transition-all duration-500 ease-out group">
                 <div>
                   <h3 className="font-display font-black text-lg text-text-primary tracking-tight">Expense Classifications</h3>
@@ -2267,88 +2434,102 @@ export default function ReportsPage() {
                 </div>
 
                 {chartLoading ? (
-                  /* Donut loading skeleton */
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-8 my-6 animate-pulse w-full h-48">
-                    <div className="w-36 h-36 rounded-full border-[14px] border-slate-100/80 flex items-center justify-center shrink-0" />
-                    <div className="flex-1 space-y-3 w-full">
-                      <div className="h-9 bg-slate-100/80 rounded-xl" />
-                      <div className="h-9 bg-slate-100/80 rounded-xl" />
-                      <div className="h-9 bg-slate-100/80 rounded-xl" />
+                  <div className="flex flex-col items-center justify-center space-y-6 my-8 animate-pulse w-full">
+                    <div className="w-40 h-40 rounded-full bg-slate-100" />
+                    <div className="w-full space-y-3">
+                      <div className="h-10 bg-slate-100 rounded-xl" />
+                      <div className="h-10 bg-slate-100 rounded-xl" />
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-6 my-6">
-                    {/* Recharts PieChart */}
-                    <div className="w-48 h-48 shrink-0 relative flex items-center justify-center">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
-                          <Pie
-                            data={expenseBreakdownData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius="65%"
-                            outerRadius="85%"
-                            paddingAngle={3}
-                            dataKey="value"
-                            onMouseLeave={() => setActiveExpenseIndex(null)}
-                          >
-                            {expenseBreakdownData.map((entry, idx) => {
-                              const isHovered = activeExpenseIndex === idx;
-                              const isAnyHovered = activeExpenseIndex !== null;
-                              const fillOpacity = isAnyHovered ? (isHovered ? 1.0 : 0.35) : 1.0;
-                              return (
-                                <Cell 
-                                  key={`cell-${idx}`} 
-                                  fill={BREAKDOWN_COLORS[idx % BREAKDOWN_COLORS.length]} 
-                                  style={{ opacity: fillOpacity, transition: "opacity 0.25s ease-out" }}
-                                  onMouseEnter={() => setActiveExpenseIndex(idx)}
-                                />
-                              );
-                            })}
-                          </Pie>
-                          <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
+                  <div className="flex flex-col items-center my-6 space-y-6 w-full">
+                    {/* Interactive Donut Chart */}
+                    <div className="relative w-48 h-48 xs:w-52 xs:h-52 sm:w-64 sm:h-64 flex items-center justify-center shrink-0">
+                      <svg
+                        viewBox="0 0 120 120"
+                        className="w-full h-full transform -rotate-90 select-none"
+                      >
+                        {/* Background subtle ring */}
+                        <circle
+                          cx="60"
+                          cy="60"
+                          r="45"
+                          fill="transparent"
+                          stroke="#f1f5f9"
+                          strokeWidth="10"
+                        />
+                        
+                        {/* Colored segments */}
+                        {segments.map((segment) => {
+                          const isHovered = activeExpenseIndex === segment.idx;
+                          return (
+                            <motion.circle
+                              key={segment.name}
+                              cx="60"
+                              cy="60"
+                              r="45"
+                              fill="transparent"
+                              stroke={segment.color}
+                              strokeWidth={10}
+                              strokeDasharray={`${segment.length} 282.743`}
+                              strokeDashoffset={-segment.offset}
+                              animate={{
+                                strokeWidth: isHovered ? 14 : 10,
+                                opacity: activeExpenseIndex === null || isHovered ? 1 : 0.4
+                              }}
+                              transition={{ type: "tween", duration: 0.18, ease: "easeOut" }}
+                              className="cursor-pointer origin-center"
+                              onMouseEnter={() => setActiveExpenseIndex(segment.idx)}
+                              onMouseLeave={() => setActiveExpenseIndex(null)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveExpenseIndex(activeExpenseIndex === segment.idx ? null : segment.idx);
+                              }}
+                            />
+                          );
+                        })}
+                      </svg>
 
-                      {/* Dynamic Absolute center totals with AnimatePresence */}
-                      <div className="absolute flex flex-col items-center justify-center bg-white/95 border border-slate-100 w-28 h-28 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 text-center p-2.5 overflow-hidden z-10">
+                      {/* Solid central display card - Tapping resets filters */}
+                      <div 
+                        onClick={() => setActiveExpenseIndex(null)}
+                        className="absolute w-[68%] h-[68%] bg-white rounded-full shadow-lg border border-slate-100/80 flex flex-col items-center justify-center text-center p-4 cursor-pointer select-none"
+                      >
                         <AnimatePresence mode="wait">
-                          {activeExpenseIndex !== null && expenseBreakdownData[activeExpenseIndex] ? (
+                          {activeExpenseIndex !== null && segments[activeExpenseIndex] ? (
                             <motion.div
-                              key={expenseBreakdownData[activeExpenseIndex].name}
-                              initial={{ opacity: 0, scale: 0.85 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.85 }}
+                              key={`hovered-${activeExpenseIndex}`}
+                              initial={{ opacity: 0, scale: 0.9, y: 5 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.9, y: -5 }}
                               transition={{ duration: 0.15 }}
-                              className="flex flex-col items-center"
+                              className="flex flex-col items-center w-full"
                             >
-                              <span className="text-[8px] font-extrabold uppercase tracking-wider text-slate-400 line-clamp-1">
-                                {expenseBreakdownData[activeExpenseIndex].name}
+                              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400 truncate max-w-full">
+                                {segments[activeExpenseIndex].name}
                               </span>
-                              <span className="text-sm font-black text-slate-800 mt-0.5 truncate max-w-[95px]">
-                                {formatCurrency(expenseBreakdownData[activeExpenseIndex].value)}
+                              <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900 truncate max-w-full">
+                                {formatCurrency(segments[activeExpenseIndex].value)}
                               </span>
-                              <span className="text-[9px] font-bold text-primary mt-0.5 px-2 py-0.5 rounded-full bg-primary/10">
-                                {expenseBreakdownData[activeExpenseIndex].percentage.toFixed(1)}%
+                              <span className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-widest mt-0.5">
+                                {segments[activeExpenseIndex].percentage.toFixed(0)}% Share
                               </span>
                             </motion.div>
                           ) : (
                             <motion.div
-                              key="total-burn"
-                              initial={{ opacity: 0, scale: 0.85 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.85 }}
+                              key="total-expenses"
+                              initial={{ opacity: 0, scale: 0.9, y: 5 }}
+                              animate={{ opacity: 1, scale: 1, y: 0 }}
+                              exit={{ opacity: 0, scale: 0.9, y: -5 }}
                               transition={{ duration: 0.15 }}
-                              className="flex flex-col items-center"
+                              className="flex flex-col items-center w-full"
                             >
-                              <span className="text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
-                                Total Burn
-                              </span>
-                              <span className="text-base font-black text-slate-850 mt-0.5">
+                              <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400">Total</span>
+                              <span className="text-xl sm:text-2xl font-black tracking-tight mt-0.5 text-slate-900">
                                 {formatCurrency(monthlyMetrics.expenses)}
                               </span>
-                              <span className="text-[8px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">
-                                All Sectors
+                              <span className="text-[9px] sm:text-[10px] font-extrabold text-slate-450 mt-0.5 uppercase tracking-widest">
+                                Expenses
                               </span>
                             </motion.div>
                           )}
@@ -2356,47 +2537,35 @@ export default function ReportsPage() {
                       </div>
                     </div>
 
-                    {/* Clean Legend checklist with hover trigger & mini-progress indicators */}
-                    <div className="flex-1 space-y-2 w-full max-w-xs sm:max-w-none">
+                    {/* Responsive Staggered Grid: Enforces exactly 3 columns on mobile, tablet, and desktop */}
+                    <div className="grid grid-cols-3 gap-3.5 w-full pt-4 max-w-3xl mx-auto">
                       {expenseBreakdownData.map((item, idx) => {
-                        const isHovered = activeExpenseIndex === idx;
                         const color = BREAKDOWN_COLORS[idx % BREAKDOWN_COLORS.length];
+                        const isHovered = activeExpenseIndex === idx;
                         return (
-                          <div 
-                            key={item.name} 
+                          <motion.div
+                            key={item.name}
+                            whileHover={{ scale: 1.03 }}
                             onMouseEnter={() => setActiveExpenseIndex(idx)}
                             onMouseLeave={() => setActiveExpenseIndex(null)}
-                            className={`flex flex-col text-xs border p-3 rounded-xl transition-all duration-300 ease-out cursor-pointer ${
-                              isHovered 
-                                ? "bg-white border-slate-200/80 shadow-md scale-[1.03] translate-x-1" 
-                                : "bg-slate-50/50 border-slate-100/50 shadow-inner opacity-80 hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveExpenseIndex(activeExpenseIndex === idx ? null : idx);
+                            }}
+                            className={`w-full h-20 sm:h-24 rounded-2xl sm:rounded-full border bg-white shadow-sm flex flex-row items-center px-2 py-2 sm:px-4 sm:py-3 transition-all duration-200 cursor-pointer min-w-0 justify-start text-left overflow-hidden space-x-2 sm:space-x-3.5 ${
+                              isHovered ? "border-primary shadow-md ring-2 ring-primary/10" : "border-slate-200/80"
                             }`}
                           >
-                            {/* Top info row */}
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center space-x-2">
-                                <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                                <span className="font-extrabold text-text-primary truncate max-w-[120px]">{item.name}</span>
-                              </div>
-                              <span className="text-text-secondary font-extrabold">
-                                {formatCurrency(item.value)}
+                            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                            <div className="flex flex-col justify-center min-w-0 w-full text-left overflow-hidden">
+                              <span className={`text-[10px] sm:text-sm md:text-base font-black leading-tight block break-words line-clamp-2 transition-colors duration-200 ${
+                                isHovered ? "text-primary" : "text-slate-800"
+                              }`}>{item.name}</span>
+                              <span className="text-[8px] xs:text-[9px] sm:text-xs md:text-sm font-extrabold text-slate-450 mt-0.5 leading-tight block">
+                                {item.percentage.toFixed(0)}% • {formatCurrency(item.value)}
                               </span>
                             </div>
-                            {/* Progress bar container */}
-                            <div className="w-full bg-slate-200/50 rounded-full h-1.5 mt-2 overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${item.percentage}%` }}
-                                transition={{ duration: 0.5, ease: "easeOut" }}
-                                className="h-full rounded-full"
-                                style={{ backgroundColor: color }}
-                              />
-                            </div>
-                            <div className="flex justify-between items-center mt-1 text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                              <span>Allocation share</span>
-                              <span>{item.percentage.toFixed(1)}%</span>
-                            </div>
-                          </div>
+                          </motion.div>
                         );
                       })}
                     </div>
@@ -2437,37 +2606,55 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                {/* Stat grid widgets */}
-                <div className="grid grid-cols-3 gap-4 my-4 bg-slate-50/40 border border-slate-100/80 p-4 rounded-2xl shadow-inner">
-                  <div className="card text-left">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Opening</span>
-                    <span className="text-xs sm:text-sm font-black text-text-primary block mt-1">{formatCurrency(cashFlowMetrics.opening)}</span>
-                    <span className="text-[8px] font-semibold text-slate-400 block mt-0.5">Base Capital</span>
+                {/* Redesigned 3-step Visual Flow Ledger Connectors */}
+                <div className="flex flex-col sm:flex-row items-stretch justify-between gap-3 my-4 bg-slate-50/40 border border-slate-100/80 p-4 rounded-2xl shadow-inner">
+                  {/* Opening Balance */}
+                  <div className="flex-1 flex flex-col justify-between p-3 rounded-xl bg-white border border-slate-100 hover:border-primary/20 transition-all duration-300">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">1. Opening Reserves</span>
+                      <span className="text-sm font-black text-slate-800 block mt-1">{formatCurrency(cashFlowMetrics.opening)}</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-400 block mt-1.5 uppercase tracking-wide">Starting Balance</span>
                   </div>
-                  <div className="card text-left border-l border-slate-100 pl-4">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Net Flow</span>
-                    <span className={`text-xs sm:text-sm font-black block mt-1 ${cashFlowMetrics.netMovement >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                      {cashFlowMetrics.netMovement >= 0 ? "+" : ""}{formatCurrency(cashFlowMetrics.netMovement)}
-                    </span>
-                    {/* Visual Growth Badge */}
-                    <span className={`inline-block text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border mt-0.5 ${
+
+                  <div className="hidden sm:flex items-center justify-center shrink-0 text-slate-300">
+                    <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+
+                  {/* Net Movement */}
+                  <div className="flex-1 flex flex-col justify-between p-3 rounded-xl bg-white border border-slate-100 hover:border-primary/20 transition-all duration-300">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">2. Net Flow Yield</span>
+                      <span className={`text-sm font-black block mt-1 ${cashFlowMetrics.netMovement >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        {cashFlowMetrics.netMovement >= 0 ? "+" : ""}{formatCurrency(cashFlowMetrics.netMovement)}
+                      </span>
+                    </div>
+                    <span className={`inline-block text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border mt-1.5 self-start ${
                       cashFlowMetrics.netMovement >= 0
                         ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                         : "bg-rose-50 text-rose-600 border-rose-100"
                     }`}>
                       {cashFlowMetrics.opening > 0 ? (cashFlowMetrics.netMovement >= 0 ? "+" : "") : ""}
-                      {cashFlowMetrics.opening > 0 ? ((cashFlowMetrics.netMovement / cashFlowMetrics.opening) * 100).toFixed(1) : "0"}%
+                      {cashFlowMetrics.opening > 0 ? ((cashFlowMetrics.netMovement / cashFlowMetrics.opening) * 100).toFixed(1) : "0"}% Yield
                     </span>
                   </div>
-                  <div className="card text-left border-l border-slate-100 pl-4">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Carry Fwd</span>
-                    <span className="text-xs sm:text-sm font-black text-primary block mt-1">{formatCurrency(cashFlowMetrics.carryForward)}</span>
-                    <span className={`inline-block text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border mt-0.5 ${
+
+                  <div className="hidden sm:flex items-center justify-center shrink-0 text-slate-300">
+                    <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+
+                  {/* Carry Forward */}
+                  <div className="flex-1 flex flex-col justify-between p-3 rounded-xl bg-white border border-slate-100 hover:border-primary/20 transition-all duration-300">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">3. Carry Forward</span>
+                      <span className="text-sm font-black text-primary block mt-1">{formatCurrency(cashFlowMetrics.carryForward)}</span>
+                    </div>
+                    <span className={`inline-block text-[8px] font-extrabold px-1.5 py-0.5 rounded-md border mt-1.5 self-start ${
                       cashFlowMetrics.carryForward >= cashFlowMetrics.opening
                         ? "bg-emerald-50 text-emerald-600 border-emerald-100"
                         : "bg-rose-50 text-rose-600 border-rose-100"
                     }`}>
-                      {cashFlowMetrics.carryForward >= cashFlowMetrics.opening ? "🟢 Reserves Up" : "🔴 Deficit"}
+                      {cashFlowMetrics.carryForward >= cashFlowMetrics.opening ? "🟢 Reserves Up" : "🔴 Reserves Down"}
                     </span>
                   </div>
                 </div>
@@ -2475,7 +2662,6 @@ export default function ReportsPage() {
                 {/* Running balance / Inflow vs Outflow Chart container */}
                 <div className="h-44 w-full mt-2 relative">
                   {chartLoading ? (
-                    /* Shimmering loading skeleton */
                     <div className="h-44 w-full flex flex-col justify-between pt-4">
                       <div className="flex items-end justify-between h-32 px-4 border-b border-slate-100/50 my-auto animate-pulse">
                         {Array.from({ length: 14 }).map((_, i) => {
@@ -2498,7 +2684,7 @@ export default function ReportsPage() {
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F8FAFC" vertical={false} />
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip />} />
@@ -2535,7 +2721,7 @@ export default function ReportsPage() {
                             <stop offset="100%" stopColor="#9f1239" />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#F8FAFC" vertical={false} />
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
