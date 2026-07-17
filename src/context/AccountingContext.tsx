@@ -490,7 +490,154 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     };
   }, [loadUserData, addNotification]);
 
+  // ── Supabase Realtime Subscription ─────────────────────────────────────────
+  useEffect(() => {
+    if (!user?.id) return;
 
+    // Listen to changes on daily_entries
+    const dailyEntriesChannel = supabase
+      .channel("daily_entries_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "daily_entries",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          console.log("[Realtime] daily_entries updated, reloading...");
+          const txs = await fetchUserTransactions(user.id);
+          setTransactions(txs);
+        }
+      )
+      .subscribe();
+
+    // Listen to changes on budgets
+    const budgetsChannel = supabase
+      .channel("budgets_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "budgets",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          console.log("[Realtime] budgets updated, reloading...");
+          const loadedBudgets = await fetchUserBudgets(user.id);
+          setBudgets(loadedBudgets || []);
+        }
+      )
+      .subscribe();
+
+    // Listen to changes on targeting
+    const targetingChannel = supabase
+      .channel("targeting_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "targeting",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log("[Realtime] targeting updated, reloading...");
+          if (payload.new) {
+            const data = payload.new as any;
+            setRevenueTarget(Number(data.revenue_target));
+            setNetProfitTarget(Number(data.net_profit_target));
+            setExpenseCeiling(Number(data.expense_ceiling));
+          }
+        }
+      )
+      .subscribe();
+
+    // Listen to changes on forecasting
+    const forecastingChannel = supabase
+      .channel("forecasting_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "forecasting",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log("[Realtime] forecasting updated, reloading...");
+          if (payload.new) {
+            const data = payload.new as any;
+            setGrowthRate(Number(data.growth_rate));
+            setSavingsRate(Number(data.savings_rate));
+            setHorizon(Number(data.horizon));
+          }
+        }
+      )
+      .subscribe();
+
+    // Listen to changes on user_settings
+    const userSettingsChannel = supabase
+      .channel("user_settings_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_settings",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          console.log("[Realtime] user_settings updated, reloading...");
+          const settings = await fetchUserSettings(user.id);
+          setUser((prev) => {
+            if (!prev) return null;
+            return {
+              ...prev,
+              name: settings.ownerName || prev.name,
+              businessName: settings.businessName || "My Retail Shop",
+              currencyCode: settings.currencyCode,
+              currencySymbol: settings.currencySymbol,
+              startingBalance: settings.startingBalance ?? 15000,
+              mobileNumber: settings.mobileNumber,
+              country: settings.country,
+              onboarded: settings.onboarded,
+            };
+          });
+        }
+      )
+      .subscribe();
+
+    // Listen to changes on notifications
+    const notificationsChannel = supabase
+      .channel("notifications_realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        async () => {
+          console.log("[Realtime] notifications updated, reloading...");
+          const loadedNotifications = await fetchUserNotifications(user.id);
+          setNotifications(loadedNotifications && loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(dailyEntriesChannel);
+      supabase.removeChannel(budgetsChannel);
+      supabase.removeChannel(targetingChannel);
+      supabase.removeChannel(forecastingChannel);
+      supabase.removeChannel(userSettingsChannel);
+      supabase.removeChannel(notificationsChannel);
+    };
+  }, [user?.id]);
 
   // ── Recalculate daily summaries whenever transactions / month changes ─────
   useEffect(() => {

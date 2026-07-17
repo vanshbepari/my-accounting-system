@@ -180,5 +180,14 @@ ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS mobile_number VARCHAR;
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS country VARCHAR;
 ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS onboarded BOOLEAN DEFAULT FALSE;
 
+-- 10. Enable Supabase Realtime Replication for instant device syncing
+ALTER PUBLICATION supabase_realtime ADD TABLE public.daily_entries;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.expense_items;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.user_settings;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.budgets;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.targeting;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.forecasting;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+
 
 
