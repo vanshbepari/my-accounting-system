@@ -39,117 +39,41 @@ export async function fetchUserTransactions(userId: string): Promise<Transaction
     return [];
   }
 
-  // Deduplicate entries by date to guarantee 100% unique date records
-  const dateMap = new Map<string, any>();
-
-  (entries ?? []).forEach((row: any) => {
-    const d = row.date;
-    if (!dateMap.has(d)) {
-      dateMap.set(d, row);
-    }
-  });
-
-  const uniqueRows = Array.from(dateMap.values());
-
-  // Map and deduplicate expense items per transaction by title
-  return uniqueRows.map((row: any) => {
-    const rawExpenses = row.expense_items ?? [];
-    const seenTitles = new Set<string>();
-    const deduplicatedExpenses: ExpenseItem[] = [];
-
-    rawExpenses.forEach((e: any) => {
-      const titleClean = (e.title || "").trim();
-      const titleKey = titleClean.toLowerCase();
-      if (titleClean !== "" && !seenTitles.has(titleKey)) {
-        seenTitles.add(titleKey);
-        deduplicatedExpenses.push({
-          id: e.id,
-          title: titleClean,
-          amount: Number(e.amount),
-        });
-      }
-    });
-
-    const calculatedExpensesAmount = deduplicatedExpenses.reduce((sum, e) => sum + e.amount, 0);
-
-    return {
-      id: row.id,
-      date: row.date,
-      title: row.title,
-      category: row.category,
-      onlineAmount: Number(row.online_amount),
-      cashAmount: Number(row.cash_amount),
-      expensesAmount: calculatedExpensesAmount > 0 ? calculatedExpensesAmount : Number(row.expenses_amount),
-      notes: row.notes ?? "",
-      expenses: deduplicatedExpenses,
-    };
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (entries ?? []).map((row: any) => ({
+    id: row.id,
+    date: row.date,
+    title: row.title,
+    category: row.category,
+    onlineAmount: Number(row.online_amount),
+    cashAmount: Number(row.cash_amount),
+    expensesAmount: Number(row.expenses_amount),
+    notes: row.notes ?? "",
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expenses: (row.expense_items ?? []).map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      amount: Number(e.amount),
+    })),
+  }));
 }
 
 /**
  * Upsert (create or update) a daily entry for a user.
- * Guarantees zero duplicate entries per date and zero duplicate expense items.
+ * Uses the UNIQUE(user_id, date) constraint for conflict resolution.
+ * Replaces expense_items for that entry on each save.
  */
 export async function upsertDailyEntry(
   userId: string,
   record: Omit<Transaction, "id">
 ): Promise<Transaction | null> {
-  // 1. Deduplicate input expenses by title before saving
-  const seenTitles = new Set<string>();
-  const deduplicatedExpenses: ExpenseItem[] = [];
+  const totalExpenses = record.expenses.reduce((sum, e) => sum + e.amount, 0);
 
-  record.expenses.forEach((e) => {
-    const titleClean = e.title.trim();
-    const titleKey = titleClean.toLowerCase();
-    if (titleClean !== "" && e.amount > 0 && !seenTitles.has(titleKey)) {
-      seenTitles.add(titleKey);
-      deduplicatedExpenses.push({
-        id: e.id || "exp-" + Math.random().toString(36).substring(2, 9),
-        title: titleClean,
-        amount: Number(e.amount),
-      });
-    }
-  });
-
-  const totalExpenses = deduplicatedExpenses.reduce((sum, e) => sum + e.amount, 0);
-
-  // 2. Fetch all existing entries for this date to purge duplicates
-  const { data: existingEntries } = await supabase
-    .from("daily_entries")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("date", record.date);
-
-  let primaryEntryId: string | null = null;
-  if (existingEntries && existingEntries.length > 0) {
-    primaryEntryId = existingEntries[0].id;
-
-    // Purge expense items for ALL existing entries for this date
-    for (const oldEntry of existingEntries) {
-      await supabase
-        .from("expense_items")
-        .delete()
-        .eq("entry_id", oldEntry.id)
-        .eq("user_id", userId);
-    }
-
-    // Delete redundant duplicate daily_entries rows if more than 1 exists
-    if (existingEntries.length > 1) {
-      const redundantIds = existingEntries.slice(1).map((e) => e.id);
-      await supabase
-        .from("daily_entries")
-        .delete()
-        .in("id", redundantIds)
-        .eq("user_id", userId);
-    }
-  }
-
-  // 3. Upsert main daily entry row
+  // 1. Upsert the main daily entry row
   const { data: entryData, error: entryError } = await supabase
     .from("daily_entries")
     .upsert(
       {
-        ...(primaryEntryId ? { id: primaryEntryId } : {}),
         user_id: userId,
         date: record.date,
         title: record.title,
@@ -171,9 +95,19 @@ export async function upsertDailyEntry(
 
   const entryId = entryData.id;
 
-  // 4. Insert fresh deduplicated expense items
-  if (deduplicatedExpenses.length > 0) {
-    const expenseRows = deduplicatedExpenses.map((e) => ({
+  // 2. Delete old expense_items for this entry, then re-insert fresh ones
+  const { error: deleteError } = await supabase
+    .from("expense_items")
+    .delete()
+    .eq("entry_id", entryId)
+    .eq("user_id", userId);
+
+  if (deleteError) {
+    console.error("[upsertDailyEntry] delete expense_items error:", deleteError.message);
+  }
+
+  if (record.expenses.length > 0) {
+    const expenseRows = record.expenses.map((e) => ({
       user_id: userId,
       entry_id: entryId,
       title: e.title,
@@ -198,7 +132,7 @@ export async function upsertDailyEntry(
     cashAmount: record.cashAmount,
     expensesAmount: totalExpenses,
     notes: record.notes,
-    expenses: deduplicatedExpenses,
+    expenses: record.expenses,
   };
 }
 
@@ -214,7 +148,6 @@ export interface UserSettings {
   startingBalance?: number;
   mobileNumber?: string;
   country?: string;
-  email?: string;
   onboarded?: boolean;
 }
 
@@ -222,110 +155,35 @@ export interface UserSettings {
  * Fetch business name and currency settings for a user. Returns defaults if not yet set.
  */
 export async function fetchUserSettings(userId: string): Promise<UserSettings> {
-  let data: any = null;
+  const { data, error } = await supabase
+    .from("user_settings")
+    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, onboarded")
+    .eq("user_id", userId)
+    .maybeSingle();
 
-  try {
-    // 1. Primary fetch from user_settings table
-    const { data: queryData, error } = await supabase
-      .from("user_settings")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    if (!error && queryData) {
-      data = queryData;
-    }
-  } catch (err) {
-    console.warn("[fetchUserSettings] user_settings query warning:", err);
+  if (error) {
+    console.error("[fetchUserSettings] error:", error.message);
   }
 
-  // 2. Secondary fallback from profiles table if user_settings row is missing
-  if (!data) {
-    try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (profileData) {
-        data = {
-          user_id: userId,
-          business_name: profileData.business_name || profileData.shop_name,
-          owner_name: profileData.name || profileData.owner_name,
-          mobile_number: profileData.mobile || profileData.mobile_number,
-          country: profileData.country,
-          currency_code: profileData.currency_code,
-          currency_symbol: profileData.currency_symbol,
-          starting_balance: profileData.starting_balance,
-          email: profileData.email,
-          onboarded: profileData.onboarded,
-        };
-      }
-    } catch (e) {
-      // profiles table fallback warning
-    }
-  }
-
-  // 3. Check localStorage cache for instantaneous persistence fallback
-  let cached: Partial<UserSettings> = {};
-  if (typeof window !== "undefined") {
-    try {
-      const raw = localStorage.getItem(`user_profile_${userId}`);
-      if (raw) cached = JSON.parse(raw);
-    } catch (e) {}
-  }
-
-  const localOnboarded = typeof window !== "undefined"
-    ? localStorage.getItem(`onboarded_${userId}`) === "true"
-    : false;
-
-  const hasDbRow = Boolean(data && (data.user_id || data.business_name || data.owner_name));
-  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || localOnboarded);
-
-  // Merge database response with cached fallback values so fields NEVER reset or disappear
-  const finalSettings: UserSettings = {
-    businessName: data?.business_name || cached.businessName || "",
-    currencyCode: data?.currency_code || cached.currencyCode || "INR",
-    currencySymbol: data?.currency_symbol || cached.currencySymbol || "₹",
-    ownerName: data?.owner_name || cached.ownerName || undefined,
-    startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : (cached.startingBalance ?? 0),
-    mobileNumber: data?.mobile_number || cached.mobileNumber || undefined,
-    country: data?.country || cached.country || "India",
-    email: data?.email || cached.email || undefined,
-    onboarded: isOnboarded,
+  return {
+    businessName: data?.business_name ?? "",
+    currencyCode: data?.currency_code ?? "INR",
+    currencySymbol: data?.currency_symbol ?? "₹",
+    ownerName: data?.owner_name ?? undefined,
+    startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : 0,
+    mobileNumber: data?.mobile_number ?? undefined,
+    country: data?.country ?? undefined,
+    onboarded: data?.onboarded ?? false,
   };
-
-  // Sync to local storage fallback
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(`user_profile_${userId}`, JSON.stringify(finalSettings));
-      if (isOnboarded) {
-        localStorage.setItem(`onboarded_${userId}`, "true");
-      }
-    } catch (e) {}
-  }
-
-  return finalSettings;
 }
 
 /**
- * Save / update the user's business settings in Supabase and local cache.
+ * Save / update the user's business settings in Supabase.
  */
 export async function saveUserSettings(
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<void> {
-  // Always update local storage cache immediately
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(`onboarded_${userId}`, "true");
-      const existingRaw = localStorage.getItem(`user_profile_${userId}`);
-      const existing = existingRaw ? JSON.parse(existingRaw) : {};
-      localStorage.setItem(`user_profile_${userId}`, JSON.stringify({ ...existing, ...settings }));
-    } catch (e) {}
-  }
-
   const updateData: {
     user_id: string;
     business_name?: string;
@@ -335,10 +193,8 @@ export async function saveUserSettings(
     starting_balance?: number;
     mobile_number?: string;
     country?: string;
-    email?: string;
     onboarded?: boolean;
-  } = { user_id: userId, onboarded: true };
-
+  } = { user_id: userId };
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
   if (settings.currencyCode !== undefined) updateData.currency_code = settings.currencyCode;
   if (settings.currencySymbol !== undefined) updateData.currency_symbol = settings.currencySymbol;
@@ -346,92 +202,14 @@ export async function saveUserSettings(
   if (settings.startingBalance !== undefined) updateData.starting_balance = settings.startingBalance;
   if (settings.mobileNumber !== undefined) updateData.mobile_number = settings.mobileNumber;
   if (settings.country !== undefined) updateData.country = settings.country;
-  if (settings.email !== undefined) updateData.email = settings.email;
   if (settings.onboarded !== undefined) updateData.onboarded = settings.onboarded;
 
-  // Primary upsert to user_settings table
   const { error } = await supabase
     .from("user_settings")
     .upsert(updateData, { onConflict: "user_id" });
 
   if (error) {
-    console.warn("[saveUserSettings] full upsert warning:", error.message);
-
-    // Fallback upsert with all available values
-    const fallbackData: any = {
-      user_id: userId,
-      business_name: settings.businessName || "My Retail Shop",
-      currency_code: settings.currencyCode || "INR",
-      currency_symbol: settings.currencySymbol || "₹",
-      owner_name: settings.ownerName || undefined,
-      starting_balance: settings.startingBalance ?? 0,
-      mobile_number: settings.mobileNumber || undefined,
-      country: settings.country || "India",
-      email: settings.email || undefined,
-      onboarded: true,
-    };
-
-    await supabase.from("user_settings").upsert(fallbackData, { onConflict: "user_id" });
-  }
-
-  // Also sync to profiles table if present in Supabase schema
-  try {
-    await supabase.from("profiles").upsert(
-      {
-        id: userId,
-        name: settings.ownerName,
-        business_name: settings.businessName,
-        currency_code: settings.currencyCode,
-        currency_symbol: settings.currencySymbol,
-        mobile: settings.mobileNumber,
-        country: settings.country,
-        email: settings.email,
-        onboarded: true,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
-  } catch (e) {
-    // profiles table sync warning
-  }
-}
-
-/**
- * Permanently delete a user account and all associated database records across all tables.
- */
-export async function deleteUserAccountAndData(userId: string): Promise<boolean> {
-  try {
-    // 1. Delete all user rows across all 8 tables in Supabase
-    await supabase.from("daily_entries").delete().eq("user_id", userId);
-    await supabase.from("expense_items").delete().eq("user_id", userId);
-    await supabase.from("budgets").delete().eq("user_id", userId);
-    await supabase.from("targeting").delete().eq("user_id", userId);
-    await supabase.from("forecasting").delete().eq("user_id", userId);
-    await supabase.from("notifications").delete().eq("user_id", userId);
-    await supabase.from("user_settings").delete().eq("user_id", userId);
-
-    try {
-      await supabase.from("profiles").delete().eq("id", userId);
-    } catch (e) {
-      // profiles delete optional fallback
-    }
-
-    // 2. Clear all local storage caches
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(`onboarded_${userId}`);
-        localStorage.removeItem(`user_profile_${userId}`);
-        localStorage.removeItem(`budgets_${userId}`);
-        localStorage.removeItem(`notifications_${userId}`);
-      } catch (e) {}
-    }
-
-    // 3. Sign out user session completely
-    await supabase.auth.signOut();
-    return true;
-  } catch (err) {
-    console.error("[deleteUserAccountAndData] error:", err);
-    return false;
+    console.error("[saveUserSettings] error:", error.message);
   }
 }
 
@@ -588,22 +366,7 @@ export async function fetchUserNotifications(userId: string): Promise<Notificati
       return [];
     }
 
-    // Filter out non-whitelisted rows & purge them from DB in background to free storage
-    const validRows = (data ?? []).filter(row => {
-      const t = (row.title || "").toLowerCase();
-      return t.includes("target") || t.includes("budget") || t.includes("pdf") || t.includes("report");
-    });
-
-    const invalidIds = (data ?? []).filter(row => {
-      const t = (row.title || "").toLowerCase();
-      return !t.includes("target") && !t.includes("budget") && !t.includes("pdf") && !t.includes("report");
-    }).map(r => r.id);
-
-    if (invalidIds.length > 0) {
-      await supabase.from("notifications").delete().eq("user_id", userId).in("id", invalidIds);
-    }
-
-    return validRows.map(row => {
+    return (data ?? []).map(row => {
       const createdDate = new Date(row.created_at);
       const timeDiff = Date.now() - createdDate.getTime();
       let timestamp = "Just now";
@@ -641,17 +404,6 @@ export async function insertUserNotification(
   message: string,
   type: "success" | "warning" | "info" | "danger"
 ): Promise<NotificationItem | null> {
-  // STRICT DB GUARD: Completely block sign-in, welcome, and generic alerts from being inserted into Supabase
-  const titleLower = (title || "").toLowerCase();
-  const isTargetNotification = titleLower.includes("target");
-  const isBudgetNotification = titleLower.includes("budget");
-  const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
-
-  if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
-    // Suppress insertion into database completely
-    return null;
-  }
-
   try {
     const { data, error } = await supabase
       .from("notifications")
@@ -730,6 +482,8 @@ export async function clearUserNotifications(userId: string): Promise<boolean> {
   }
 }
 
+
+
 /**
  * Permanently purge all existing non-whitelisted notifications (Signed in, Welcome, etc.) for a user from Supabase DB.
  */
@@ -748,6 +502,41 @@ export async function purgeUnwantedDatabaseNotifications(userId: string): Promis
     return true;
   } catch (err) {
     console.warn("[purgeUnwantedDatabaseNotifications] error:", err);
+    return false;
+  }
+}
+
+/**
+ * Permanently delete a user account and all associated database records across all tables and storage.
+ */
+export async function deleteUserAccountAndData(userId: string): Promise<boolean> {
+  try {
+    // 1. First attempt to call the RPC function (public.delete_user_account)
+    const { data: rpcData, error: rpcError } = await supabase.rpc("delete_user_account");
+
+    if (!rpcError && rpcData === true) {
+      console.log("[deleteUserAccountAndData] RPC deletion executed successfully.");
+      return true;
+    }
+
+    if (rpcError) {
+      console.warn("[deleteUserAccountAndData] RPC fallback triggered:", rpcError.message);
+    }
+
+    // 2. Client-side fallback multi-table delete sequence
+    await supabase.from("expense_items").delete().eq("user_id", userId);
+    await supabase.from("daily_entries").delete().eq("user_id", userId);
+    await supabase.from("budgets").delete().eq("user_id", userId);
+    await supabase.from("targeting").delete().eq("user_id", userId);
+    await supabase.from("forecasting").delete().eq("user_id", userId);
+    await supabase.from("notifications").delete().eq("user_id", userId);
+    await supabase.from("user_settings").delete().eq("user_id", userId);
+
+    // 3. Sign out user session completely
+    await supabase.auth.signOut();
+    return true;
+  } catch (err) {
+    console.error("[deleteUserAccountAndData] exception during deletion:", err);
     return false;
   }
 }
