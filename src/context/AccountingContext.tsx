@@ -15,6 +15,7 @@ import {
   insertUserNotification,
   markUserNotificationRead,
   clearUserNotifications,
+  purgeUnwantedDatabaseNotifications,
   Budget
 } from "@/utils/supabaseData";
 
@@ -396,6 +397,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (loadedNotifications !== null) {
           setNotifications(filterImportantNotifications(loadedNotifications));
           setUseSupabaseForNotifications(true);
+          purgeUnwantedDatabaseNotifications(userId).catch(err => console.warn("[purgeUnwantedDatabaseNotifications] error:", err));
         } else {
           setUseSupabaseForNotifications(false);
           const savedLocalNotifs = localStorage.getItem(`notifications_${userId}`);

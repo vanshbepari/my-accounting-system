@@ -378,7 +378,7 @@ export async function fetchUserNotifications(userId: string): Promise<Notificati
     }).map(r => r.id);
 
     if (invalidIds.length > 0) {
-      await supabase.from("notifications").delete().in("id", invalidIds);
+      await supabase.from("notifications").delete().eq("user_id", userId).in("id", invalidIds);
     }
 
     return validRows.map(row => {
@@ -504,6 +504,28 @@ export async function clearUserNotifications(userId: string): Promise<boolean> {
     return true;
   } catch (err) {
     console.warn("[clearUserNotifications] error:", err);
+    return false;
+  }
+}
+
+/**
+ * Permanently purge all existing non-whitelisted notifications (Signed in, Welcome, etc.) for a user from Supabase DB.
+ */
+export async function purgeUnwantedDatabaseNotifications(userId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", userId)
+      .or("title.ilike.%signed in%,title.ilike.%welcome%,title.ilike.%login%");
+
+    if (error) {
+      console.error("[purgeUnwantedDatabaseNotifications] error:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[purgeUnwantedDatabaseNotifications] error:", err);
     return false;
   }
 }
