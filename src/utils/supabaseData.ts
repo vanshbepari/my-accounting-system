@@ -240,61 +240,75 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     console.error("[fetchUserSettings] query exception:", err);
   }
 
-  // Check localStorage onboarded cache as secondary source of truth
+  // Load local storage settings cache as secondary source of truth
+  let localSettings: Partial<UserSettings> = {};
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem(`user_settings_${userId}`);
+      if (raw) localSettings = JSON.parse(raw);
+    } catch (e) {
+      console.warn("[fetchUserSettings] localSettings parse error:", e);
+    }
+  }
+
   const localOnboarded = typeof window !== "undefined"
     ? localStorage.getItem(`onboarded_${userId}`) === "true"
     : false;
 
-  // A user is ONBOARDED if:
-  // 1. data.onboarded is explicitly true, OR
-  // 2. data row exists in user_settings (meaning user created settings in Supabase), OR
-  // 3. localStorage has onboarded_${userId} = "true"
   const hasDbRow = Boolean(data && (data.user_id || data.business_name || data.owner_name));
-  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || localOnboarded);
+  const hasLocalRow = Boolean(localSettings && (localSettings.businessName || localSettings.ownerName));
+  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || hasLocalRow || localOnboarded);
 
-  // If onboarded is true, ensure local storage stays synced
+  // Sync onboarded status to local storage
   if (isOnboarded && typeof window !== "undefined") {
     localStorage.setItem(`onboarded_${userId}`, "true");
   }
 
+  // Merge database values with local storage fallback so settings NEVER reset or disappear on refresh
+  const finalBusinessName = data?.business_name || localSettings.businessName || "";
+  const finalCurrencyCode = data?.currency_code || localSettings.currencyCode || "INR";
+  const finalCurrencySymbol = data?.currency_symbol || localSettings.currencySymbol || "₹";
+  const finalOwnerName = data?.owner_name || localSettings.ownerName || undefined;
+  const finalStartingBalance = data?.starting_balance != null ? Number(data.starting_balance) : (localSettings.startingBalance ?? 0);
+  const finalMobileNumber = data?.mobile_number || localSettings.mobileNumber || undefined;
+  const finalCountry = data?.country || localSettings.country || undefined;
+  const finalEmail = data?.email || localSettings.email || undefined;
+
   return {
-    businessName: data?.business_name ?? "",
-    currencyCode: data?.currency_code ?? "INR",
-    currencySymbol: data?.currency_symbol ?? "₹",
-    ownerName: data?.owner_name ?? undefined,
-    startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : 0,
-    mobileNumber: data?.mobile_number ?? undefined,
-    country: data?.country ?? undefined,
-    email: data?.email ?? undefined,
+    businessName: finalBusinessName,
+    currencyCode: finalCurrencyCode,
+    currencySymbol: finalCurrencySymbol,
+    ownerName: finalOwnerName,
+    startingBalance: finalStartingBalance,
+    mobileNumber: finalMobileNumber,
+    country: finalCountry,
+    email: finalEmail,
     onboarded: isOnboarded,
   };
 }
 
 /**
- * Save / update the user's business settings in Supabase.
+ * Save / update the user's business settings in Supabase and local cache.
  */
 export async function saveUserSettings(
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<void> {
-  // Always mark local storage cache as onboarded immediately
   if (typeof window !== "undefined") {
     localStorage.setItem(`onboarded_${userId}`, "true");
+
+    // Merge existing local settings with new updates and save to localStorage
+    try {
+      const existingRaw = localStorage.getItem(`user_settings_${userId}`);
+      const existing = existingRaw ? JSON.parse(existingRaw) : {};
+      const merged = { ...existing, ...settings, onboarded: true };
+      localStorage.setItem(`user_settings_${userId}`, JSON.stringify(merged));
+    } catch (e) {
+      console.warn("[saveUserSettings] localStorage save error:", e);
+    }
   }
 
-  const updateData: {
-    user_id: string;
-    business_name?: string;
-    currency_code?: string;
-    currency_symbol?: string;
-    owner_name?: string;
-    starting_balance?: number;
-    mobile_number?: string;
-    country?: string;
-    email?: string;
-    onboarded?: boolean;
-  } = { user_id: userId, onboarded: true };
-
+  const updateData: any = { user_id: userId, onboarded: true };
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
   if (settings.currencyCode !== undefined) updateData.currency_code = settings.currencyCode;
   if (settings.currencySymbol !== undefined) updateData.currency_symbol = settings.currencySymbol;
@@ -313,7 +327,7 @@ export async function saveUserSettings(
     console.warn("[saveUserSettings] full upsert warning:", error.message);
 
     // Fallback upsert with core columns in case newly added columns do not exist in DB schema yet
-    const fallbackData = {
+    const fallbackData: any = {
       user_id: userId,
       business_name: settings.businessName || "My Retail Shop",
       currency_code: settings.currencyCode || "INR",

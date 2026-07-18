@@ -377,11 +377,12 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           ...profile, 
           name: settings.ownerName || profile.name,
           businessName: settings.businessName || "My Retail Shop",
-          currencyCode: settings.currencyCode,
-          currencySymbol: settings.currencySymbol,
+          currencyCode: settings.currencyCode || "INR",
+          currencySymbol: settings.currencySymbol || "₹",
           startingBalance: settings.startingBalance ?? 0,
           mobileNumber: settings.mobileNumber,
           country: settings.country,
+          email: settings.email || profile.email,
           onboarded: isOnboarded,
         };
         setUser(fullProfile);
