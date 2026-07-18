@@ -148,6 +148,7 @@ export interface UserSettings {
   startingBalance?: number;
   mobileNumber?: string;
   country?: string;
+  email?: string;
   onboarded?: boolean;
 }
 
@@ -157,7 +158,7 @@ export interface UserSettings {
 export async function fetchUserSettings(userId: string): Promise<UserSettings> {
   const { data, error } = await supabase
     .from("user_settings")
-    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, onboarded")
+    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, email, onboarded")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -173,6 +174,7 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : 0,
     mobileNumber: data?.mobile_number ?? undefined,
     country: data?.country ?? undefined,
+    email: data?.email ?? undefined,
     onboarded: data?.onboarded ?? false,
   };
 }
@@ -193,6 +195,7 @@ export async function saveUserSettings(
     starting_balance?: number;
     mobile_number?: string;
     country?: string;
+    email?: string;
     onboarded?: boolean;
   } = { user_id: userId };
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
@@ -202,6 +205,7 @@ export async function saveUserSettings(
   if (settings.startingBalance !== undefined) updateData.starting_balance = settings.startingBalance;
   if (settings.mobileNumber !== undefined) updateData.mobile_number = settings.mobileNumber;
   if (settings.country !== undefined) updateData.country = settings.country;
+  if (settings.email !== undefined) updateData.email = settings.email;
   if (settings.onboarded !== undefined) updateData.onboarded = settings.onboarded;
 
   const { error } = await supabase
@@ -210,6 +214,28 @@ export async function saveUserSettings(
 
   if (error) {
     console.error("[saveUserSettings] error:", error.message);
+  }
+}
+
+/**
+ * Permanently delete a user account and all associated database records across all tables.
+ */
+export async function deleteUserAccountAndData(userId: string): Promise<boolean> {
+  try {
+    await supabase.from("daily_entries").delete().eq("user_id", userId);
+    await supabase.from("expense_items").delete().eq("user_id", userId);
+    await supabase.from("budgets").delete().eq("user_id", userId);
+    await supabase.from("targeting").delete().eq("user_id", userId);
+    await supabase.from("forecasting").delete().eq("user_id", userId);
+    await supabase.from("notifications").delete().eq("user_id", userId);
+    await supabase.from("user_settings").delete().eq("user_id", userId);
+
+    // Sign out user session completely
+    await supabase.auth.signOut();
+    return true;
+  } catch (err) {
+    console.error("[deleteUserAccountAndData] error:", err);
+    return false;
   }
 }
 

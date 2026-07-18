@@ -42,8 +42,8 @@ export default function TargetPage() {
   const [localNet, setLocalNet] = useState(20000);
   const [localExp, setLocalExp] = useState(15000);
 
-  // Generate target month options (6 months past, 4 months future, plus All Time)
-  const targetMonthOptions = useMemo(() => generateMonthOptions(6, 4, true), []);
+  // Generate target month options (2 months past, 2 months future, plus All Time)
+  const targetMonthOptions = useMemo(() => generateMonthOptions(2, 2, true), []);
 
   useEffect(() => {
     setMounted(true);

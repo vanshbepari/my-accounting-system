@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, User, Store, Phone, Globe, ChevronRight, Loader2 } from "lucide-react";
+import { ShieldCheck, User, Store, Phone, Globe, ChevronRight, Loader2, Mail } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +14,7 @@ export default function OnboardingPage() {
   // Form states
   const [ownerName, setOwnerName] = useState("");
   const [shopName, setShopName] = useState("");
+  const [email, setEmail] = useState("");
   const [mobileNumber, setMobileNumber] = useState("");
   const [country, setCountry] = useState("India");
 
@@ -24,15 +25,16 @@ export default function OnboardingPage() {
       } else if (user?.onboarded) {
         router.replace("/dashboard");
       } else {
-        // Pre-populate owner name from OAuth metadata if available
+        // Pre-populate owner name and email from OAuth metadata if available
         setOwnerName(user.name || "");
+        setEmail(user.email || "");
       }
     }
   }, [isAuthReady, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ownerName.trim() || !shopName.trim() || !mobileNumber.trim() || !country) return;
+    if (!ownerName.trim() || !shopName.trim() || !email.trim() || !mobileNumber.trim() || !country) return;
 
     setLoading(true);
 
@@ -44,6 +46,7 @@ export default function OnboardingPage() {
       await updateSettings({
         ownerName: ownerName.trim(),
         businessName: shopName.trim(),
+        email: email.trim(),
         mobileNumber: mobileNumber.trim(),
         country,
         currencyCode,
@@ -133,6 +136,24 @@ export default function OnboardingPage() {
                   className="w-full pl-10 pr-4 py-2.5 text-xs font-bold rounded-xl border border-white/10 bg-slate-800/40 text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 <Store className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+              </div>
+            </div>
+
+            {/* Input: Email Address */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. owner@example.com"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs font-bold rounded-xl border border-white/10 bg-slate-800/40 text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
               </div>
             </div>
 

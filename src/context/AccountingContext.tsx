@@ -137,6 +137,7 @@ interface AccountingContextType {
     startingBalance?: number;
     mobileNumber?: string;
     country?: string;
+    email?: string;
     onboarded?: boolean;
   }) => Promise<void>;
   formatCurrency: (amount: number) => string;
@@ -793,6 +794,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     startingBalance?: number;
     mobileNumber?: string;
     country?: string;
+    email?: string;
     onboarded?: boolean;
   }) => {
     if (!user) return;
@@ -807,6 +809,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (updates.startingBalance !== undefined) updated.startingBalance = updates.startingBalance;
       if (updates.mobileNumber !== undefined) updated.mobileNumber = updates.mobileNumber;
       if (updates.country !== undefined) updated.country = updates.country;
+      if (updates.email !== undefined) updated.email = updates.email;
       if (updates.onboarded !== undefined) updated.onboarded = updates.onboarded;
       return updated;
     });
@@ -819,6 +822,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (updates.startingBalance !== undefined) dbUpdates.startingBalance = updates.startingBalance;
     if (updates.mobileNumber !== undefined) dbUpdates.mobileNumber = updates.mobileNumber;
     if (updates.country !== undefined) dbUpdates.country = updates.country;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
     if (updates.onboarded !== undefined) dbUpdates.onboarded = updates.onboarded;
 
     await saveUserSettings(user.id, dbUpdates);

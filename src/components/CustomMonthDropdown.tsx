@@ -52,18 +52,16 @@ export default function CustomMonthDropdown({
     setIsOpen(false);
   };
 
-  // Variant styles
+  // Variant styles - 100% OPAQUE solid backgrounds so underlying graphs & charts NEVER show through
   const buttonVariantClass =
     variant === "dark"
-      ? "bg-slate-900/90 text-white border-white/10 hover:bg-slate-800/90 hover:border-primary/40 shadow-lg"
-      : variant === "light"
-      ? "bg-white text-slate-800 border-slate-200/90 hover:border-primary/40 hover:bg-slate-50/80 shadow-sm"
-      : "bg-white/80 backdrop-blur-md text-slate-800 border-slate-200 hover:border-primary/40 hover:bg-white shadow-sm";
+      ? "bg-slate-900 text-white border-slate-700 hover:bg-slate-800 shadow-lg"
+      : "bg-white text-slate-800 border-slate-200/90 hover:border-primary/60 hover:bg-slate-50 shadow-sm";
 
   const menuVariantClass =
     variant === "dark"
-      ? "bg-slate-900/95 border-slate-700/80 text-white shadow-2xl backdrop-blur-xl"
-      : "bg-white/95 border-slate-200/90 text-slate-800 shadow-2xl backdrop-blur-xl";
+      ? "bg-slate-900 border-slate-700 text-white shadow-2xl"
+      : "bg-white border-slate-200 text-slate-800 shadow-2xl";
 
   const sizeClass =
     size === "sm"
@@ -84,12 +82,12 @@ export default function CustomMonthDropdown({
           <CalendarDays className="w-3.5 h-3.5" />
         </div>
 
-        <span className="truncate max-w-[170px] sm:max-w-[200px]">
+        <span className="whitespace-nowrap font-display tracking-tight">
           {selectedOption.label}
         </span>
 
         {selectedOption.sublabel && (
-          <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+          <span className="hidden lg:inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
             {selectedOption.sublabel}
           </span>
         )}

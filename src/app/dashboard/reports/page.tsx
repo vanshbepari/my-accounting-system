@@ -1750,7 +1750,7 @@ export default function ReportsPage() {
               setSelectedMonth(val);
             }}
             options={generateMonthOptions(6, 3, true)}
-            variant="glass"
+            variant="light"
             size="sm"
           />
         </div>
