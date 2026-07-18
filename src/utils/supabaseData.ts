@@ -225,30 +225,55 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
   let data: any = null;
 
   try {
-    // Select all available columns to prevent Postgres schema column missing errors
+    // 1. Primary fetch from user_settings table
     const { data: queryData, error } = await supabase
       .from("user_settings")
       .select("*")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (error) {
-      console.warn("[fetchUserSettings] query warning:", error.message);
+    if (!error && queryData) {
+      data = queryData;
     }
-    data = queryData;
   } catch (err) {
-    console.error("[fetchUserSettings] query exception:", err);
+    console.warn("[fetchUserSettings] user_settings query warning:", err);
   }
 
-  // Load local storage settings cache as secondary source of truth
-  let localSettings: Partial<UserSettings> = {};
+  // 2. Secondary fallback from profiles table if user_settings row is missing
+  if (!data) {
+    try {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (profileData) {
+        data = {
+          user_id: userId,
+          business_name: profileData.business_name || profileData.shop_name,
+          owner_name: profileData.name || profileData.owner_name,
+          mobile_number: profileData.mobile || profileData.mobile_number,
+          country: profileData.country,
+          currency_code: profileData.currency_code,
+          currency_symbol: profileData.currency_symbol,
+          starting_balance: profileData.starting_balance,
+          email: profileData.email,
+          onboarded: profileData.onboarded,
+        };
+      }
+    } catch (e) {
+      // profiles table fallback warning
+    }
+  }
+
+  // 3. Check localStorage cache for instantaneous persistence fallback
+  let cached: Partial<UserSettings> = {};
   if (typeof window !== "undefined") {
     try {
-      const raw = localStorage.getItem(`user_settings_${userId}`);
-      if (raw) localSettings = JSON.parse(raw);
-    } catch (e) {
-      console.warn("[fetchUserSettings] localSettings parse error:", e);
-    }
+      const raw = localStorage.getItem(`user_profile_${userId}`);
+      if (raw) cached = JSON.parse(raw);
+    } catch (e) {}
   }
 
   const localOnboarded = typeof window !== "undefined"
@@ -256,35 +281,32 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     : false;
 
   const hasDbRow = Boolean(data && (data.user_id || data.business_name || data.owner_name));
-  const hasLocalRow = Boolean(localSettings && (localSettings.businessName || localSettings.ownerName));
-  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || hasLocalRow || localOnboarded);
+  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || localOnboarded);
 
-  // Sync onboarded status to local storage
-  if (isOnboarded && typeof window !== "undefined") {
-    localStorage.setItem(`onboarded_${userId}`, "true");
-  }
-
-  // Merge database values with local storage fallback so settings NEVER reset or disappear on refresh
-  const finalBusinessName = data?.business_name || localSettings.businessName || "";
-  const finalCurrencyCode = data?.currency_code || localSettings.currencyCode || "INR";
-  const finalCurrencySymbol = data?.currency_symbol || localSettings.currencySymbol || "₹";
-  const finalOwnerName = data?.owner_name || localSettings.ownerName || undefined;
-  const finalStartingBalance = data?.starting_balance != null ? Number(data.starting_balance) : (localSettings.startingBalance ?? 0);
-  const finalMobileNumber = data?.mobile_number || localSettings.mobileNumber || undefined;
-  const finalCountry = data?.country || localSettings.country || undefined;
-  const finalEmail = data?.email || localSettings.email || undefined;
-
-  return {
-    businessName: finalBusinessName,
-    currencyCode: finalCurrencyCode,
-    currencySymbol: finalCurrencySymbol,
-    ownerName: finalOwnerName,
-    startingBalance: finalStartingBalance,
-    mobileNumber: finalMobileNumber,
-    country: finalCountry,
-    email: finalEmail,
+  // Merge database response with cached fallback values so fields NEVER reset or disappear
+  const finalSettings: UserSettings = {
+    businessName: data?.business_name || cached.businessName || "",
+    currencyCode: data?.currency_code || cached.currencyCode || "INR",
+    currencySymbol: data?.currency_symbol || cached.currencySymbol || "₹",
+    ownerName: data?.owner_name || cached.ownerName || undefined,
+    startingBalance: data?.starting_balance != null ? Number(data.starting_balance) : (cached.startingBalance ?? 0),
+    mobileNumber: data?.mobile_number || cached.mobileNumber || undefined,
+    country: data?.country || cached.country || "India",
+    email: data?.email || cached.email || undefined,
     onboarded: isOnboarded,
   };
+
+  // Sync to local storage fallback
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(`user_profile_${userId}`, JSON.stringify(finalSettings));
+      if (isOnboarded) {
+        localStorage.setItem(`onboarded_${userId}`, "true");
+      }
+    } catch (e) {}
+  }
+
+  return finalSettings;
 }
 
 /**
@@ -294,21 +316,29 @@ export async function saveUserSettings(
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<void> {
+  // Always update local storage cache immediately
   if (typeof window !== "undefined") {
-    localStorage.setItem(`onboarded_${userId}`, "true");
-
-    // Merge existing local settings with new updates and save to localStorage
     try {
-      const existingRaw = localStorage.getItem(`user_settings_${userId}`);
+      localStorage.setItem(`onboarded_${userId}`, "true");
+      const existingRaw = localStorage.getItem(`user_profile_${userId}`);
       const existing = existingRaw ? JSON.parse(existingRaw) : {};
-      const merged = { ...existing, ...settings, onboarded: true };
-      localStorage.setItem(`user_settings_${userId}`, JSON.stringify(merged));
-    } catch (e) {
-      console.warn("[saveUserSettings] localStorage save error:", e);
-    }
+      localStorage.setItem(`user_profile_${userId}`, JSON.stringify({ ...existing, ...settings }));
+    } catch (e) {}
   }
 
-  const updateData: any = { user_id: userId, onboarded: true };
+  const updateData: {
+    user_id: string;
+    business_name?: string;
+    currency_code?: string;
+    currency_symbol?: string;
+    owner_name?: string;
+    starting_balance?: number;
+    mobile_number?: string;
+    country?: string;
+    email?: string;
+    onboarded?: boolean;
+  } = { user_id: userId, onboarded: true };
+
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
   if (settings.currencyCode !== undefined) updateData.currency_code = settings.currencyCode;
   if (settings.currencySymbol !== undefined) updateData.currency_symbol = settings.currencySymbol;
@@ -319,6 +349,7 @@ export async function saveUserSettings(
   if (settings.email !== undefined) updateData.email = settings.email;
   if (settings.onboarded !== undefined) updateData.onboarded = settings.onboarded;
 
+  // Primary upsert to user_settings table
   const { error } = await supabase
     .from("user_settings")
     .upsert(updateData, { onConflict: "user_id" });
@@ -326,7 +357,7 @@ export async function saveUserSettings(
   if (error) {
     console.warn("[saveUserSettings] full upsert warning:", error.message);
 
-    // Fallback upsert with core columns in case newly added columns do not exist in DB schema yet
+    // Fallback upsert with all available values
     const fallbackData: any = {
       user_id: userId,
       business_name: settings.businessName || "My Retail Shop",
@@ -334,15 +365,34 @@ export async function saveUserSettings(
       currency_symbol: settings.currencySymbol || "₹",
       owner_name: settings.ownerName || undefined,
       starting_balance: settings.startingBalance ?? 0,
+      mobile_number: settings.mobileNumber || undefined,
+      country: settings.country || "India",
+      email: settings.email || undefined,
+      onboarded: true,
     };
 
-    const { error: fallbackErr } = await supabase
-      .from("user_settings")
-      .upsert(fallbackData, { onConflict: "user_id" });
+    await supabase.from("user_settings").upsert(fallbackData, { onConflict: "user_id" });
+  }
 
-    if (fallbackErr) {
-      console.error("[saveUserSettings] fallback upsert failed:", fallbackErr.message);
-    }
+  // Also sync to profiles table if present in Supabase schema
+  try {
+    await supabase.from("profiles").upsert(
+      {
+        id: userId,
+        name: settings.ownerName,
+        business_name: settings.businessName,
+        currency_code: settings.currencyCode,
+        currency_symbol: settings.currencySymbol,
+        mobile: settings.mobileNumber,
+        country: settings.country,
+        email: settings.email,
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+  } catch (e) {
+    // profiles table sync warning
   }
 }
 
@@ -351,6 +401,7 @@ export async function saveUserSettings(
  */
 export async function deleteUserAccountAndData(userId: string): Promise<boolean> {
   try {
+    // 1. Delete all user rows across all 8 tables in Supabase
     await supabase.from("daily_entries").delete().eq("user_id", userId);
     await supabase.from("expense_items").delete().eq("user_id", userId);
     await supabase.from("budgets").delete().eq("user_id", userId);
@@ -359,7 +410,23 @@ export async function deleteUserAccountAndData(userId: string): Promise<boolean>
     await supabase.from("notifications").delete().eq("user_id", userId);
     await supabase.from("user_settings").delete().eq("user_id", userId);
 
-    // Sign out user session completely
+    try {
+      await supabase.from("profiles").delete().eq("id", userId);
+    } catch (e) {
+      // profiles delete optional fallback
+    }
+
+    // 2. Clear all local storage caches
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(`onboarded_${userId}`);
+        localStorage.removeItem(`user_profile_${userId}`);
+        localStorage.removeItem(`budgets_${userId}`);
+        localStorage.removeItem(`notifications_${userId}`);
+      } catch (e) {}
+    }
+
+    // 3. Sign out user session completely
     await supabase.auth.signOut();
     return true;
   } catch (err) {

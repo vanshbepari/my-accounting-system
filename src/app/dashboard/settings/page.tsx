@@ -20,7 +20,8 @@ import {
   Check
 } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
-import { deleteUserAccountAndData } from "@/utils/supabaseData";
+import { deleteUserAccountAndData, fetchUserSettings } from "@/utils/supabaseData";
+import { supabase } from "@/utils/supabaseClient";
 
 export default function SettingsPage() {
   const { user, updateSettings, logout } = useAccounting();
@@ -40,17 +41,39 @@ export default function SettingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Sync state when user context is fully loaded from Supabase
+  // Direct fetch from Supabase on component mount using confirmed auth session
   useEffect(() => {
-    if (user) {
-      setShopName(user.businessName || "My Retail Shop");
-      setUserName(user.name || "Corporate Owner");
-      setUserEmail(user.email || "");
-      setMobileNumber(user.mobileNumber || "");
-      setSelectedCountry(user.country || "India");
-      setStartingBalance(user.startingBalance || 0);
-    }
-  }, [user]);
+    let isMounted = true;
+
+    const loadFreshUserSettings = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const activeUserId = sessionData?.session?.user?.id || user?.id;
+        const sessionEmail = sessionData?.session?.user?.email || user?.email || "";
+
+        if (!activeUserId) return;
+
+        const dbSettings = await fetchUserSettings(activeUserId);
+
+        if (isMounted) {
+          if (dbSettings.businessName) setShopName(dbSettings.businessName);
+          if (dbSettings.ownerName) setUserName(dbSettings.ownerName);
+          if (dbSettings.email || sessionEmail) setUserEmail(dbSettings.email || sessionEmail);
+          if (dbSettings.mobileNumber) setMobileNumber(dbSettings.mobileNumber);
+          if (dbSettings.country) setSelectedCountry(dbSettings.country);
+          if (dbSettings.startingBalance != null) setStartingBalance(dbSettings.startingBalance);
+        }
+      } catch (err) {
+        console.error("[SettingsPage] Load fresh settings error:", err);
+      }
+    };
+
+    loadFreshUserSettings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
