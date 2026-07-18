@@ -156,20 +156,40 @@ export interface UserSettings {
  * Fetch business name and currency settings for a user. Returns defaults if not yet set.
  */
 export async function fetchUserSettings(userId: string): Promise<UserSettings> {
-  const { data, error } = await supabase
-    .from("user_settings")
-    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, email, onboarded")
-    .eq("user_id", userId)
-    .maybeSingle();
+  let data: any = null;
 
-  if (error) {
-    console.error("[fetchUserSettings] error:", error.message);
+  try {
+    // Select all available columns to prevent Postgres schema column missing errors
+    const { data: queryData, error } = await supabase
+      .from("user_settings")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("[fetchUserSettings] query warning:", error.message);
+    }
+    data = queryData;
+  } catch (err) {
+    console.error("[fetchUserSettings] query exception:", err);
   }
 
-  // If a record exists in user_settings AND business_name or owner_name is set,
-  // the user is ALREADY onboarded (even if onboarded column is null in DB).
-  const hasExistingProfile = Boolean(data && (data.business_name?.trim() || data.owner_name?.trim()));
-  const isOnboarded = data ? (data.onboarded === true || hasExistingProfile) : false;
+  // Check localStorage onboarded cache as secondary source of truth
+  const localOnboarded = typeof window !== "undefined"
+    ? localStorage.getItem(`onboarded_${userId}`) === "true"
+    : false;
+
+  // A user is ONBOARDED if:
+  // 1. data.onboarded is explicitly true, OR
+  // 2. data row exists in user_settings (meaning user created settings in Supabase), OR
+  // 3. localStorage has onboarded_${userId} = "true"
+  const hasDbRow = Boolean(data && (data.user_id || data.business_name || data.owner_name));
+  const isOnboarded = Boolean(data?.onboarded === true || hasDbRow || localOnboarded);
+
+  // If onboarded is true, ensure local storage stays synced
+  if (isOnboarded && typeof window !== "undefined") {
+    localStorage.setItem(`onboarded_${userId}`, "true");
+  }
 
   return {
     businessName: data?.business_name ?? "",
@@ -191,6 +211,11 @@ export async function saveUserSettings(
   userId: string,
   settings: Partial<UserSettings>
 ): Promise<void> {
+  // Always mark local storage cache as onboarded immediately
+  if (typeof window !== "undefined") {
+    localStorage.setItem(`onboarded_${userId}`, "true");
+  }
+
   const updateData: {
     user_id: string;
     business_name?: string;
@@ -202,7 +227,8 @@ export async function saveUserSettings(
     country?: string;
     email?: string;
     onboarded?: boolean;
-  } = { user_id: userId };
+  } = { user_id: userId, onboarded: true };
+
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
   if (settings.currencyCode !== undefined) updateData.currency_code = settings.currencyCode;
   if (settings.currencySymbol !== undefined) updateData.currency_symbol = settings.currencySymbol;
@@ -218,7 +244,25 @@ export async function saveUserSettings(
     .upsert(updateData, { onConflict: "user_id" });
 
   if (error) {
-    console.error("[saveUserSettings] error:", error.message);
+    console.warn("[saveUserSettings] full upsert warning:", error.message);
+
+    // Fallback upsert with core columns in case newly added columns do not exist in DB schema yet
+    const fallbackData = {
+      user_id: userId,
+      business_name: settings.businessName || "My Retail Shop",
+      currency_code: settings.currencyCode || "INR",
+      currency_symbol: settings.currencySymbol || "₹",
+      owner_name: settings.ownerName || undefined,
+      starting_balance: settings.startingBalance ?? 0,
+    };
+
+    const { error: fallbackErr } = await supabase
+      .from("user_settings")
+      .upsert(fallbackData, { onConflict: "user_id" });
+
+    if (fallbackErr) {
+      console.error("[saveUserSettings] fallback upsert failed:", fallbackErr.message);
+    }
   }
 }
 

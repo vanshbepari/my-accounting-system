@@ -22,9 +22,13 @@ export default function DashboardLayout({
   // Handle protected route redirect
   React.useEffect(() => {
     if (isAuthReady) {
+      const localOnboarded = user?.id && typeof window !== "undefined"
+        ? localStorage.getItem(`onboarded_${user.id}`) === "true"
+        : false;
+
       if (!user?.isLoggedIn) {
         router.replace("/login");
-      } else if (!user.onboarded) {
+      } else if (!user.onboarded && !localOnboarded) {
         router.replace("/onboarding");
       }
     }
