@@ -332,20 +332,20 @@ function AddEntryContent() {
       ) : (
         <form onSubmit={handleSaveEntry} className="space-y-8 text-left">
           {/* Date Selector Card */}
-          <div className="glass-card rounded-2xl p-5 border border-border-color bg-white">
-            <div className="max-w-xs space-y-1">
+          <div className="glass-card rounded-2xl p-4 sm:p-5 border border-border-color bg-white overflow-hidden">
+            <div className="w-full sm:max-w-xs space-y-1 min-w-0">
               <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider">
                 Select Ledger Date
               </label>
-              <div className="relative">
+              <div className="relative w-full min-w-0">
                 <input
                   type="date"
                   required
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 text-sm font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary cursor-pointer"
+                  className="w-full min-w-0 max-w-full pl-9 pr-4 py-2.5 text-sm font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary cursor-pointer box-border"
                 />
-                <Calendar className="w-4 h-4 text-primary absolute left-3 top-3.5" />
+                <Calendar className="w-4 h-4 text-primary absolute left-3 top-3.5 pointer-events-none" />
               </div>
             </div>
           </div>

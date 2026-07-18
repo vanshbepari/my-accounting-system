@@ -433,58 +433,63 @@ export default function BudgetPage() {
                 </div>
 
                 {/* Notebook rows entry */}
-                <div className="p-6 space-y-3.5 max-h-[50vh] overflow-y-auto">
+                <div className="p-3.5 sm:p-6 space-y-3.5 max-h-[50vh] overflow-y-auto">
                   {formRows.map((row, idx) => (
                     <motion.div
                       key={row.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center space-x-2.5"
+                      className="p-3 sm:p-0 bg-slate-50/70 sm:bg-transparent border border-slate-200/60 sm:border-0 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-2.5"
                     >
-                      <span className="text-xs font-bold text-slate-350 w-5 text-right">{idx + 1}</span>
-                      
-                      {/* Category select/input */}
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          value={row.category}
-                          onChange={(e) => handleRowChange(row.id, "category", e.target.value)}
-                          placeholder="e.g. Gas, Salary, Rent"
-                          list="category-suggestions"
-                          className="w-full bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
-                        />
+                      <div className="flex items-center space-x-2.5 w-full sm:flex-1 min-w-0">
+                        <span className="text-xs font-bold text-slate-400 w-5 text-right shrink-0">{idx + 1}</span>
+                        
+                        {/* Category select/input */}
+                        <div className="flex-1 min-w-0">
+                          <input
+                            type="text"
+                            value={row.category}
+                            onChange={(e) => handleRowChange(row.id, "category", e.target.value)}
+                            placeholder="e.g. Gas, Salary, Rent"
+                            list="category-suggestions"
+                            className="w-full min-w-0 bg-white sm:bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
                       </div>
 
-                      {/* Limit amount */}
-                      <div className="w-28 relative">
-                        <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-450">{user?.currencySymbol || "₹"}</span>
-                        <input
-                          type="number"
-                          value={row.limitAmount}
-                          onChange={(e) => handleRowChange(row.id, "limitAmount", e.target.value)}
-                          placeholder="0"
-                          className="w-full bg-slate-50 border border-slate-200/80 rounded-xl pl-6 pr-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 text-right"
-                        />
+                      <div className="flex items-center justify-between sm:justify-end space-x-2.5 w-full sm:w-auto pl-7 sm:pl-0">
+                        {/* Limit amount */}
+                        <div className="flex-1 sm:w-28 sm:flex-initial relative min-w-0">
+                          <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-450">{user?.currencySymbol || "₹"}</span>
+                          <input
+                            type="number"
+                            value={row.limitAmount}
+                            onChange={(e) => handleRowChange(row.id, "limitAmount", e.target.value)}
+                            placeholder="0"
+                            className="w-full bg-white sm:bg-slate-50 border border-slate-200/80 rounded-xl pl-6 pr-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 text-right"
+                          />
+                        </div>
+
+                        {/* Recurring selector */}
+                        <label className="flex items-center space-x-1.5 px-2.5 py-2 bg-white sm:bg-transparent border border-slate-200 sm:border-slate-150 rounded-xl hover:bg-slate-50 cursor-pointer text-slate-650 shrink-0 select-none">
+                          <input
+                            type="checkbox"
+                            checked={row.isRecurring}
+                            onChange={(e) => handleRowChange(row.id, "isRecurring", e.target.checked)}
+                            className="rounded text-primary focus:ring-primary/20 cursor-pointer h-3.5 w-3.5"
+                          />
+                          <span className="text-[10px] font-bold">Recurring</span>
+                        </label>
+
+                        {/* Remove row */}
+                        <button
+                          onClick={() => handleRemoveRow(row.id)}
+                          className="p-2 text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50/50 transition-colors cursor-pointer shrink-0"
+                          title="Remove row"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-
-                      {/* Recurring selector */}
-                      <label className="flex items-center space-x-1.5 px-2.5 py-2 border border-slate-150 rounded-xl hover:bg-slate-50 cursor-pointer text-slate-650 shrink-0 select-none">
-                        <input
-                          type="checkbox"
-                          checked={row.isRecurring}
-                          onChange={(e) => handleRowChange(row.id, "isRecurring", e.target.checked)}
-                          className="rounded text-primary focus:ring-primary/20 cursor-pointer h-3.5 w-3.5"
-                        />
-                        <span className="text-[10px] font-bold">Recurring</span>
-                      </label>
-
-                      {/* Remove row */}
-                      <button
-                        onClick={() => handleRemoveRow(row.id)}
-                        className="p-2 text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50/50 transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
                     </motion.div>
                   ))}
                   
