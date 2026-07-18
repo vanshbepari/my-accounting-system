@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, ChevronDown, Check, Trash2, Menu, Award, LogOut } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
 
 interface TopNavbarProps {
   onMobileMenuToggle?: () => void;
@@ -105,21 +106,14 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
         <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Month Selector dropdown - hidden on mobile, shown on desktop ONLY on main dashboard */}
           {pathname === "/dashboard" && (
-            <div className="relative hidden md:block">
-              <select
+            <div className="hidden md:block">
+              <CustomMonthDropdown
                 value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer shadow-sm hover:bg-slate-100"
-              >
-                {months.map(m => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-text-secondary">
-                <ChevronDown className="w-3.5 h-3.5" />
-              </div>
+                onChange={(val) => setSelectedMonth(val)}
+                options={months}
+                variant="glass"
+                size="sm"
+              />
             </div>
           )}
 

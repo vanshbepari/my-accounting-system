@@ -41,6 +41,8 @@ import {
 } from "recharts";
 
 import { useAccounting } from "@/context/AccountingContext";
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
+import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
 
 const generateRefId = () => Math.random().toString(36).substring(2, 9).toUpperCase();
 
@@ -1740,24 +1742,17 @@ export default function ReportsPage() {
         </div>
 
         {/* Global Filter fields */}
-        <div className="flex flex-wrap items-center justify-start md:justify-end gap-4">
-          <div className="flex items-center space-x-2">
-            <CalendarDays className="w-4 h-4 text-primary" />
-            <span className="text-xs font-bold text-text-secondary uppercase tracking-wider">Scope:</span>
-          </div>
-
-          <div className="relative">
-            <input
-              type="month"
-              value={activeMonth}
-              onChange={(e) => {
-                const val = e.target.value;
-                setActiveMonth(val);
-                setSelectedMonth(val); // Sync context month
-              }}
-              className="px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary cursor-pointer shadow-inner"
-            />
-          </div>
+        <div className="flex flex-wrap items-center justify-start md:justify-end gap-3">
+          <CustomMonthDropdown
+            value={activeMonth}
+            onChange={(val) => {
+              setActiveMonth(val);
+              setSelectedMonth(val);
+            }}
+            options={generateMonthOptions(6, 3, true)}
+            variant="glass"
+            size="sm"
+          />
         </div>
 
       </div>
@@ -2793,35 +2788,44 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="field">
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block mb-1">Audit Month A</label>
-                  <input
-                    type="month"
+                  <CustomMonthDropdown
                     value={compMonth1}
-                    onChange={(e) => setCompMonth1(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl bg-slate-50 text-text-primary focus:outline-none focus:border-primary shadow-inner"
+                    onChange={(val) => setCompMonth1(val)}
+                    options={generateMonthOptions(6, 0, false)}
+                    variant="light"
+                    size="sm"
+                    className="w-full"
                   />
                 </div>
                 <div className="field">
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block mb-1">Audit Month B</label>
-                  <input
-                    type="month"
+                  <CustomMonthDropdown
                     value={compMonth2}
-                    onChange={(e) => setCompMonth2(e.target.value)}
-                    className="w-full px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl bg-slate-50 text-text-primary focus:outline-none focus:border-primary shadow-inner"
+                    onChange={(val) => setCompMonth2(val)}
+                    options={generateMonthOptions(6, 0, false)}
+                    variant="light"
+                    size="sm"
+                    className="w-full"
                   />
                 </div>
                 <div className="field">
                   <label className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block mb-1">Audit Month C (Optional)</label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="month"
-                      value={compMonth3}
-                      onChange={(e) => setCompMonth3(e.target.value)}
-                      className="flex-1 px-4 py-2.5 text-xs font-bold border border-slate-200 rounded-xl bg-slate-50 text-text-primary focus:outline-none focus:border-primary shadow-inner"
+                  <div className="flex items-center space-x-2">
+                    <CustomMonthDropdown
+                      value={compMonth3 || "None"}
+                      onChange={(val) => setCompMonth3(val === "None" ? "" : val)}
+                      options={[
+                        { value: "None", label: "None (Disabled)" },
+                        ...generateMonthOptions(6, 0, false)
+                      ]}
+                      variant="light"
+                      size="sm"
+                      className="w-full"
                     />
                     {compMonth3 && (
                       <button
                         onClick={() => setCompMonth3("")}
-                        className="px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-100 text-xs font-black cursor-pointer"
+                        className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl border border-rose-100 text-xs font-black cursor-pointer shrink-0"
                         title="Clear Month C"
                       >
                         ✕

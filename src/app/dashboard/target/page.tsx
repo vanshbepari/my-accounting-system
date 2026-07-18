@@ -18,11 +18,15 @@ import {
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
 
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
+import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
+
 export default function TargetPage() {
   const {
     transactions,
     formatCurrency,
     selectedMonth,
+    setSelectedMonth,
     revenueTarget,
     netProfitTarget,
     expenseCeiling,
@@ -37,6 +41,9 @@ export default function TargetPage() {
   const [localRev, setLocalRev] = useState(50000);
   const [localNet, setLocalNet] = useState(20000);
   const [localExp, setLocalExp] = useState(15000);
+
+  // Generate target month options (6 months past, 4 months future, plus All Time)
+  const targetMonthOptions = useMemo(() => generateMonthOptions(6, 4, true), []);
 
   useEffect(() => {
     setMounted(true);
@@ -143,12 +150,15 @@ export default function TargetPage() {
           </p>
         </div>
         
-        {/* Active Month Badge */}
-        <div className="flex items-center space-x-2 bg-slate-100/80 border border-slate-200/60 px-3.5 py-1.5 rounded-xl self-start sm:self-center shadow-sm">
-          <Calendar className="w-4 h-4 text-text-secondary" />
-          <span className="text-xs font-extrabold text-text-primary uppercase tracking-wide">
-            {isAllTime ? "Cumulative Period" : getMonthLabel(activeMonth)}
-          </span>
+        {/* Animated Custom Month Dropdown Selector */}
+        <div className="flex items-center space-x-2 self-start sm:self-center">
+          <CustomMonthDropdown
+            value={selectedMonth}
+            onChange={(newMonth) => setSelectedMonth(newMonth)}
+            options={targetMonthOptions}
+            variant="glass"
+            size="md"
+          />
         </div>
       </div>
 

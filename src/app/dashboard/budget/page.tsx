@@ -13,6 +13,8 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
+import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
 import {
   ResponsiveContainer,
   BarChart,
@@ -353,20 +355,13 @@ export default function BudgetPage() {
         {/* Global Month Selection Dropdown */}
         <div className="flex items-center space-x-3 self-start md:self-auto">
           {!isEditing && (
-            <>
-              <CalendarDays className="w-5 h-5 text-slate-400 shrink-0" />
-              <select
-                value={activeMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-white border border-slate-200 rounded-xl px-3.5 py-1.5 text-xs font-bold text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 hover:border-slate-350 cursor-pointer"
-              >
-                {past6Months.map((m) => (
-                  <option key={m} value={m}>
-                    {new Date(m + "-15").toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-                  </option>
-                ))}
-              </select>
-            </>
+            <CustomMonthDropdown
+              value={activeMonth}
+              onChange={(newMonth) => setSelectedMonth(newMonth)}
+              options={generateMonthOptions(6, 3, false)}
+              variant="light"
+              size="sm"
+            />
           )}
 
           {!isEditing && (
@@ -406,21 +401,14 @@ export default function BudgetPage() {
                   </div>
                   
                   <div className="flex items-center space-x-3.5">
-                    {/* Month selector for future/past months */}
-                    <div className="flex items-center space-x-1.5">
-                      <span className="text-[9px] font-black text-slate-455 uppercase tracking-wider">Month:</span>
-                      <select
-                        value={activeMonth}
-                        onChange={(e) => handleEditMonthChange(e.target.value)}
-                        className="bg-white border border-slate-200 rounded-lg px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-sm focus:outline-none cursor-pointer"
-                      >
-                        {editModeMonths.map((m) => (
-                          <option key={m} value={m}>
-                            {new Date(m + "-15").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {/* Custom Month selector for future/past months */}
+                    <CustomMonthDropdown
+                      value={activeMonth}
+                      onChange={(newMonth) => handleEditMonthChange(newMonth)}
+                      options={generateMonthOptions(3, 3, false)}
+                      variant="glass"
+                      size="sm"
+                    />
 
                     <button
                       onClick={handleAddRow}
@@ -638,18 +626,16 @@ export default function BudgetPage() {
                 </div>
                 
                 {/* Comparison Month Dropdown */}
-                <select
+                <CustomMonthDropdown
                   value={compareMonth}
-                  onChange={(e) => setCompareMonth(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-[10px] font-bold text-slate-655 focus:outline-none cursor-pointer"
-                >
-                  <option value="">No Month Selected</option>
-                  {past6Months.filter(m => m !== activeMonth).map((m) => (
-                    <option key={m} value={m}>
-                      Compare to {new Date(m + "-15").toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCompareMonth(val)}
+                  options={[
+                    { value: "", label: "No Month Selected" },
+                    ...generateMonthOptions(6, 0, false).filter(opt => opt.value !== activeMonth)
+                  ]}
+                  variant="glass"
+                  size="sm"
+                />
               </div>
 
               {chartData.length === 0 ? (

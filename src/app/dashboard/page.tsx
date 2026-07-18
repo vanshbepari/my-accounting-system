@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
@@ -69,12 +69,17 @@ function AnimatedCounter({ value, formatFn }: AnimatedCounterProps) {
   return <>{formatFn(count)}</>;
 }
 
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
+import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
+
 export default function DashboardPage() {
   const { transactions, dailySummaries, selectedMonth, setSelectedMonth, formatCurrency, user } = useAccounting();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedDates, setExpandedDates] = useState<{ [date: string]: boolean }>({});
   const [mounted, setMounted] = useState(false);
+
+  const dashboardMonthOptions = useMemo(() => generateMonthOptions(6, 3, true), []);
 
   // Hydration safety mount check + back button interceptor
   useEffect(() => {
@@ -278,11 +283,13 @@ export default function DashboardPage() {
             ◀
           </button>
 
-          <div className="flex-grow sm:flex-grow-0 min-w-[150px] text-center px-4 py-2.5 border border-border-color rounded-xl bg-slate-50 shadow-inner flex items-center justify-center">
-            <span className="font-display font-black text-xs sm:text-sm text-text-primary tracking-wide uppercase">
-              {getMonthLabel(activeMonth)}
-            </span>
-          </div>
+          <CustomMonthDropdown
+            value={selectedMonth}
+            onChange={(newMonth) => setSelectedMonth(newMonth)}
+            options={dashboardMonthOptions}
+            variant="glass"
+            size="sm"
+          />
 
           <button
             onClick={() => adjustMonth(1)}
