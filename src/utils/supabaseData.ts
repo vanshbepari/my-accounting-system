@@ -366,7 +366,22 @@ export async function fetchUserNotifications(userId: string): Promise<Notificati
       return [];
     }
 
-    return (data ?? []).map(row => {
+    // Filter out non-whitelisted rows & purge them from DB in background to free storage
+    const validRows = (data ?? []).filter(row => {
+      const t = (row.title || "").toLowerCase();
+      return t.includes("target") || t.includes("budget") || t.includes("pdf") || t.includes("report");
+    });
+
+    const invalidIds = (data ?? []).filter(row => {
+      const t = (row.title || "").toLowerCase();
+      return !t.includes("target") && !t.includes("budget") && !t.includes("pdf") && !t.includes("report");
+    }).map(r => r.id);
+
+    if (invalidIds.length > 0) {
+      await supabase.from("notifications").delete().in("id", invalidIds);
+    }
+
+    return validRows.map(row => {
       const createdDate = new Date(row.created_at);
       const timeDiff = Date.now() - createdDate.getTime();
       let timestamp = "Just now";
@@ -404,6 +419,17 @@ export async function insertUserNotification(
   message: string,
   type: "success" | "warning" | "info" | "danger"
 ): Promise<NotificationItem | null> {
+  // STRICT DB GUARD: Completely block sign-in, welcome, and generic alerts from being inserted into Supabase
+  const titleLower = (title || "").toLowerCase();
+  const isTargetNotification = titleLower.includes("target");
+  const isBudgetNotification = titleLower.includes("budget");
+  const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+
+  if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
+    // Suppress insertion into database completely
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from("notifications")
