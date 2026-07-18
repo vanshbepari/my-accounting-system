@@ -881,15 +881,10 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
-    // Update local state so the UI reflects the change instantly
+    // Update local state so the UI reflects the single unified record instantly without duplicates
     setTransactions((prev) => {
-      const idx = prev.findIndex((t) => t.date === record.date);
-      if (idx !== -1) {
-        const updated = [...prev];
-        updated[idx] = saved;
-        return updated;
-      }
-      return [saved, ...prev];
+      const filtered = prev.filter((t) => t.date !== record.date);
+      return [saved, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
     });
 
     const totalExpenses = record.expenses.reduce((sum, e) => sum + e.amount, 0);

@@ -39,41 +39,117 @@ export async function fetchUserTransactions(userId: string): Promise<Transaction
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (entries ?? []).map((row: any) => ({
-    id: row.id,
-    date: row.date,
-    title: row.title,
-    category: row.category,
-    onlineAmount: Number(row.online_amount),
-    cashAmount: Number(row.cash_amount),
-    expensesAmount: Number(row.expenses_amount),
-    notes: row.notes ?? "",
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expenses: (row.expense_items ?? []).map((e: any) => ({
-      id: e.id,
-      title: e.title,
-      amount: Number(e.amount),
-    })),
-  }));
+  // Deduplicate entries by date to guarantee 100% unique date records
+  const dateMap = new Map<string, any>();
+
+  (entries ?? []).forEach((row: any) => {
+    const d = row.date;
+    if (!dateMap.has(d)) {
+      dateMap.set(d, row);
+    }
+  });
+
+  const uniqueRows = Array.from(dateMap.values());
+
+  // Map and deduplicate expense items per transaction by title
+  return uniqueRows.map((row: any) => {
+    const rawExpenses = row.expense_items ?? [];
+    const seenTitles = new Set<string>();
+    const deduplicatedExpenses: ExpenseItem[] = [];
+
+    rawExpenses.forEach((e: any) => {
+      const titleClean = (e.title || "").trim();
+      const titleKey = titleClean.toLowerCase();
+      if (titleClean !== "" && !seenTitles.has(titleKey)) {
+        seenTitles.add(titleKey);
+        deduplicatedExpenses.push({
+          id: e.id,
+          title: titleClean,
+          amount: Number(e.amount),
+        });
+      }
+    });
+
+    const calculatedExpensesAmount = deduplicatedExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+    return {
+      id: row.id,
+      date: row.date,
+      title: row.title,
+      category: row.category,
+      onlineAmount: Number(row.online_amount),
+      cashAmount: Number(row.cash_amount),
+      expensesAmount: calculatedExpensesAmount > 0 ? calculatedExpensesAmount : Number(row.expenses_amount),
+      notes: row.notes ?? "",
+      expenses: deduplicatedExpenses,
+    };
+  });
 }
 
 /**
  * Upsert (create or update) a daily entry for a user.
- * Uses the UNIQUE(user_id, date) constraint for conflict resolution.
- * Replaces expense_items for that entry on each save.
+ * Guarantees zero duplicate entries per date and zero duplicate expense items.
  */
 export async function upsertDailyEntry(
   userId: string,
   record: Omit<Transaction, "id">
 ): Promise<Transaction | null> {
-  const totalExpenses = record.expenses.reduce((sum, e) => sum + e.amount, 0);
+  // 1. Deduplicate input expenses by title before saving
+  const seenTitles = new Set<string>();
+  const deduplicatedExpenses: ExpenseItem[] = [];
 
-  // 1. Upsert the main daily entry row
+  record.expenses.forEach((e) => {
+    const titleClean = e.title.trim();
+    const titleKey = titleClean.toLowerCase();
+    if (titleClean !== "" && e.amount > 0 && !seenTitles.has(titleKey)) {
+      seenTitles.add(titleKey);
+      deduplicatedExpenses.push({
+        id: e.id || "exp-" + Math.random().toString(36).substring(2, 9),
+        title: titleClean,
+        amount: Number(e.amount),
+      });
+    }
+  });
+
+  const totalExpenses = deduplicatedExpenses.reduce((sum, e) => sum + e.amount, 0);
+
+  // 2. Fetch all existing entries for this date to purge duplicates
+  const { data: existingEntries } = await supabase
+    .from("daily_entries")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("date", record.date);
+
+  let primaryEntryId: string | null = null;
+  if (existingEntries && existingEntries.length > 0) {
+    primaryEntryId = existingEntries[0].id;
+
+    // Purge expense items for ALL existing entries for this date
+    for (const oldEntry of existingEntries) {
+      await supabase
+        .from("expense_items")
+        .delete()
+        .eq("entry_id", oldEntry.id)
+        .eq("user_id", userId);
+    }
+
+    // Delete redundant duplicate daily_entries rows if more than 1 exists
+    if (existingEntries.length > 1) {
+      const redundantIds = existingEntries.slice(1).map((e) => e.id);
+      await supabase
+        .from("daily_entries")
+        .delete()
+        .in("id", redundantIds)
+        .eq("user_id", userId);
+    }
+  }
+
+  // 3. Upsert main daily entry row
   const { data: entryData, error: entryError } = await supabase
     .from("daily_entries")
     .upsert(
       {
+        ...(primaryEntryId ? { id: primaryEntryId } : {}),
         user_id: userId,
         date: record.date,
         title: record.title,
@@ -95,19 +171,9 @@ export async function upsertDailyEntry(
 
   const entryId = entryData.id;
 
-  // 2. Delete old expense_items for this entry, then re-insert fresh ones
-  const { error: deleteError } = await supabase
-    .from("expense_items")
-    .delete()
-    .eq("entry_id", entryId)
-    .eq("user_id", userId);
-
-  if (deleteError) {
-    console.error("[upsertDailyEntry] delete expense_items error:", deleteError.message);
-  }
-
-  if (record.expenses.length > 0) {
-    const expenseRows = record.expenses.map((e) => ({
+  // 4. Insert fresh deduplicated expense items
+  if (deduplicatedExpenses.length > 0) {
+    const expenseRows = deduplicatedExpenses.map((e) => ({
       user_id: userId,
       entry_id: entryId,
       title: e.title,
@@ -132,7 +198,7 @@ export async function upsertDailyEntry(
     cashAmount: record.cashAmount,
     expensesAmount: totalExpenses,
     notes: record.notes,
-    expenses: record.expenses,
+    expenses: deduplicatedExpenses,
   };
 }
 

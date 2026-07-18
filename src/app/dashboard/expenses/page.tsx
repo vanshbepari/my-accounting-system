@@ -67,9 +67,23 @@ function AddEntryContent() {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOnlineAmount(record.onlineAmount > 0 ? record.onlineAmount.toString() : "");
       setCashAmount(record.cashAmount > 0 ? record.cashAmount.toString() : "");
+
+      // Deduplicate expense items by title to prevent duplicate rows in the input form
+      const seenTitles = new Set<string>();
+      const uniqueExpenses: ExpenseRow[] = [];
+      if (record.expenses && record.expenses.length > 0) {
+        record.expenses.forEach(e => {
+          const key = e.title.trim().toLowerCase();
+          if (e.title.trim() !== "" && !seenTitles.has(key)) {
+            seenTitles.add(key);
+            uniqueExpenses.push({ id: e.id, title: e.title, amount: e.amount.toString() });
+          }
+        });
+      }
+
       setExpensesList(
-        record.expenses && record.expenses.length > 0
-          ? record.expenses.map(e => ({ id: e.id, title: e.title, amount: e.amount.toString() }))
+        uniqueExpenses.length > 0
+          ? uniqueExpenses
           : [{ id: "init-1", title: "", amount: "" }]
       );
       setNotes(record.notes || "");
@@ -208,13 +222,24 @@ function AddEntryContent() {
   const handleSaveEntry = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const structuredExpenses = expensesList
-      .map(exp => ({
-        id: exp.id,
-        title: exp.title.trim(),
-        amount: parseFloat(exp.amount) || 0
-      }))
-      .filter(exp => exp.title !== "" && exp.amount > 0);
+    // Deduplicate expenses by title so identical names are merged into a single entry
+    const seenFormTitles = new Set<string>();
+    const structuredExpenses: { id: string; title: string; amount: number }[] = [];
+
+    expensesList.forEach(exp => {
+      const titleClean = exp.title.trim();
+      const titleKey = titleClean.toLowerCase();
+      const amt = parseFloat(exp.amount) || 0;
+
+      if (titleClean !== "" && amt > 0 && !seenFormTitles.has(titleKey)) {
+        seenFormTitles.add(titleKey);
+        structuredExpenses.push({
+          id: exp.id,
+          title: titleClean,
+          amount: amt
+        });
+      }
+    });
 
     await saveDailyRecord({
       date,
