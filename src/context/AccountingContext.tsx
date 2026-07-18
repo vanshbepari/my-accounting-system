@@ -162,18 +162,18 @@ const AccountingContext = createContext<AccountingContextType | undefined>(undef
 // DEFAULT NOTIFICATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_NOTIFICATIONS: Notification[] = [
-  {
-    id: "notif-welcome",
-    title: "Welcome to My Accounting!",
-    message: "Your private accounting dashboard is ready. Start adding your daily entries.",
-    timestamp: "Just now",
-    read: false,
-    type: "info",
-  },
-];
+const DEFAULT_NOTIFICATIONS: Notification[] = [];
 
-
+// Helper to filter notifications so only target milestones, budget limits, and PDF report downloads are stored/displayed
+const filterImportantNotifications = (list: Notification[]): Notification[] => {
+  return list.filter(n => {
+    const titleLower = (n.title || "").toLowerCase();
+    const isTargetNotification = titleLower.includes("target");
+    const isBudgetNotification = titleLower.includes("budget");
+    const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+    return isTargetNotification || isBudgetNotification || isPdfNotification;
+  });
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROVIDER
@@ -206,6 +206,17 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // ── addNotification (defined early so it can be used in loadUserData) ──────
   const addNotification = useCallback(
     async (title: string, message: string, type: "success" | "warning" | "info" | "danger") => {
+      // STRICT FILTER: Only allow target milestones, budget alerts, and PDF report downloads
+      const titleLower = title.toLowerCase();
+      const isTargetNotification = titleLower.includes("target");
+      const isBudgetNotification = titleLower.includes("budget");
+      const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+
+      if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
+        // Suppress and do not generate or store generic or unrelated notifications
+        return;
+      }
+
       const newNotifLocal: Notification = {
         id: "notif-" + Math.random().toString(36).substring(2, 9),
         title,
@@ -218,14 +229,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (user?.id && useSupabaseForNotifications) {
         const inserted = await insertUserNotification(user.id, title, message, type);
         if (inserted) {
-          setNotifications((prev) => [inserted, ...prev]);
+          setNotifications((prev) => filterImportantNotifications([inserted, ...prev]));
           return;
         }
       }
 
       // Fallback
       setNotifications((prev) => {
-        const updated = [newNotifLocal, ...prev];
+        const updated = filterImportantNotifications([newNotifLocal, ...prev]);
         if (user?.id) {
           localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updated));
         }
@@ -383,15 +394,15 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
 
         if (loadedNotifications !== null) {
-          setNotifications(loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
+          setNotifications(filterImportantNotifications(loadedNotifications));
           setUseSupabaseForNotifications(true);
         } else {
           setUseSupabaseForNotifications(false);
           const savedLocalNotifs = localStorage.getItem(`notifications_${userId}`);
           if (savedLocalNotifs) {
-            setNotifications(JSON.parse(savedLocalNotifs));
+            setNotifications(filterImportantNotifications(JSON.parse(savedLocalNotifs)));
           } else {
-            setNotifications(DEFAULT_NOTIFICATIONS);
+            setNotifications([]);
           }
         }
 
@@ -529,14 +540,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }).catch((err) => console.error("[onAuthStateChange] loadUserData error:", err));
 
         setIsAuthReady(true);
-
-        if (event === "SIGNED_IN") {
-          addNotification(
-            "Signed in successfully",
-            `Welcome back, ${name}! Your private dashboard is ready.`,
-            "success"
-          );
-        }
       } else if (event === "SIGNED_OUT") {
         // Wipe all in-memory data so no trace of previous user remains
         setUser(null);
@@ -687,7 +690,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         async () => {
           console.log("[Realtime] notifications updated, reloading...");
           const loadedNotifications = await fetchUserNotifications(user.id);
-          setNotifications(loadedNotifications && loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
+          setNotifications(loadedNotifications ? filterImportantNotifications(loadedNotifications) : []);
         }
       )
       .subscribe();
@@ -1104,6 +1107,63 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   }, [user?.id, budgets, transactions, notifications, addNotification, formatCurrency]);
 
+  const checkTargetMilestoneAlerts = useCallback(() => {
+    if (!user?.id || (revenueTarget === 0 && netProfitTarget === 0 && expenseCeiling === 0) || transactions.length === 0) return;
+
+    const currentMonth = selectedMonth && selectedMonth !== "All"
+      ? selectedMonth
+      : new Date().toISOString().split("T")[0].substring(0, 7);
+
+    const monthTxs = transactions.filter(t => t.date.startsWith(currentMonth));
+    const rev = monthTxs.reduce((acc, t) => acc + t.onlineAmount + t.cashAmount, 0);
+    const exp = monthTxs.reduce((acc, t) => acc + t.expensesAmount, 0);
+    const net = rev - exp;
+
+    // 1. Revenue Target Milestone Achievement
+    if (revenueTarget > 0 && rev >= revenueTarget) {
+      const title = `🏆 Target Milestone Reached: Revenue Goal (${currentMonth})`;
+      const message = `Congratulations! Monthly revenue of ${formatCurrency(rev)} has achieved your revenue target of ${formatCurrency(revenueTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "success");
+      }
+    } else if (revenueTarget > 0 && rev < revenueTarget * 0.5) {
+      const title = `📉 Target Alert: Revenue Milestone Below Target (${currentMonth})`;
+      const message = `Monthly revenue of ${formatCurrency(rev)} is currently below 50% of your revenue target (${formatCurrency(revenueTarget)}).`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "warning");
+      }
+    }
+
+    // 2. Net Profit Target Milestone Achievement / Deficit
+    if (netProfitTarget > 0 && net >= netProfitTarget) {
+      const title = `🎯 Target Milestone Reached: Net Profit Goal (${currentMonth})`;
+      const message = `Net profit of ${formatCurrency(net)} has met or exceeded your profit milestone of ${formatCurrency(netProfitTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "success");
+      }
+    } else if (netProfitTarget > 0 && net < 0) {
+      const title = `⚠️ Target Alert: Net Profit Deficit (${currentMonth})`;
+      const message = `Current net position is in deficit (${formatCurrency(net)}), falling short of your profit target of ${formatCurrency(netProfitTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "danger");
+      }
+    }
+
+    // 3. Expense Ceiling Breached Target Alert
+    if (expenseCeiling > 0 && exp > expenseCeiling) {
+      const title = `🚨 Target Alert: Expense Ceiling Exceeded (${currentMonth})`;
+      const message = `Total expenses of ${formatCurrency(exp)} have breached your monthly expense ceiling limit of ${formatCurrency(expenseCeiling)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "danger");
+      }
+    }
+  }, [user?.id, revenueTarget, netProfitTarget, expenseCeiling, transactions, selectedMonth, notifications, addNotification, formatCurrency]);
+
   const rolloverRecurringBudgets = useCallback((activeMonthStr: string) => {
     if (!user?.id || budgets.length === 0 || activeMonthStr === "All") return;
 
@@ -1135,12 +1195,15 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [user?.id, budgets, saveBudget]);
 
-  // Run alerts scanner whenever budgets or transactions change
+  // Run alerts scanner whenever budgets, targets, or transactions change
   useEffect(() => {
-    if (user?.id && budgets.length > 0 && transactions.length > 0) {
-      checkBudgetAlerts();
+    if (user?.id && transactions.length > 0) {
+      if (budgets.length > 0) {
+        checkBudgetAlerts();
+      }
+      checkTargetMilestoneAlerts();
     }
-  }, [budgets, transactions, user?.id]);
+  }, [budgets, transactions, user?.id, checkBudgetAlerts, checkTargetMilestoneAlerts]);
 
   // Run rollover when month changes
   useEffect(() => {

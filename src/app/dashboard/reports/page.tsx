@@ -189,7 +189,7 @@ const CustomTooltip = ({ active, payload, label, formatCurrency: propFormatCurre
 };
 
 export default function ReportsPage() {
-  const { transactions, dailySummaries, user, selectedMonth, setSelectedMonth, formatCurrency } = useAccounting();
+  const { transactions, dailySummaries, user, selectedMonth, setSelectedMonth, formatCurrency, addNotification } = useAccounting();
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "compare-months" | "compare-years" | "cashflow">("overview");
@@ -1683,6 +1683,11 @@ export default function ReportsPage() {
 
       // Save compiled PDF file directly to browser download directory (triggers automatic client saving)
       doc.save(`My_Accounting_Report_${activeMonth}.pdf`);
+      addNotification(
+        "PDF Report Downloaded",
+        `Your financial report PDF statement for ${getMonthLabel(activeMonth)} has been generated and downloaded successfully.`,
+        "success"
+      );
     } catch (e) {
       console.error("PDF Report download failure:", e);
     }
