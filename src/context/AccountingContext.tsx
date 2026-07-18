@@ -368,6 +368,11 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setExpenseCeiling(0);
         }
 
+        const hasExistingProfile = Boolean(
+          settings.businessName?.trim() || settings.ownerName?.trim()
+        );
+        const isOnboarded = settings.onboarded === true || hasExistingProfile;
+
         const fullProfile: UserProfile = { 
           ...profile, 
           name: settings.ownerName || profile.name,
@@ -377,7 +382,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           startingBalance: settings.startingBalance ?? 0,
           mobileNumber: settings.mobileNumber,
           country: settings.country,
-          onboarded: settings.onboarded,
+          onboarded: isOnboarded,
         };
         setUser(fullProfile);
         setTransactions(txs);

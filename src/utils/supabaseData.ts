@@ -166,6 +166,11 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     console.error("[fetchUserSettings] error:", error.message);
   }
 
+  // If a record exists in user_settings AND business_name or owner_name is set,
+  // the user is ALREADY onboarded (even if onboarded column is null in DB).
+  const hasExistingProfile = Boolean(data && (data.business_name?.trim() || data.owner_name?.trim()));
+  const isOnboarded = data ? (data.onboarded === true || hasExistingProfile) : false;
+
   return {
     businessName: data?.business_name ?? "",
     currencyCode: data?.currency_code ?? "INR",
@@ -175,7 +180,7 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     mobileNumber: data?.mobile_number ?? undefined,
     country: data?.country ?? undefined,
     email: data?.email ?? undefined,
-    onboarded: data?.onboarded ?? false,
+    onboarded: isOnboarded,
   };
 }
 
