@@ -1701,7 +1701,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-10">
       
-      {/* HEADER SECTION */}
+      {/* HEADER SECTION WITH UNTOUCHED ACTIVE BILLING PERIOD DROPDOWN NEXT TO DOWNLOAD PDF */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-100 pb-6 text-left">
         <div>
           <h1 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -1712,37 +1712,7 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleDownloadPDF}
-          className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:from-primary/95 hover:to-secondary/95 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:shadow-xl transition-all hover-lift active:scale-98 cursor-pointer shadow-md self-start md:self-center"
-        >
-          <FileText className="w-4 h-4 text-white" />
-          <span>Download PDF Report</span>
-        </button>
-      </div>
-
-      {/* FILTER SYSTEM & TAB NAVIGATION */}
-      <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/80 backdrop-blur-md shadow-sm grid grid-cols-1 md:grid-cols-2 items-center gap-6 relative z-40">
-        
-        {/* Navigation tabs */}
-        <div className="flex p-1 rounded-xl bg-slate-100/80 border border-slate-200/50 w-full shadow-inner max-w-md">
-          {(["overview", "compare-months", "compare-years"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
-                activeTab === tab
-                  ? "bg-white text-primary shadow-sm"
-                  : "text-text-secondary hover:text-text-primary hover:bg-white/30"
-              }`}
-            >
-              {tab === "overview" ? "Overview" : tab === "compare-months" ? "Compare Months" : "Compare Years"}
-            </button>
-          ))}
-        </div>
-
-        {/* Global Filter fields */}
-        <div className="flex flex-wrap items-center justify-start md:justify-end gap-3">
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-center">
           <CustomMonthDropdown
             value={activeMonth}
             onChange={(val) => {
@@ -1753,8 +1723,14 @@ export default function ReportsPage() {
             variant="glass"
             size="sm"
           />
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/95 hover:to-secondary/95 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:shadow-xl transition-all hover-lift active:scale-98 cursor-pointer shadow-md"
+          >
+            <FileText className="w-4 h-4 text-white" />
+            <span>Download PDF Report</span>
+          </button>
         </div>
-
       </div>
 
       {/* SECTION 1 — MONTHLY OVERVIEW SUMMARY (KPI Cards with Sparklines) */}
@@ -1896,6 +1872,29 @@ export default function ReportsPage() {
           </div>
         </div>
 
+      </div>
+
+      {/* RELOCATED NAVIGATION TABS: Directly Above Financial Health Audit Index Card */}
+      <div className="flex items-center justify-between flex-wrap gap-4 p-2 rounded-2xl border border-slate-200/80 bg-slate-100/90 shadow-xs text-left">
+        <div className="flex p-1 rounded-xl bg-white border border-slate-200/70 w-full sm:w-auto shadow-xs">
+          {(["overview", "compare-months", "compare-years"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                activeTab === tab
+                  ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+            >
+              {tab === "overview" ? "Overview" : tab === "compare-months" ? "Compare Months" : "Compare Years"}
+            </button>
+          ))}
+        </div>
+        
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 hidden md:inline-block">
+          Performance Navigation Center
+        </span>
       </div>
 
       <AnimatePresence mode="wait">
