@@ -197,6 +197,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isClient, setIsClient] = useState(false);
 
   const lastLoadedUserIdRef = useRef<string | null>(null);
+  const clearedNotificationTitlesRef = useRef<Set<string>>(new Set());
 
   // Targets and Forecast state properties
   const [revenueTarget, setRevenueTarget] = useState(0);
@@ -209,6 +210,11 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // ── addNotification (defined early so it can be used in loadUserData) ──────
   const addNotification = useCallback(
     async (title: string, message: string, type: "success" | "warning" | "info" | "danger") => {
+      // Check if user has explicitly cleared this notification title
+      if (clearedNotificationTitlesRef.current.has(title)) {
+        return;
+      }
+
       // STRICT FILTER: Only allow target milestones, budget alerts, and PDF report downloads
       const titleLower = title.toLowerCase();
       const isTargetNotification = titleLower.includes("target");
@@ -396,15 +402,33 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           }
         }
 
+        // Load cleared notification memory from localStorage
+        try {
+          const savedCleared = localStorage.getItem(`cleared_notifications_${userId}`);
+          if (savedCleared) {
+            clearedNotificationTitlesRef.current = new Set(JSON.parse(savedCleared));
+          } else {
+            clearedNotificationTitlesRef.current = new Set();
+          }
+        } catch {
+          clearedNotificationTitlesRef.current = new Set();
+        }
+
         if (loadedNotifications !== null) {
-          setNotifications(filterImportantNotifications(loadedNotifications));
+          const filtered = filterImportantNotifications(loadedNotifications).filter(
+            n => !clearedNotificationTitlesRef.current.has(n.title)
+          );
+          setNotifications(filtered);
           setUseSupabaseForNotifications(true);
           purgeUnwantedDatabaseNotifications(userId).catch(err => console.warn("[purgeUnwantedDatabaseNotifications] error:", err));
         } else {
           setUseSupabaseForNotifications(false);
           const savedLocalNotifs = localStorage.getItem(`notifications_${userId}`);
           if (savedLocalNotifs) {
-            setNotifications(filterImportantNotifications(JSON.parse(savedLocalNotifs)));
+            const filteredLocal = filterImportantNotifications(JSON.parse(savedLocalNotifs)).filter(
+              n => !clearedNotificationTitlesRef.current.has(n.title)
+            );
+            setNotifications(filteredLocal);
           } else {
             setNotifications([]);
           }
@@ -1070,13 +1094,36 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const clearNotifications = useCallback(
     async () => {
-      if (user?.id && useSupabaseForNotifications) {
+      if (!user?.id) {
+        setNotifications([]);
+        return;
+      }
+
+      // Record all current notification titles as cleared by the user
+      setNotifications(prev => {
+        prev.forEach(n => {
+          clearedNotificationTitlesRef.current.add(n.title);
+        });
+        if (user?.id) {
+          try {
+            localStorage.setItem(
+              `cleared_notifications_${user.id}`,
+              JSON.stringify(Array.from(clearedNotificationTitlesRef.current))
+            );
+          } catch (e) {
+            console.warn("[clearNotifications] error saving cleared titles:", e);
+          }
+        }
+        return [];
+      });
+
+      // Clear from Supabase backend database
+      if (useSupabaseForNotifications) {
         await clearUserNotifications(user.id);
       }
-      setNotifications([]);
-      if (user?.id) {
-        localStorage.removeItem(`notifications_${user.id}`);
-      }
+
+      // Wipe local storage notification cache
+      localStorage.setItem(`notifications_${user.id}`, JSON.stringify([]));
     },
     [user?.id, useSupabaseForNotifications]
   );
@@ -1156,6 +1203,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       
       if (pct >= 100) {
         const title = `🚨 Budget Breached: ${alertKey}`;
+        if (clearedNotificationTitlesRef.current.has(title)) return;
         const message = `Category "${budget.category}" spending of ${formatCurrency(categorySpending)} has breached the budget limit of ${formatCurrency(budget.limitAmount)} (${pct.toFixed(0)}% reached).`;
         const exists = notifications.some(n => n.title === title);
         if (!exists) {
@@ -1163,6 +1211,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
       } else if (pct >= 80) {
         const title = `⚠️ Budget Alert: ${alertKey}`;
+        if (clearedNotificationTitlesRef.current.has(title)) return;
         const message = `Category "${budget.category}" spending of ${formatCurrency(categorySpending)} has reached 80%+ of the budget limit of ${formatCurrency(budget.limitAmount)} (${pct.toFixed(0)}% reached).`;
         const exists = notifications.some(n => n.title === title);
         if (!exists) {
@@ -1187,44 +1236,54 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // 1. Revenue Target Milestone Achievement
     if (revenueTarget > 0 && rev >= revenueTarget) {
       const title = `🏆 Target Milestone Reached: Revenue Goal (${currentMonth})`;
-      const message = `Congratulations! Monthly revenue of ${formatCurrency(rev)} has achieved your revenue target of ${formatCurrency(revenueTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "success");
+      if (!clearedNotificationTitlesRef.current.has(title)) {
+        const message = `Congratulations! Monthly revenue of ${formatCurrency(rev)} has achieved your revenue target of ${formatCurrency(revenueTarget)}.`;
+        const exists = notifications.some(n => n.title === title);
+        if (!exists) {
+          addNotification(title, message, "success");
+        }
       }
     } else if (revenueTarget > 0 && rev < revenueTarget * 0.5) {
       const title = `📉 Target Alert: Revenue Milestone Below Target (${currentMonth})`;
-      const message = `Monthly revenue of ${formatCurrency(rev)} is currently below 50% of your revenue target (${formatCurrency(revenueTarget)}).`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "warning");
+      if (!clearedNotificationTitlesRef.current.has(title)) {
+        const message = `Monthly revenue of ${formatCurrency(rev)} is currently below 50% of your revenue target (${formatCurrency(revenueTarget)}).`;
+        const exists = notifications.some(n => n.title === title);
+        if (!exists) {
+          addNotification(title, message, "warning");
+        }
       }
     }
 
     // 2. Net Profit Target Milestone Achievement / Deficit
     if (netProfitTarget > 0 && net >= netProfitTarget) {
       const title = `🎯 Target Milestone Reached: Net Profit Goal (${currentMonth})`;
-      const message = `Net profit of ${formatCurrency(net)} has met or exceeded your profit milestone of ${formatCurrency(netProfitTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "success");
+      if (!clearedNotificationTitlesRef.current.has(title)) {
+        const message = `Net profit of ${formatCurrency(net)} has met or exceeded your profit milestone of ${formatCurrency(netProfitTarget)}.`;
+        const exists = notifications.some(n => n.title === title);
+        if (!exists) {
+          addNotification(title, message, "success");
+        }
       }
     } else if (netProfitTarget > 0 && net < 0) {
       const title = `⚠️ Target Alert: Net Profit Deficit (${currentMonth})`;
-      const message = `Current net position is in deficit (${formatCurrency(net)}), falling short of your profit target of ${formatCurrency(netProfitTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "danger");
+      if (!clearedNotificationTitlesRef.current.has(title)) {
+        const message = `Current net position is in deficit (${formatCurrency(net)}), falling short of your profit target of ${formatCurrency(netProfitTarget)}.`;
+        const exists = notifications.some(n => n.title === title);
+        if (!exists) {
+          addNotification(title, message, "danger");
+        }
       }
     }
 
     // 3. Expense Ceiling Breached Target Alert
     if (expenseCeiling > 0 && exp > expenseCeiling) {
       const title = `🚨 Target Alert: Expense Ceiling Exceeded (${currentMonth})`;
-      const message = `Total expenses of ${formatCurrency(exp)} have breached your monthly expense ceiling limit of ${formatCurrency(expenseCeiling)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "danger");
+      if (!clearedNotificationTitlesRef.current.has(title)) {
+        const message = `Total expenses of ${formatCurrency(exp)} have breached your monthly expense ceiling limit of ${formatCurrency(expenseCeiling)}.`;
+        const exists = notifications.some(n => n.title === title);
+        if (!exists) {
+          addNotification(title, message, "danger");
+        }
       }
     }
   }, [user?.id, revenueTarget, netProfitTarget, expenseCeiling, transactions, selectedMonth, notifications, addNotification, formatCurrency]);
