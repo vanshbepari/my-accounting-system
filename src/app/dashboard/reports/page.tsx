@@ -2246,15 +2246,15 @@ export default function ReportsPage() {
                           <AreaChart data={trendChartData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="trendRev" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
+                                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
                                 <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.0} />
                               </linearGradient>
                               <linearGradient id="trendExp" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.25} />
+                                <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
                                 <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.0} />
                               </linearGradient>
                               <linearGradient id="trendProfit" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
+                                <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
                                 <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
                               </linearGradient>
                             </defs>
@@ -2271,7 +2271,7 @@ export default function ReportsPage() {
                                 strokeWidth={3}
                                 fill="url(#trendRev)"
                                 name="Revenue"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
                                 isAnimationActive={true}
                                 animationDuration={1600}
                                 animationEasing="ease-in-out"
@@ -2285,7 +2285,7 @@ export default function ReportsPage() {
                                 strokeWidth={3}
                                 fill="url(#trendExp)"
                                 name="Expenses"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
                                 isAnimationActive={true}
                                 animationDuration={1600}
                                 animationEasing="ease-in-out"
@@ -2299,7 +2299,7 @@ export default function ReportsPage() {
                                 strokeWidth={3}
                                 fill="url(#trendProfit)"
                                 name="Net Profit"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
                                 isAnimationActive={true}
                                 animationDuration={1600}
                                 animationEasing="ease-in-out"
@@ -2358,13 +2358,13 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Bar dataKey="Revenue" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} />
+                              <Bar dataKey="Revenue" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Bar dataKey="Expenses" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} />
+                              <Bar dataKey="Expenses" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Bar dataKey="Profit" fill="url(#balanceFront)" name="Net Profit" shape={<Custom3DBar />} />
+                              <Bar dataKey="Profit" fill="url(#balanceFront)" name="Net Profit" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                             )}
                           </BarChart>
                         </ResponsiveContainer>
@@ -2385,10 +2385,10 @@ export default function ReportsPage() {
                                 stroke="#3b82f6"
                                 strokeWidth={3.5}
                                 name="Revenue"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
-                                dot={false}
+                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#3b82f6" }}
+                                dot={{ r: 3, strokeWidth: 2, stroke: "#3b82f6", fill: "#ffffff" }}
                                 isAnimationActive={true}
-                                animationDuration={1600}
+                                animationDuration={1800}
                                 animationEasing="ease-in-out"
                               />
                             )}
@@ -2399,10 +2399,10 @@ export default function ReportsPage() {
                                 stroke="#f43f5e"
                                 strokeWidth={3.5}
                                 name="Expenses"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
-                                dot={false}
+                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#f43f5e" }}
+                                dot={{ r: 3, strokeWidth: 2, stroke: "#f43f5e", fill: "#ffffff" }}
                                 isAnimationActive={true}
-                                animationDuration={1600}
+                                animationDuration={1800}
                                 animationEasing="ease-in-out"
                               />
                             )}
@@ -2413,10 +2413,10 @@ export default function ReportsPage() {
                                 stroke="#10b981"
                                 strokeWidth={3.5}
                                 name="Net Profit"
-                                activeDot={{ r: 6, strokeWidth: 0 }}
-                                dot={false}
+                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#10b981" }}
+                                dot={{ r: 3, strokeWidth: 2, stroke: "#10b981", fill: "#ffffff" }}
                                 isAnimationActive={true}
-                                animationDuration={1600}
+                                animationDuration={1800}
                                 animationEasing="ease-in-out"
                               />
                             )}
@@ -2754,7 +2754,18 @@ export default function ReportsPage() {
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Area type="monotone" dataKey="Balance" stroke="#10b981" strokeWidth={2.5} fill="url(#balanceGrad)" name="Balance" activeDot={{ r: 6 }} />
+                        <Area
+                          type="monotone"
+                          dataKey="Balance"
+                          stroke="#10b981"
+                          strokeWidth={3}
+                          fill="url(#balanceGrad)"
+                          name="Balance"
+                          activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
+                          isAnimationActive={true}
+                          animationDuration={1600}
+                          animationEasing="ease-in-out"
+                        />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
@@ -2791,8 +2802,8 @@ export default function ReportsPage() {
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
-                        <Bar dataKey="Inflow" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} />
-                        <Bar dataKey="Outflow" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} />
+                        <Bar dataKey="Inflow" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                        <Bar dataKey="Outflow" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -3015,10 +3026,10 @@ export default function ReportsPage() {
                     <YAxis style={{ fontSize: "10px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                     <Tooltip formatter={(v) => formatCurrency(v as number)} />
                     <Legend />
-                    <Bar dataKey={monthCompData.m1.label} fill="#2563EB" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey={monthCompData.m2.label} fill="#7C3AED" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey={monthCompData.m1.label} fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                    <Bar dataKey={monthCompData.m2.label} fill="#7C3AED" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                     {monthCompData.m3 && (
-                      <Bar dataKey={monthCompData.m3.label} fill="#10B981" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey={monthCompData.m3.label} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                     )}
                   </BarChart>
                 </ResponsiveContainer>
@@ -3082,9 +3093,9 @@ export default function ReportsPage() {
                     <YAxis style={{ fontSize: "10px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                     <Tooltip formatter={(v) => formatCurrency(v as number)} />
                     <Legend />
-                    <Bar dataKey="Revenue" fill="#2563EB" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Profit" fill="#22C55E" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Revenue" fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                    <Bar dataKey="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                    <Bar dataKey="Profit" fill="#22C55E" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
