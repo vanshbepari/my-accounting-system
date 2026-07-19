@@ -18,6 +18,7 @@ interface CustomMonthDropdownProps {
   variant?: "glass" | "light" | "dark";
   className?: string;
   size?: "sm" | "md" | "lg";
+  align?: "left" | "right" | "center";
 }
 
 export default function CustomMonthDropdown({
@@ -26,7 +27,8 @@ export default function CustomMonthDropdown({
   options,
   variant = "glass",
   className = "",
-  size = "md"
+  size = "md",
+  align = "left"
 }: CustomMonthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -52,16 +54,18 @@ export default function CustomMonthDropdown({
     setIsOpen(false);
   };
 
-  // Variant styles - 100% OPAQUE solid backgrounds so underlying graphs & charts NEVER show through
+  // Variant styles
   const buttonVariantClass =
     variant === "dark"
-      ? "bg-slate-900 text-white border-slate-700 hover:bg-slate-800 shadow-lg"
-      : "bg-white text-slate-800 border-slate-200/90 hover:border-primary/60 hover:bg-slate-50 shadow-sm";
+      ? "bg-slate-900/90 text-white border-white/10 hover:bg-slate-800/90 hover:border-primary/40 shadow-lg"
+      : variant === "light"
+      ? "bg-white text-slate-800 border-slate-200/90 hover:border-primary/40 hover:bg-slate-50/80 shadow-sm"
+      : "bg-white/80 backdrop-blur-md text-slate-800 border-slate-200 hover:border-primary/40 hover:bg-white shadow-sm";
 
   const menuVariantClass =
     variant === "dark"
-      ? "bg-slate-900 border-slate-700 text-white shadow-2xl"
-      : "bg-white border-slate-200 text-slate-800 shadow-2xl";
+      ? "bg-slate-900/95 border-slate-700/80 text-white shadow-2xl backdrop-blur-xl"
+      : "bg-white/95 border-slate-200/90 text-slate-800 shadow-2xl backdrop-blur-xl";
 
   const sizeClass =
     size === "sm"
@@ -69,6 +73,13 @@ export default function CustomMonthDropdown({
       : size === "lg"
       ? "px-4 py-3 text-sm rounded-2xl"
       : "px-3.5 py-2 text-xs sm:text-sm rounded-xl";
+
+  const alignClass =
+    align === "right"
+      ? "right-0 left-auto"
+      : align === "center"
+      ? "left-1/2 -translate-x-1/2"
+      : "left-0 right-auto";
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
@@ -82,12 +93,12 @@ export default function CustomMonthDropdown({
           <CalendarDays className="w-3.5 h-3.5" />
         </div>
 
-        <span className="whitespace-nowrap font-display tracking-tight">
+        <span className="truncate max-w-[170px] sm:max-w-[200px]">
           {selectedOption.label}
         </span>
 
         {selectedOption.sublabel && (
-          <span className="hidden lg:inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 shrink-0">
+          <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
             {selectedOption.sublabel}
           </span>
         )}
@@ -109,7 +120,7 @@ export default function CustomMonthDropdown({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className={`absolute right-0 sm:left-0 z-50 mt-1 min-w-[240px] sm:min-w-[270px] max-h-[320px] overflow-y-auto rounded-2xl border p-1.5 space-y-1 ${menuVariantClass}`}
+            className={`absolute ${alignClass} z-[100] mt-1.5 w-[260px] sm:w-[280px] max-w-[calc(100vw-2rem)] max-h-[320px] overflow-y-auto rounded-2xl border p-1.5 space-y-1 ${menuVariantClass}`}
           >
             <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
               <span>Select Ledger Period</span>

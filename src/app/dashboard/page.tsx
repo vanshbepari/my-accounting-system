@@ -262,40 +262,38 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Month Navigation System - Opaque Solid Card, Responsive to Month Spelling */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-slate-200/90 bg-white shadow-md">
+      {/* Month Navigation System - Premium, Mobile-Friendly, Compact */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-border-color bg-white/50 backdrop-blur-md shadow-sm relative z-30">
         <div className="flex items-center space-x-2.5 text-left self-start sm:self-center">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xs font-black text-slate-800 uppercase tracking-wider leading-none">Accounting Period</h2>
-            <span className="text-[10px] text-slate-400 font-bold mt-1 block">Monthly ledger control center</span>
+            <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider leading-none">Accounting Period</h2>
+            <span className="text-[10px] text-text-secondary font-semibold mt-1 block">Monthly ledger control center</span>
           </div>
         </div>
 
         <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-between sm:justify-end">
           <button
             onClick={() => adjustMonth(-1)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer shrink-0"
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border-color bg-white text-text-primary hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer"
             title="Previous Month"
           >
             ◀
           </button>
 
-          <div className="w-auto min-w-0">
-            <CustomMonthDropdown
-              value={selectedMonth}
-              onChange={(newMonth) => setSelectedMonth(newMonth)}
-              options={dashboardMonthOptions}
-              variant="light"
-              size="sm"
-            />
-          </div>
+          <CustomMonthDropdown
+            value={selectedMonth}
+            onChange={(newMonth) => setSelectedMonth(newMonth)}
+            options={dashboardMonthOptions}
+            variant="glass"
+            size="sm"
+          />
 
           <button
             onClick={() => adjustMonth(1)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer shrink-0"
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border-color bg-white text-text-primary hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer"
             title="Next Month"
           >
             ▶

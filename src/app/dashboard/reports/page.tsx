@@ -1722,7 +1722,7 @@ export default function ReportsPage() {
       </div>
 
       {/* FILTER SYSTEM & TAB NAVIGATION */}
-      <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/80 backdrop-blur-md shadow-sm grid grid-cols-1 md:grid-cols-2 items-center gap-6">
+      <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/80 backdrop-blur-md shadow-sm grid grid-cols-1 md:grid-cols-2 items-center gap-6 relative z-40">
         
         {/* Navigation tabs */}
         <div className="flex p-1 rounded-xl bg-slate-100/80 border border-slate-200/50 w-full shadow-inner max-w-md">
@@ -1750,7 +1750,7 @@ export default function ReportsPage() {
               setSelectedMonth(val);
             }}
             options={generateMonthOptions(6, 3, true)}
-            variant="light"
+            variant="glass"
             size="sm"
           />
         </div>

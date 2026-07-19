@@ -42,8 +42,8 @@ export default function TargetPage() {
   const [localNet, setLocalNet] = useState(20000);
   const [localExp, setLocalExp] = useState(15000);
 
-  // Generate target month options (2 months past, 2 months future, plus All Time)
-  const targetMonthOptions = useMemo(() => generateMonthOptions(2, 2, true), []);
+  // Generate target month options (6 months past, 4 months future, plus All Time)
+  const targetMonthOptions = useMemo(() => generateMonthOptions(6, 4, true), []);
 
   useEffect(() => {
     setMounted(true);
@@ -139,7 +139,7 @@ export default function TargetPage() {
     <div className="space-y-8 pb-12 text-left">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6 relative z-30">
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2">
             <LucideTarget className="w-7 h-7 text-secondary stroke-[2.5]" />
