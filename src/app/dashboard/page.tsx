@@ -22,7 +22,8 @@ import {
   Receipt,
   Sparkles,
   ArrowRight,
-  Clock
+  Clock,
+  Info
 } from "lucide-react";
 import Link from "next/link";
 import { useAccounting } from "@/context/AccountingContext";
@@ -210,7 +211,7 @@ export default function DashboardPage() {
     return dayTxs.some(t => t.title.toLowerCase().includes(query) || t.category.toLowerCase().includes(query));
   });
 
-  // REQUIREMENT 2: Enhanced Four Metric Cards with distinct icons & rich depth visuals
+  // Big Four Metric Cards configuration
   const statCards = [
     {
       title: "Opening Balance",
@@ -266,7 +267,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 text-left pb-12 max-w-7xl mx-auto">
-      {/* ── REQUIREMENT 1: Redesigned Header Panel & Action Button ── */}
+      {/* ── Top Header Panel ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-color pb-6">
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2.5">
@@ -291,16 +292,18 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── REQUIREMENT 1: Polished Accounting Period Container (Subtle Gradients & Soft Depth Effects) ── */}
+      {/* ── REQUIREMENT 1: Polished Accounting Period Container (NO OVERFLOW CLIPPING for Dropdown Popovers) ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border-2 border-indigo-200/80 bg-gradient-to-r from-white via-slate-50/70 to-indigo-50/40 shadow-md relative z-30 overflow-hidden hover:shadow-lg transition-all duration-300"
+        className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border-2 border-indigo-200/80 bg-gradient-to-r from-white via-slate-50/70 to-indigo-50/40 shadow-md relative z-30 hover:shadow-lg transition-all duration-300"
       >
-        {/* Subtle Ambient Background Light Orbs */}
-        <div className="absolute -top-12 -left-12 w-28 h-28 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
+        {/* Subtle Ambient Background Light Orbs - contained inside absolute rounded wrapper */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+          <div className="absolute -top-12 -left-12 w-28 h-28 bg-primary/10 rounded-full blur-2xl" />
+          <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-secondary/10 rounded-full blur-2xl" />
+        </div>
 
         <div className="flex items-center space-x-3.5 text-left self-start sm:self-center relative z-10">
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 border border-primary/20 flex items-center justify-center text-white shadow-lg shadow-primary/25 shrink-0">
@@ -334,6 +337,7 @@ export default function DashboardPage() {
             options={dashboardMonthOptions}
             variant="glass"
             size="sm"
+            align="right"
           />
 
           <motion.button
@@ -348,7 +352,7 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* ── REQUIREMENT 2: Enhanced Big Four Metric Cards ── */}
+      {/* ── REQUIREMENT 2: Big Four Metric Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
@@ -392,7 +396,7 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* ── REQUIREMENT 3 & 4: Expanded 'Daily Accounting Entries' Table with High Density & Smooth Animations ── */}
+      {/* ── REQUIREMENT 2 & 3: Daily Accounting Entries Table with Complete Feature Parity & Itemized Expense Breakdown ── */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 bg-white border border-slate-200/90 shadow-md space-y-6 text-left">
         {/* Header bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
@@ -402,7 +406,7 @@ export default function DashboardPage() {
               <span>Daily Accounting Entries</span>
             </h2>
             <p className="text-xs text-slate-500 font-semibold mt-0.5">
-              Click any date row to expand detailed records. Click &quot;Edit&quot; to load transactions into the Add Entry form.
+              Click the dropdown arrow on any date row to expand itemized expenses or edit daily records.
             </p>
           </div>
 
@@ -431,7 +435,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              {/* Desktop Table: Spacious, Clean Display */}
+              {/* ── DESKTOP TABLE VIEW ── */}
               <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-white">
                 <table className="min-w-full divide-y divide-slate-100 text-left border-collapse">
                   <thead className="bg-slate-100/70 text-[11px] uppercase font-black tracking-wider text-slate-500 sticky top-0 backdrop-blur-md">
@@ -449,6 +453,9 @@ export default function DashboardPage() {
                     {filteredSummaries.map((summary) => {
                       const isExpanded = !!expandedDates[summary.date];
                       const dayTxs = transactions.filter(t => t.date === summary.date);
+                      const dayExpenses = dayTxs.flatMap(t => t.expenses || []);
+                      const hasExpenses = dayExpenses.length > 0;
+                      const dayNotes = dayTxs.map(t => t.notes).filter(Boolean).join(" | ");
 
                       return (
                         <React.Fragment key={summary.date}>
@@ -458,8 +465,8 @@ export default function DashboardPage() {
                             className="hover:bg-slate-50/80 transition-colors cursor-pointer select-none"
                           >
                             <td className="px-6 py-4.5 font-black text-slate-900 flex items-center space-x-2.5">
-                              <div className="w-5 h-5 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-primary" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              <div className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-primary/10 hover:text-primary flex items-center justify-center text-slate-500 shrink-0 transition-colors">
+                                {isExpanded ? <ChevronUp className="w-4 h-4 text-primary" /> : <ChevronDown className="w-4 h-4" />}
                               </div>
                               <span>{formatDateFriendly(summary.date)}</span>
                             </td>
@@ -482,7 +489,7 @@ export default function DashboardPage() {
                             </td>
                           </tr>
 
-                          {/* Expanded list drawer */}
+                          {/* Desktop Expanded Drawer */}
                           <AnimatePresence>
                             {isExpanded && (
                               <tr>
@@ -494,45 +501,49 @@ export default function DashboardPage() {
                                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                                     className="overflow-hidden"
                                   >
-                                    <div className="px-10 py-5 space-y-3 border-t border-b border-slate-200/60 text-left">
+                                    <div className="px-10 py-5 space-y-3.5 border-t border-b border-slate-200/60 text-left">
                                       <div className="flex items-center justify-between mb-1">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">
-                                          Detailed Records for {formatDateFriendly(summary.date)}
+                                          Detailed Itemized Expenditures ({formatDateFriendly(summary.date)})
                                         </span>
                                         <Link
                                           href={`/dashboard/expenses?date=${summary.date}`}
                                           className="text-xs font-black text-primary hover:underline flex items-center space-x-1"
                                         >
-                                          <span>✏️ Edit this day&apos;s inputs</span>
+                                          <span>✏️ Edit entries</span>
                                         </Link>
                                       </div>
 
-                                      {dayTxs.map((tx) => (
-                                        <div key={tx.id} className="space-y-2">
-                                          {/* Itemized expenses split */}
-                                          {tx.expenses && tx.expenses.length > 0 && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                                              {tx.expenses.map((e) => (
-                                                <div
-                                                  key={e.id}
-                                                  className="p-3 border border-slate-200/80 rounded-xl bg-white flex items-center justify-between text-xs hover:border-rose-300 transition-colors shadow-xs"
-                                                >
-                                                  <span className="font-bold text-slate-800">{e.title}</span>
-                                                  <span className="font-black text-rose-600">-{formatCurrency(e.amount)}</span>
-                                                </div>
-                                              ))}
-                                            </div>
-                                          )}
-
-                                          {/* Brief remarks memo */}
-                                          {tx.notes && (
-                                            <div className="p-3 bg-white rounded-xl text-left border border-slate-200/80 mt-1 shadow-xs">
-                                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Memo Notes</p>
-                                              <p className="text-xs text-slate-700 font-semibold mt-0.5">{tx.notes}</p>
-                                            </div>
-                                          )}
+                                      {hasExpenses ? (
+                                        <div className="space-y-2">
+                                          <span className="text-[10px] uppercase font-black tracking-wider text-rose-700 block">
+                                            Itemized Expenses Incurred ({dayExpenses.length}):
+                                          </span>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                                            {dayExpenses.map((exp, idx) => (
+                                              <div
+                                                key={exp.id || idx}
+                                                className="p-3 border border-rose-100 rounded-xl bg-white flex items-center justify-between text-xs hover:border-rose-300 transition-colors shadow-xs"
+                                              >
+                                                <span className="font-bold text-slate-800">{exp.title}</span>
+                                                <span className="font-black text-rose-600">-{formatCurrency(exp.amount)}</span>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
-                                      ))}
+                                      ) : (
+                                        <div className="p-3.5 border border-emerald-200/80 rounded-xl bg-emerald-50/70 flex items-center space-x-2 text-xs font-bold text-emerald-800 shadow-xs">
+                                          <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                                          <span>No itemized expenses recorded for this date.</span>
+                                        </div>
+                                      )}
+
+                                      {dayNotes && (
+                                        <div className="p-3 bg-white rounded-xl text-left border border-slate-200/80 mt-1 shadow-xs">
+                                          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Memo Notes</p>
+                                          <p className="text-xs text-slate-700 font-semibold mt-0.5">{dayNotes}</p>
+                                        </div>
+                                      )}
                                     </div>
                                   </motion.div>
                                 </td>
@@ -546,36 +557,110 @@ export default function DashboardPage() {
                 </table>
               </div>
 
-              {/* Mobile Card List View */}
-              <div className="block md:hidden space-y-3">
+              {/* ── MOBILE CARD LIST VIEW WITH COMPLETE FEATURE PARITY & EXPANDABLE DRAWER ── */}
+              <div className="block md:hidden space-y-3.5">
                 {filteredSummaries.map((summary) => {
                   const isExpanded = !!expandedDates[summary.date];
+                  const dayTxs = transactions.filter(t => t.date === summary.date);
+                  const dayExpenses = dayTxs.flatMap(t => t.expenses || []);
+                  const hasExpenses = dayExpenses.length > 0;
+                  const dayNotes = dayTxs.map(t => t.notes).filter(Boolean).join(" | ");
+
                   return (
                     <div
                       key={summary.date}
-                      onClick={() => toggleExpandDate(summary.date)}
-                      className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 text-left space-y-3"
+                      className="rounded-3xl border border-slate-200 bg-white text-left overflow-hidden shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-slate-900">{formatDateFriendly(summary.date)}</span>
+                      {/* Mobile Card Header */}
+                      <div
+                        onClick={() => toggleExpandDate(summary.date)}
+                        className="p-4 bg-slate-50/70 flex items-center justify-between cursor-pointer select-none border-b border-slate-100"
+                      >
+                        <div className="flex items-center space-x-2.5">
+                          <div className="w-7 h-7 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-primary shadow-xs">
+                            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </div>
+                          <div>
+                            <span className="text-xs font-black text-slate-900 block leading-tight">
+                              {formatDateFriendly(summary.date)}
+                            </span>
+                            <span className={`text-[10px] font-black ${summary.netPL >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                              {summary.netPL >= 0 ? "Surplus: +" : "Deficit: "}{formatCurrency(summary.netPL)}
+                            </span>
+                          </div>
+                        </div>
+
                         <Link
                           href={`/dashboard/expenses?date=${summary.date}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="px-2.5 py-1 text-[11px] font-black text-primary border border-primary/30 rounded-lg bg-white"
+                          className="px-3 py-1.5 text-xs font-black text-primary border border-primary/30 rounded-xl bg-white shadow-xs"
                         >
                           Edit
                         </Link>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs font-bold pt-1 border-t border-slate-200/60">
+
+                      {/* Mobile Summary Grid */}
+                      <div className="p-4 grid grid-cols-3 gap-2 text-xs font-bold bg-white">
                         <div>
-                          <span className="text-[10px] text-slate-400 block uppercase">Revenue</span>
-                          <span className="text-primary font-black">{formatCurrency(summary.revenue)}</span>
+                          <span className="text-[10px] text-slate-400 block uppercase font-black">Revenue</span>
+                          <span className="text-primary font-black text-sm">{formatCurrency(summary.revenue)}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-400 block uppercase">Expenses</span>
-                          <span className="text-rose-600 font-black">{formatCurrency(summary.expenses)}</span>
+                          <span className="text-[10px] text-slate-400 block uppercase font-black">Expenses</span>
+                          <span className="text-rose-600 font-black text-sm">{formatCurrency(summary.expenses)}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase font-black">Net P/L</span>
+                          <span className={`font-black text-sm ${summary.netPL >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                            {summary.netPL >= 0 ? "+" : ""}{formatCurrency(summary.netPL)}
+                          </span>
                         </div>
                       </div>
+
+                      {/* Mobile Expanded Itemized Breakdown Drawer */}
+                      <AnimatePresence>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="overflow-hidden border-t border-slate-100 bg-slate-50/50"
+                          >
+                            <div className="p-4 space-y-3">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                                Itemized Breakdown
+                              </span>
+
+                              {hasExpenses ? (
+                                <div className="space-y-2">
+                                  {dayExpenses.map((exp, idx) => (
+                                    <div
+                                      key={exp.id || idx}
+                                      className="p-2.5 border border-rose-100 rounded-xl bg-white flex items-center justify-between text-xs shadow-xs"
+                                    >
+                                      <span className="font-bold text-slate-800">{exp.title}</span>
+                                      <span className="font-black text-rose-600">-{formatCurrency(exp.amount)}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="p-3 border border-emerald-200/80 rounded-xl bg-emerald-50/70 flex items-center space-x-2 text-xs font-bold text-emerald-800">
+                                  <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                                  <span>No itemized expenses recorded for this date.</span>
+                                </div>
+                              )}
+
+                              {dayNotes && (
+                                <div className="p-2.5 bg-white rounded-xl text-left border border-slate-200/80">
+                                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Notes</p>
+                                  <p className="text-xs text-slate-700 font-semibold mt-0.5">{dayNotes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   );
                 })}
