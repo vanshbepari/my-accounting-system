@@ -401,11 +401,11 @@ export default function BudgetPage() {
                   </div>
                   
                   <div className="flex items-center space-x-3.5">
-                    {/* Custom Month selector for past/current months */}
+                    {/* Custom Month selector for setting future budgets (current + 3 future months, 0 past months) */}
                     <CustomMonthDropdown
                       value={activeMonth}
                       onChange={(newMonth) => handleEditMonthChange(newMonth)}
-                      options={generateMonthOptions(12, 0, false)}
+                      options={generateMonthOptions(0, 3, false)}
                       variant="glass"
                       size="sm"
                     />
