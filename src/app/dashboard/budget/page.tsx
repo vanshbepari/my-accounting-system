@@ -127,13 +127,16 @@ export default function BudgetPage() {
     setCompareMonth(getPreviousMonth(activeMonth));
   }, [activeMonth]);
 
+  // Month selector for historical budget-to-budget/actual analysis
+  const [compareMonth, setCompareMonth] = useState("");
+
   // Local Form state (Notebook-style entry rows)
   const [formRows, setFormRows] = useState<BudgetFormRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Month selector for historical budget-to-budget/actual analysis
-  const [compareMonth, setCompareMonth] = useState("");
+  // Local session cache for custom future budgets saved manually in Notebook Entry modal
+  const [sessionSavedFutureMonths, setSessionSavedFutureMonths] = useState<Record<string, BudgetFormRow[]>>({});
 
   const currentMonthStr = useMemo(() => {
     const now = new Date();
@@ -153,21 +156,16 @@ export default function BudgetPage() {
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
     const isFuture = activeMonth > currentMonthStr;
-    const activeBudgets = budgets.filter(b => b.month === activeMonth);
 
     if (isFuture) {
-      if (activeBudgets.length > 0) {
-        setFormRows(activeBudgets.map(b => ({
-          id: b.id,
-          category: b.category,
-          limitAmount: b.limitAmount.toString(),
-          isRecurring: b.isRecurring
-        })));
+      if (sessionSavedFutureMonths[activeMonth]) {
+        setFormRows(sessionSavedFutureMonths[activeMonth]);
       } else {
-        // Fresh start for future month: clear category names and reset limit amounts to 0
+        // ALWAYS complete reset for future months in Notebook Entry: clear category names & set amounts to 0
         setFormRows(createFreshRows());
       }
     } else {
+      const activeBudgets = budgets.filter(b => b.month === activeMonth);
       if (activeBudgets.length > 0) {
         setFormRows(activeBudgets.map(b => ({
           id: b.id,
@@ -186,21 +184,16 @@ export default function BudgetPage() {
   const handleEditMonthChange = (newMonth: string) => {
     setSelectedMonth(newMonth);
     const isFuture = newMonth > currentMonthStr;
-    const activeBudgets = budgets.filter(b => b.month === newMonth);
 
     if (isFuture) {
-      if (activeBudgets.length > 0) {
-        setFormRows(activeBudgets.map(b => ({
-          id: b.id,
-          category: b.category,
-          limitAmount: b.limitAmount.toString(),
-          isRecurring: b.isRecurring
-        })));
+      if (sessionSavedFutureMonths[newMonth]) {
+        setFormRows(sessionSavedFutureMonths[newMonth]);
       } else {
-        // Fresh start for future month: clear category names and reset limit amounts to 0
+        // ALWAYS complete reset for future months in Notebook Entry: clear category names & set amounts to 0
         setFormRows(createFreshRows());
       }
     } else {
+      const activeBudgets = budgets.filter(b => b.month === newMonth);
       if (activeBudgets.length > 0) {
         setFormRows(activeBudgets.map(b => ({
           id: b.id,
@@ -243,6 +236,14 @@ export default function BudgetPage() {
     }
 
     try {
+      const isFuture = activeMonth > currentMonthStr;
+      if (isFuture) {
+        setSessionSavedFutureMonths(prev => ({
+          ...prev,
+          [activeMonth]: validRows
+        }));
+      }
+
       // Find deleted rows
       const activeBudgets = budgets.filter(b => b.month === activeMonth);
       const rowIds = new Set(validRows.map(r => r.id));
@@ -256,7 +257,7 @@ export default function BudgetPage() {
       // Execute upserts
       for (const row of validRows) {
         await saveBudget({
-          id: row.id.startsWith("row-") || row.id.startsWith("init-") ? undefined : row.id,
+          id: row.id.startsWith("row-") || row.id.startsWith("init-") || row.id.startsWith("fresh-") ? undefined : row.id,
           category: row.category.trim(),
           limitAmount: parseFloat(row.limitAmount),
           month: activeMonth,
