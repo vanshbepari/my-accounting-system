@@ -2264,13 +2264,46 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Area type="monotone" dataKey="Revenue" stroke="#3b82f6" strokeWidth={3} fill="url(#trendRev)" name="Revenue" activeDot={{ r: 6, strokeWidth: 0 }} />
+                              <Area
+                                type="monotone"
+                                dataKey="Revenue"
+                                stroke="#3b82f6"
+                                strokeWidth={3}
+                                fill="url(#trendRev)"
+                                name="Revenue"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Area type="monotone" dataKey="Expenses" stroke="#f43f5e" strokeWidth={3} fill="url(#trendExp)" name="Expenses" activeDot={{ r: 6, strokeWidth: 0 }} />
+                              <Area
+                                type="monotone"
+                                dataKey="Expenses"
+                                stroke="#f43f5e"
+                                strokeWidth={3}
+                                fill="url(#trendExp)"
+                                name="Expenses"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Area type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={3} fill="url(#trendProfit)" name="Net Profit" activeDot={{ r: 6, strokeWidth: 0 }} />
+                              <Area
+                                type="monotone"
+                                dataKey="Profit"
+                                stroke="#10b981"
+                                strokeWidth={3}
+                                fill="url(#trendProfit)"
+                                name="Net Profit"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                           </AreaChart>
                         </ResponsiveContainer>
@@ -2346,13 +2379,46 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Line type="monotone" dataKey="Revenue" stroke="#3b82f6" strokeWidth={3} name="Revenue" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
+                              <Line
+                                type="monotone"
+                                dataKey="Revenue"
+                                stroke="#3b82f6"
+                                strokeWidth={3.5}
+                                name="Revenue"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                dot={false}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Line type="monotone" dataKey="Expenses" stroke="#f43f5e" strokeWidth={3} name="Expenses" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
+                              <Line
+                                type="monotone"
+                                dataKey="Expenses"
+                                stroke="#f43f5e"
+                                strokeWidth={3.5}
+                                name="Expenses"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                dot={false}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Line type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={3} name="Net Profit" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
+                              <Line
+                                type="monotone"
+                                dataKey="Profit"
+                                stroke="#10b981"
+                                strokeWidth={3.5}
+                                name="Net Profit"
+                                activeDot={{ r: 6, strokeWidth: 0 }}
+                                dot={false}
+                                isAnimationActive={true}
+                                animationDuration={1600}
+                                animationEasing="ease-in-out"
+                              />
                             )}
                           </LineChart>
                         </ResponsiveContainer>
