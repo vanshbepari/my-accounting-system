@@ -81,33 +81,54 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-6xl mx-auto pb-10">
+    <div className="space-y-8 max-w-6xl mx-auto pb-10 text-left">
       
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6 text-left">
+      {/* Page Header with Entrance Motion */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6 text-left"
+      >
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2">
-            <Settings className="w-7 h-7 text-primary" />
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Settings className="w-7 h-7 text-primary" />
+            </motion.div>
             <span>Workspace Settings</span>
           </h1>
           <p className="text-xs sm:text-sm text-text-secondary mt-1">
             Manage your shop identity, primary currency, starting capital, and security options.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
-        {/* Left Side: General Profile Settings Form (8 cols) */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* Left Side: General Profile Settings Form (8 cols with Floating Entry) */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-8 space-y-6"
+        >
           <div className="glass-card rounded-2xl p-6 border border-border-color bg-white text-left space-y-6 shadow-sm">
             <div className="flex items-center space-x-3 border-b border-border-color pb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm"
+              >
                 <Briefcase className="w-5 h-5" />
-              </div>
+              </motion.div>
               <div>
                 <h3 className="font-display font-bold text-base text-text-primary">Shop & Personal Profile</h3>
-                <p className="text-[10px] text-text-secondary">Updates persist to Supabase backend database</p>
+                <p className="text-[10px] text-text-secondary font-semibold">Updates persist to Supabase backend database</p>
               </div>
             </div>
 
@@ -124,7 +145,7 @@ export default function SettingsPage() {
                       required
                       value={shopName}
                       onChange={(e) => setShopName(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
                     />
                     <Briefcase className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
@@ -141,7 +162,7 @@ export default function SettingsPage() {
                       required
                       value={userName}
                       onChange={(e) => setUserName(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
                     />
                     <User className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
@@ -160,7 +181,7 @@ export default function SettingsPage() {
                       required
                       value={mobileNumber}
                       onChange={(e) => setMobileNumber(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
                     />
                     <Phone className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
@@ -175,7 +196,7 @@ export default function SettingsPage() {
                     <select
                       value={selectedCountry}
                       onChange={(e) => setSelectedCountry(e.target.value)}
-                      className="appearance-none w-full pl-9 pr-10 py-2.5 text-xs font-semibold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+                      className="appearance-none w-full pl-9 pr-10 py-2.5 text-xs font-semibold rounded-xl border border-border-color bg-slate-50 text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary cursor-pointer transition-all duration-200"
                     >
                       {SUPPORTED_COUNTRIES.map((c) => (
                         <option key={c.country} value={c.country}>
@@ -197,7 +218,7 @@ export default function SettingsPage() {
                       type="number"
                       value={startingBalance}
                       onChange={(e) => setStartingBalance(Number(e.target.value))}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
                     />
                     <Wallet className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
@@ -206,53 +227,90 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between pt-4 border-t border-border-color">
                 {isSaved ? (
-                  <span className="text-xs font-bold text-success animate-pulse">
+                  <motion.span
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-xs font-bold text-success"
+                  >
                     ✓ Configuration saved and locked!
-                  </span>
+                  </motion.span>
                 ) : (
                   <span />
                 )}
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.96 }}
                   type="submit"
-                  className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:shadow-lg transition-all hover-lift active:scale-98 text-xs cursor-pointer"
+                  className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-primary/20 transition-all text-xs cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   <span>Lock Settings</span>
-                </button>
+                </motion.button>
               </div>
             </form>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Side: Security Card + Danger Zone Delete Account Card (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Security Card */}
-          <div className="glass-card rounded-2xl p-5 border border-border-color bg-white text-left space-y-4 shadow-sm">
+          {/* Security Card with Safety Settle Bounce Icon */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            className="glass-card rounded-2xl p-5 border border-border-color bg-white text-left space-y-4 shadow-sm"
+          >
             <h4 className="text-xs font-bold text-text-primary flex items-center space-x-1.5 border-b border-border-color pb-3">
-              <ShieldCheck className="w-4 h-4 text-success" />
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: [0.9, 1.05, 1], opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+              >
+                <ShieldCheck className="w-4 h-4 text-success" />
+              </motion.div>
               <span>Data Security</span>
             </h4>
             <div className="space-y-3 text-xs text-text-secondary leading-relaxed">
               <p>
                 Your data is stored securely in Supabase with Row Level Security enabled.
               </p>
-              <p>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="bg-emerald-50/60 p-2 rounded-lg border border-emerald-100 text-emerald-900 font-medium"
+              >
                 Only your authenticated Google account can access your business records.
                 No other user can view your data.
-              </p>
-              <div className="flex items-center space-x-1.5 mt-2 text-success font-semibold">
+              </motion.p>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className="flex items-center space-x-1.5 mt-2 text-success font-semibold"
+              >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>RLS enforced · Data isolated · Private workspace</span>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Danger Zone: Delete Account Card */}
-          <div className="glass-card rounded-2xl p-5 border border-rose-200 bg-rose-50/40 text-left space-y-4 shadow-sm relative overflow-hidden">
+          {/* Danger Zone: Delete Account Card with Restrained Serious Motion */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="glass-card rounded-2xl p-5 border border-rose-200 bg-rose-50/40 text-left space-y-4 shadow-sm relative overflow-hidden"
+          >
             <div className="flex items-center space-x-2.5 border-b border-rose-200/80 pb-3">
-              <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.25 }}
+                className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20"
+              >
                 <AlertTriangle className="w-4 h-4" />
-              </div>
+              </motion.div>
               <div>
                 <h4 className="text-xs font-black text-rose-950 uppercase tracking-wider">
                   Danger Zone
@@ -267,18 +325,20 @@ export default function SettingsPage() {
               Permanently purge your business account, transaction ledgers, target goals, category budgets, and cloud database records.
             </p>
 
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 setConfirmText("");
                 setIsDeleteModalOpen(true);
               }}
-              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete Account & Data</span>
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
 
       </div>
@@ -298,9 +358,9 @@ export default function SettingsPage() {
 
             {/* Modal Dialog Card */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
               transition={{ type: "spring", stiffness: 350, damping: 25 }}
               className="relative w-full max-w-lg bg-white border border-rose-200 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 text-left overflow-hidden space-y-6"
             >
@@ -364,16 +424,18 @@ export default function SettingsPage() {
                   type="button"
                   disabled={isDeleting}
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-650 hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
 
-                <button
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
                   disabled={confirmText.trim().toUpperCase() !== "DELETE" || isDeleting}
                   onClick={handleConfirmDeleteAccount}
-                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/25 transition-all active:scale-98 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/25 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isDeleting ? (
                     <>
@@ -386,7 +448,7 @@ export default function SettingsPage() {
                       <span>Permanently Delete My Account</span>
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </div>
