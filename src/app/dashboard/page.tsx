@@ -17,7 +17,12 @@ import {
   Edit2,
   Filter,
   CheckCircle,
-  Wallet
+  Wallet,
+  Coins,
+  Receipt,
+  Sparkles,
+  ArrowRight,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { useAccounting } from "@/context/AccountingContext";
@@ -205,25 +210,28 @@ export default function DashboardPage() {
     return dayTxs.some(t => t.title.toLowerCase().includes(query) || t.category.toLowerCase().includes(query));
   });
 
+  // REQUIREMENT 2: Enhanced Four Metric Cards with distinct icons & rich depth visuals
   const statCards = [
     {
       title: "Opening Balance",
       rawVal: openingBalance,
-      subtitle: isAllTime ? "Initial Starting Balance" : `Opening Reserves for ${getMonthLabel(activeMonth)}`,
+      subtitle: isAllTime ? "Initial Starting Capital" : `Opening Reserves for ${getMonthLabel(activeMonth)}`,
       icon: Wallet,
-      color: "from-purple-500/10 to-indigo-500/10 border-purple-100/30 text-purple-600",
-      iconBg: "bg-purple-500/10 border-purple-500/20 text-purple-600",
-      trendColor: "text-purple-500 bg-purple-500/10 border-purple-500/20",
+      cardBorder: "border-purple-200/90",
+      cardBg: "from-purple-500/10 via-indigo-500/5 to-white",
+      iconGradient: "from-purple-600 to-indigo-600 shadow-purple-500/30 text-white",
+      badgeClass: "text-purple-700 bg-purple-100/90 border-purple-200",
       trend: "Previous period carry forward"
     },
     {
       title: "Total Revenue",
       rawVal: totalRevenue,
-      subtitle: isAllTime ? "Income for All Time" : `Income for ${getMonthLabel(activeMonth)}`,
-      icon: DollarSign,
-      color: "from-indigo-500/10 to-cyan-500/10 border-indigo-100/30 text-indigo-600",
-      iconBg: "bg-indigo-500/10 border-indigo-500/20 text-indigo-600",
-      trendColor: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
+      subtitle: isAllTime ? "Income for All Time" : `Revenue for ${getMonthLabel(activeMonth)}`,
+      icon: TrendingUp,
+      cardBorder: "border-emerald-200/90",
+      cardBg: "from-emerald-500/10 via-teal-500/5 to-white",
+      iconGradient: "from-emerald-500 to-teal-500 shadow-emerald-500/30 text-white",
+      badgeClass: "text-emerald-800 bg-emerald-100/90 border-emerald-200",
       trend: "Cash & online split aggregated"
     },
     {
@@ -231,75 +239,94 @@ export default function DashboardPage() {
       rawVal: totalExpenses,
       subtitle: isAllTime ? "Outflows for All Time" : `Outflows for ${getMonthLabel(activeMonth)}`,
       icon: TrendingDown,
-      color: "from-rose-500/10 to-orange-500/10 border-rose-100/30 text-rose-600",
-      iconBg: "bg-rose-500/10 border-rose-500/20 text-rose-600",
-      trendColor: "text-slate-500 bg-slate-500/10 border-slate-500/20",
+      cardBorder: "border-rose-200/90",
+      cardBg: "from-rose-500/10 via-red-500/5 to-white",
+      iconGradient: "from-rose-500 to-red-500 shadow-rose-500/30 text-white",
+      badgeClass: "text-rose-800 bg-rose-100/90 border-rose-200",
       trend: "Itemized shop costs aggregated"
     },
     {
       title: "Net Profit / Loss",
       rawVal: netPL,
       subtitle: isAllTime ? "Surplus for All Time" : `Surplus for ${getMonthLabel(activeMonth)}`,
-      icon: netPL >= 0 ? TrendingUp : TrendingDown,
-      color: netPL >= 0
-        ? "from-emerald-500/10 to-teal-500/10 border-emerald-100/30 text-emerald-600"
-        : "from-rose-500/10 to-pink-500/10 border-rose-100/30 text-rose-600",
-      iconBg: netPL >= 0
-        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
-        : "bg-rose-500/10 border-rose-500/20 text-rose-600",
-      trendColor: netPL >= 0
-        ? "text-emerald-500 bg-emerald-500/10 border-emerald-500/20"
-        : "text-rose-500 bg-rose-500/10 border-rose-500/20",
-      trend: netPL >= 0 ? "🟢 Net Margin achieved" : "🔴 Deficit recorded"
+      icon: netPL >= 0 ? ShieldCheck : AlertTriangle,
+      cardBorder: netPL >= 0 ? "border-indigo-200/90" : "border-rose-200/90",
+      cardBg: netPL >= 0 ? "from-indigo-500/10 via-emerald-500/5 to-white" : "from-rose-500/10 via-pink-500/5 to-white",
+      iconGradient: netPL >= 0
+        ? "from-primary via-indigo-600 to-emerald-500 shadow-indigo-500/30 text-white"
+        : "from-rose-600 to-pink-600 shadow-rose-500/30 text-white",
+      badgeClass: netPL >= 0
+        ? "text-indigo-800 bg-indigo-100/90 border-indigo-200"
+        : "text-rose-800 bg-rose-100/90 border-rose-200",
+      trend: netPL >= 0 ? "🟢 Net Margin Achieved" : "🔴 Deficit Recorded"
     }
   ];
 
   if (!mounted) return null;
 
   return (
-    <div className="space-y-8">
-      {/* Top Welcome Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="text-left">
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
-            Shop Ledger Dashboard
+    <div className="space-y-8 text-left pb-12 max-w-7xl mx-auto">
+      {/* ── REQUIREMENT 1: Redesigned Header Panel & Action Button ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-color pb-6">
+        <div>
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2.5">
+            <span>Shop Ledger Dashboard</span>
+            <span className="text-[10px] font-black uppercase tracking-wider bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full">
+              Live Ledger Base
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            See your total money earned, total money spent, and complete daily records in 5 seconds.
+          <p className="text-xs sm:text-sm text-text-secondary mt-1 font-medium">
+            Monitor money earned, money spent, and complete daily records in real time.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 self-start">
+        <div className="flex items-center space-x-3 self-start md:self-auto">
           <Link
             href="/dashboard/expenses"
-            className="flex items-center space-x-1.5 px-5 py-3 bg-gradient-to-r from-primary to-secondary text-white text-xs font-semibold rounded-2xl hover:shadow-lg transition-all hover-lift border-shine-glow"
+            className="flex items-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-primary via-indigo-600 to-secondary text-white text-xs sm:text-sm font-extrabold rounded-2xl hover:shadow-xl hover:shadow-primary/30 transition-all hover-lift active:scale-98 border border-white/20"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4.5 h-4.5" />
             <span>Add New Entry</span>
           </Link>
         </div>
       </div>
 
-      {/* Month Navigation System - Premium, Mobile-Friendly, Compact */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl border border-border-color bg-white/50 backdrop-blur-md shadow-sm relative z-30">
-        <div className="flex items-center space-x-2.5 text-left self-start sm:self-center">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
-            <Calendar className="w-5 h-5" />
+      {/* ── REQUIREMENT 1: Polished Accounting Period Container (Subtle Gradients & Soft Depth Effects) ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-3xl border-2 border-indigo-200/80 bg-gradient-to-r from-white via-slate-50/70 to-indigo-50/40 shadow-md relative z-30 overflow-hidden hover:shadow-lg transition-all duration-300"
+      >
+        {/* Subtle Ambient Background Light Orbs */}
+        <div className="absolute -top-12 -left-12 w-28 h-28 bg-primary/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-secondary/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-center space-x-3.5 text-left self-start sm:self-center relative z-10">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 border border-primary/20 flex items-center justify-center text-white shadow-lg shadow-primary/25 shrink-0">
+            <Calendar className="w-5.5 h-5.5" />
           </div>
           <div>
-            <h2 className="text-xs font-bold text-text-primary uppercase tracking-wider leading-none">Accounting Period</h2>
-            <span className="text-[10px] text-text-secondary font-semibold mt-1 block">Monthly ledger control center</span>
+            <h2 className="text-xs font-black text-slate-800 uppercase tracking-widest leading-none flex items-center gap-1.5">
+              <span>Accounting Period</span>
+              <Sparkles className="w-3 h-3 text-primary" />
+            </h2>
+            <span className="text-[11px] text-slate-500 font-semibold mt-1 block">
+              Monthly ledger control center
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2.5 w-full sm:w-auto justify-between sm:justify-end">
-          <button
+        <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end relative z-10">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => adjustMonth(-1)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border-color bg-white text-text-primary hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-100 transition-all shadow-sm font-extrabold text-sm cursor-pointer"
             title="Previous Month"
           >
             ◀
-          </button>
+          </motion.button>
 
           <CustomMonthDropdown
             value={selectedMonth}
@@ -309,17 +336,19 @@ export default function DashboardPage() {
             size="sm"
           />
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => adjustMonth(1)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border-color bg-white text-text-primary hover:bg-slate-50 transition-all hover-lift active:scale-95 shadow-sm font-extrabold text-sm cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl border border-slate-200 bg-white text-slate-800 hover:bg-slate-100 transition-all shadow-sm font-extrabold text-sm cursor-pointer"
             title="Next Month"
           >
             ▶
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Grid: Big Four Metric Cards */}
+      {/* ── REQUIREMENT 2: Enhanced Big Four Metric Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
@@ -329,31 +358,31 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className={`glass-card rounded-3xl p-6 border bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm`}
+              className={`glass-card rounded-3xl p-6 border-2 ${card.cardBorder} bg-gradient-to-br ${card.cardBg} shadow-md hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col justify-between hover-lift group`}
             >
-              {/* Soft ambient background glow inside metrics */}
-              <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} rounded-full blur-2xl opacity-40 pointer-events-none -z-10`} />
+              {/* Ambient backdrop glow */}
+              <div className="absolute -top-12 -right-12 w-28 h-28 bg-primary/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-500" />
 
-              <div className="flex justify-between items-start">
+              <div className="flex justify-between items-start relative z-10">
                 <div className="space-y-1 text-left">
-                  <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">
                     {card.title}
                   </span>
-                  <h3 className="text-3xl font-black text-text-primary tracking-tight leading-none pt-1">
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-none pt-1">
                     <AnimatedCounter value={card.rawVal} formatFn={formatCurrency} />
                   </h3>
                 </div>
-                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center shadow-sm ${card.iconBg}`}>
-                  <Icon className="w-5 h-5" />
+                <div className={`w-13 h-13 rounded-2xl bg-gradient-to-tr ${card.iconGradient} border flex items-center justify-center shadow-lg shrink-0 group-hover:scale-105 transition-transform duration-200`}>
+                  <Icon className="w-6 h-6" />
                 </div>
               </div>
 
-              <div className="flex items-end justify-between mt-8 border-t border-slate-100 pt-4 text-left">
-                <div className="space-y-1">
-                  <span className="text-xs text-text-secondary block font-medium">
+              <div className="flex items-end justify-between mt-6 border-t border-slate-200/60 pt-4 text-left relative z-10">
+                <div className="space-y-1.5 w-full">
+                  <span className="text-xs text-slate-500 block font-semibold truncate">
                     {card.subtitle}
                   </span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border inline-block ${card.trendColor}`}>
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg border inline-block tracking-tight ${card.badgeClass}`}>
                     {card.trend}
                   </span>
                 </div>
@@ -363,61 +392,60 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Daily accounting entries table */}
-      <div className="space-y-4 pt-4">
+      {/* ── REQUIREMENT 3 & 4: Expanded 'Daily Accounting Entries' Table with High Density & Smooth Animations ── */}
+      <div className="glass-card rounded-3xl p-6 sm:p-8 bg-white border border-slate-200/90 shadow-md space-y-6 text-left">
         {/* Header bar */}
-        <div className="flex items-center justify-between border-b border-border-color pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="text-left">
-            <h2 className="font-display font-bold text-lg text-text-primary">
-              Daily Accounting Entries
+            <h2 className="font-display font-black text-xl text-slate-900 tracking-tight flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-primary" />
+              <span>Daily Accounting Entries</span>
             </h2>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Select any date row to see details. To edit or fix data, click the &quot;Edit&quot; link to load it inside the Add Entry panel.
+            <p className="text-xs text-slate-500 font-semibold mt-0.5">
+              Click any date row to expand detailed records. Click &quot;Edit&quot; to load transactions into the Add Entry form.
             </p>
           </div>
-        </div>
 
-        {/* Control bar: Search Input */}
-        <div className="w-full flex">
-          <div className="relative flex-grow max-w-md">
+          {/* Control bar: Search Input */}
+          <div className="relative w-full sm:w-72 shrink-0">
             <input
               type="text"
-              placeholder="Search descriptions, categories, or dates..."
+              placeholder="Search descriptions or dates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold rounded-xl border border-border-color bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary shadow-sm"
+              className="w-full pl-9 pr-4 py-2.5 text-xs font-bold rounded-2xl border border-slate-200 bg-slate-50/80 focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary text-slate-900 shadow-xs transition-all"
             />
-            <Search className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
         </div>
 
-        {/* Ledger lists */}
+        {/* Ledger list container */}
         <div className="space-y-4">
           {filteredSummaries.length === 0 ? (
-            <div className="p-16 text-center border-2 border-dashed border-border-color rounded-2xl bg-white/10">
-              <AlertTriangle className="w-8 h-8 text-warning mx-auto mb-3" />
-              <p className="text-sm font-semibold text-text-primary">No entries logged yet</p>
-              <p className="text-xs text-text-secondary mt-1">
-                Tap &quot;Add New Entry&quot; above to log transactions.
+            <div className="p-16 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/40 space-y-3">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <p className="text-base font-black text-slate-800">No entries logged yet for this period</p>
+              <p className="text-xs text-slate-500 font-semibold max-w-sm mx-auto">
+                Tap &quot;Add New Entry&quot; above to log daily store sales and operational costs.
               </p>
             </div>
           ) : (
             <>
-              {/* Desktop Table: Hidden on Mobile */}
-              <div className="hidden md:block overflow-x-auto rounded-2xl border border-border-color shadow-sm bg-white/70">
-                <table className="min-w-full divide-y divide-border-color text-left border-collapse">
-                  <thead className="bg-slate-50/50 text-[10px] uppercase font-bold tracking-widest text-text-secondary sticky top-0 backdrop-blur-md">
+              {/* Desktop Table: Spacious, Clean Display */}
+              <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-white">
+                <table className="min-w-full divide-y divide-slate-100 text-left border-collapse">
+                  <thead className="bg-slate-100/70 text-[11px] uppercase font-black tracking-wider text-slate-500 sticky top-0 backdrop-blur-md">
                     <tr>
-                      <th scope="col" className="px-6 py-4">Date</th>
-                      <th scope="col" className="px-6 py-4">🟢 Online</th>
-                      <th scope="col" className="px-6 py-4">🟠 Cash</th>
-                      <th scope="col" className="px-6 py-4">🔵 Revenue</th>
-                      <th scope="col" className="px-6 py-4">🔴 Expenses</th>
-                      <th scope="col" className="px-6 py-4">Profit / Loss</th>
-                      <th scope="col" className="px-6 py-4 text-right">Action</th>
+                      <th scope="col" className="px-6 py-4.5">Ledger Date</th>
+                      <th scope="col" className="px-6 py-4.5 text-emerald-700">🟢 Online</th>
+                      <th scope="col" className="px-6 py-4.5 text-amber-700">🟠 Cash</th>
+                      <th scope="col" className="px-6 py-4.5 text-primary">🔵 Revenue</th>
+                      <th scope="col" className="px-6 py-4.5 text-rose-700">🔴 Expenses</th>
+                      <th scope="col" className="px-6 py-4.5">Net Profit / Loss</th>
+                      <th scope="col" className="px-6 py-4.5 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border-color text-xs font-semibold">
+                  <tbody className="divide-y divide-slate-100 text-xs font-bold">
                     {filteredSummaries.map((summary) => {
                       const isExpanded = !!expandedDates[summary.date];
                       const dayTxs = transactions.filter(t => t.date === summary.date);
@@ -427,36 +455,38 @@ export default function DashboardPage() {
                           {/* Summary Row */}
                           <tr
                             onClick={() => toggleExpandDate(summary.date)}
-                            className="hover:bg-slate-50/50 transition-all cursor-pointer select-none"
+                            className="hover:bg-slate-50/80 transition-colors cursor-pointer select-none"
                           >
-                            <td className="px-6 py-4 font-bold text-text-primary flex items-center space-x-2">
-                              {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-primary" /> : <ChevronDown className="w-3.5 h-3.5 text-text-secondary" />}
+                            <td className="px-6 py-4.5 font-black text-slate-900 flex items-center space-x-2.5">
+                              <div className="w-5 h-5 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
+                                {isExpanded ? <ChevronUp className="w-3.5 h-3.5 text-primary" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                              </div>
                               <span>{formatDateFriendly(summary.date)}</span>
                             </td>
-                            <td className="px-6 py-4 text-success">{formatCurrency(summary.online)}</td>
-                            <td className="px-6 py-4 text-warning">{formatCurrency(summary.cash)}</td>
-                            <td className="px-6 py-4 text-primary">{formatCurrency(summary.revenue)}</td>
-                            <td className="px-6 py-4 text-danger">{formatCurrency(summary.expenses)}</td>
-                            <td className={`px-6 py-4 font-bold ${summary.netPL >= 0 ? "text-success" : "text-danger"}`}>
+                            <td className="px-6 py-4.5 text-emerald-600 font-extrabold">{formatCurrency(summary.online)}</td>
+                            <td className="px-6 py-4.5 text-amber-600 font-extrabold">{formatCurrency(summary.cash)}</td>
+                            <td className="px-6 py-4.5 text-primary font-black">{formatCurrency(summary.revenue)}</td>
+                            <td className="px-6 py-4.5 text-rose-600 font-extrabold">{formatCurrency(summary.expenses)}</td>
+                            <td className={`px-6 py-4.5 font-black text-sm ${summary.netPL >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                               {summary.netPL >= 0 ? "+" : ""}{formatCurrency(summary.netPL)}
                             </td>
-                            <td className="px-6 py-4 text-right">
+                            <td className="px-6 py-4.5 text-right">
                               <Link
                                 href={`/dashboard/expenses?date=${summary.date}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center space-x-1 px-2.5 py-1.5 border border-border-color rounded-lg bg-white hover:bg-slate-50 text-xs font-bold text-primary shadow-sm transition-all hover:scale-[1.03]"
+                                className="inline-flex items-center space-x-1.5 px-3 py-1.5 border border-slate-200 rounded-xl bg-slate-50 hover:bg-white hover:border-primary/40 text-xs font-black text-primary shadow-xs transition-all hover:scale-105"
                               >
-                                <Edit2 className="w-3 h-3" />
+                                <Edit2 className="w-3.5 h-3.5" />
                                 <span>Edit</span>
                               </Link>
                             </td>
                           </tr>
 
-                          {/* Expanded list drawer - Fix 5: Read-Only list drawer */}
+                          {/* Expanded list drawer */}
                           <AnimatePresence>
                             {isExpanded && (
                               <tr>
-                                <td colSpan={7} className="p-0 bg-slate-50/30">
+                                <td colSpan={7} className="p-0 bg-slate-50/50">
                                   <motion.div
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: "auto", opacity: 1 }}
@@ -464,14 +494,14 @@ export default function DashboardPage() {
                                     transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
                                     className="overflow-hidden"
                                   >
-                                    <div className="px-12 py-5 space-y-3 border-t border-b border-border-color/30 text-left">
-                                      <div className="flex items-center justify-between mb-1.5">
-                                        <span className="text-[10px] uppercase font-black tracking-widest text-text-secondary block">
+                                    <div className="px-10 py-5 space-y-3 border-t border-b border-slate-200/60 text-left">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block">
                                           Detailed Records for {formatDateFriendly(summary.date)}
                                         </span>
                                         <Link
                                           href={`/dashboard/expenses?date=${summary.date}`}
-                                          className="text-xs font-bold text-primary hover:underline flex items-center space-x-1"
+                                          className="text-xs font-black text-primary hover:underline flex items-center space-x-1"
                                         >
                                           <span>✏️ Edit this day&apos;s inputs</span>
                                         </Link>
@@ -481,14 +511,14 @@ export default function DashboardPage() {
                                         <div key={tx.id} className="space-y-2">
                                           {/* Itemized expenses split */}
                                           {tx.expenses && tx.expenses.length > 0 && (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                                               {tx.expenses.map((e) => (
                                                 <div
                                                   key={e.id}
-                                                  className="p-3 border border-border-color/60 rounded-xl bg-white flex items-center justify-between text-xs hover:border-rose-200 transition-colors"
+                                                  className="p-3 border border-slate-200/80 rounded-xl bg-white flex items-center justify-between text-xs hover:border-rose-300 transition-colors shadow-xs"
                                                 >
-                                                  <span className="font-semibold text-text-primary">{e.title}</span>
-                                                  <span className="font-bold text-danger">-{formatCurrency(e.amount)}</span>
+                                                  <span className="font-bold text-slate-800">{e.title}</span>
+                                                  <span className="font-black text-rose-600">-{formatCurrency(e.amount)}</span>
                                                 </div>
                                               ))}
                                             </div>
@@ -496,9 +526,9 @@ export default function DashboardPage() {
 
                                           {/* Brief remarks memo */}
                                           {tx.notes && (
-                                            <div className="p-3 bg-slate-100/50 rounded-xl text-left border border-border-color/40 mt-1">
-                                              <p className="text-[10px] text-text-secondary font-bold uppercase tracking-wider">Memo Notes</p>
-                                              <p className="text-xs text-text-primary mt-0.5">{tx.notes}</p>
+                                            <div className="p-3 bg-white rounded-xl text-left border border-slate-200/80 mt-1 shadow-xs">
+                                              <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Memo Notes</p>
+                                              <p className="text-xs text-slate-700 font-semibold mt-0.5">{tx.notes}</p>
                                             </div>
                                           )}
                                         </div>
@@ -516,127 +546,42 @@ export default function DashboardPage() {
                 </table>
               </div>
 
-              {/* Mobile Cards View: Auto-converts rows to cards - Fix 5: Safe edit mobile template */}
-              <div className="block md:hidden space-y-4 text-left">
+              {/* Mobile Card List View */}
+              <div className="block md:hidden space-y-3">
                 {filteredSummaries.map((summary) => {
                   const isExpanded = !!expandedDates[summary.date];
-                  const dayTxs = transactions.filter(t => t.date === summary.date);
-
                   return (
-                    <motion.div
+                    <div
                       key={summary.date}
-                      layout
-                      className="glass-card rounded-2xl border border-border-color bg-white p-4 space-y-3 relative overflow-hidden"
+                      onClick={() => toggleExpandDate(summary.date)}
+                      className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 text-left space-y-3"
                     >
-                      {/* Date header */}
-                      <div
-                        onClick={() => toggleExpandDate(summary.date)}
-                        className="flex items-center justify-between border-b border-border-color pb-2.5 cursor-pointer"
-                      >
-                        <div className="flex items-center space-x-2 text-xs font-bold text-text-primary">
-                          <Calendar className="w-4 h-4 text-primary" />
-                          <span>Date: {formatDateFriendly(summary.date)}</span>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <Link
-                            href={`/dashboard/expenses?date=${summary.date}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-xs font-bold text-primary hover:underline flex items-center space-x-0.5"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                            <span>Edit</span>
-                          </Link>
-                          {isExpanded ? <ChevronUp className="w-4 h-4 text-text-secondary" /> : <ChevronDown className="w-4 h-4 text-text-secondary" />}
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-slate-900">{formatDateFriendly(summary.date)}</span>
+                        <Link
+                          href={`/dashboard/expenses?date=${summary.date}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2.5 py-1 text-[11px] font-black text-primary border border-primary/30 rounded-lg bg-white"
+                        >
+                          Edit
+                        </Link>
                       </div>
-
-                      {/* Cash vs Online Splits */}
-                      <div className="grid grid-cols-2 gap-2.5 text-xs font-semibold">
-                        <div className="text-left">
-                          <p className="text-[10px] text-text-secondary uppercase tracking-wide">🟢 Online</p>
-                          <p className="text-sm font-bold text-success mt-0.5">{formatCurrency(summary.online)}</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] text-text-secondary uppercase tracking-wide">🟠 Cash</p>
-                          <p className="text-sm font-bold text-warning mt-0.5">{formatCurrency(summary.cash)}</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] text-text-secondary uppercase tracking-wide">🔵 Revenue</p>
-                          <p className="text-sm font-bold text-primary mt-0.5">{formatCurrency(summary.revenue)}</p>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] text-text-secondary uppercase tracking-wide">🔴 Expenses</p>
-                          <p className="text-sm font-bold text-danger mt-0.5">{formatCurrency(summary.expenses)}</p>
-                        </div>
-                      </div>
-
-                      {/* Net daily profits summary */}
-                      <div className="pt-2 border-t border-border-color flex justify-between items-center text-xs">
+                      <div className="grid grid-cols-2 gap-2 text-xs font-bold pt-1 border-t border-slate-200/60">
                         <div>
-                          <span className="text-[10px] text-text-secondary font-medium">Profit:</span>
-                          <p className={`text-base font-extrabold ${summary.netPL >= 0 ? "text-success" : "text-danger"}`}>
-                            {summary.netPL >= 0 ? "🟢" : "🔴"} {formatCurrency(summary.netPL)}
-                          </p>
+                          <span className="text-[10px] text-slate-400 block uppercase">Revenue</span>
+                          <span className="text-primary font-black">{formatCurrency(summary.revenue)}</span>
                         </div>
-                        <span className="text-[9px] bg-slate-100 text-text-secondary font-bold px-2 py-1 rounded-lg">
-                          {dayTxs.length} items
-                        </span>
+                        <div>
+                          <span className="text-[10px] text-slate-400 block uppercase">Expenses</span>
+                          <span className="text-rose-600 font-black">{formatCurrency(summary.expenses)}</span>
+                        </div>
                       </div>
-
-                      {/* Expanded mobile list */}
-                      <AnimatePresence>
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden pt-3 space-y-3 border-t border-border-color/30"
-                          >
-                            <span className="text-[9px] uppercase font-bold tracking-widest text-text-secondary block mb-1">
-                              Itemized Outflows
-                            </span>
-                            {dayTxs.map((tx) => (
-                              <div key={tx.id} className="space-y-2">
-                                {tx.expenses && tx.expenses.map((e) => (
-                                  <div
-                                    key={e.id}
-                                    className="p-3 border border-border-color/60 rounded-xl bg-slate-50/50 flex items-center justify-between text-xs"
-                                  >
-                                    <span className="font-semibold text-text-primary">{e.title}</span>
-                                    <span className="font-bold text-danger">-{formatCurrency(e.amount)}</span>
-                                  </div>
-                                ))}
-                                {tx.notes && (
-                                  <div className="p-3 bg-slate-50/40 border border-border-color/40 rounded-xl text-left text-xs">
-                                    <p className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">Memo Notes</p>
-                                    <p className="text-text-primary mt-0.5">{tx.notes}</p>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
             </>
           )}
-        </div>
-      </div>
-
-      {/* Safety Info panel at the bottom */}
-      <div className="glass-card rounded-2xl p-5 border border-border-color bg-white text-left flex items-start space-x-4 max-w-md hover:border-emerald-200 transition-colors">
-        <div className="w-9 h-9 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success flex-shrink-0">
-          <ShieldCheck className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-          <h4 className="text-xs font-semibold text-text-primary">Data Saved Safely</h4>
-          <p className="text-[10px] text-text-secondary leading-relaxed">
-            Your transactions and records are stored safely in your private cloud database. Enforced by PostgreSQL Row Level Security (RLS), your data remains 100% isolated.
-          </p>
         </div>
       </div>
     </div>
