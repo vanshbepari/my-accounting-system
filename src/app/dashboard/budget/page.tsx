@@ -140,6 +140,16 @@ export default function BudgetPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   }, []);
 
+  // Helper to generate fresh empty rows for future month budget planning
+  const createFreshRows = () => {
+    const timestamp = Date.now();
+    return [
+      { id: `fresh-1-${timestamp}`, category: "", limitAmount: "0", isRecurring: true },
+      { id: `fresh-2-${timestamp}`, category: "", limitAmount: "0", isRecurring: true },
+      { id: `fresh-3-${timestamp}`, category: "", limitAmount: "0", isRecurring: true }
+    ];
+  };
+
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
     const isFuture = activeMonth > currentMonthStr;
@@ -150,21 +160,12 @@ export default function BudgetPage() {
         setFormRows(activeBudgets.map(b => ({
           id: b.id,
           category: b.category,
-          limitAmount: "0",
+          limitAmount: b.limitAmount.toString(),
           isRecurring: b.isRecurring
         })));
       } else {
-        const knownCategories = Array.from(new Set(budgets.map(b => b.category))).filter(Boolean);
-        if (knownCategories.length > 0) {
-          setFormRows(knownCategories.map((cat, idx) => ({
-            id: `init-future-${idx}`,
-            category: cat,
-            limitAmount: "0",
-            isRecurring: true
-          })));
-        } else {
-          setFormRows([{ id: "init-1", category: "", limitAmount: "0", isRecurring: true }]);
-        }
+        // Fresh start for future month: clear category names and reset limit amounts to 0
+        setFormRows(createFreshRows());
       }
     } else {
       if (activeBudgets.length > 0) {
@@ -192,21 +193,12 @@ export default function BudgetPage() {
         setFormRows(activeBudgets.map(b => ({
           id: b.id,
           category: b.category,
-          limitAmount: "0",
+          limitAmount: b.limitAmount.toString(),
           isRecurring: b.isRecurring
         })));
       } else {
-        const knownCategories = Array.from(new Set(budgets.map(b => b.category))).filter(Boolean);
-        if (knownCategories.length > 0) {
-          setFormRows(knownCategories.map((cat, idx) => ({
-            id: `init-future-${idx}`,
-            category: cat,
-            limitAmount: "0",
-            isRecurring: true
-          })));
-        } else {
-          setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "0", isRecurring: true }]);
-        }
+        // Fresh start for future month: clear category names and reset limit amounts to 0
+        setFormRows(createFreshRows());
       }
     } else {
       if (activeBudgets.length > 0) {
