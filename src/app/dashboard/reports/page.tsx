@@ -1733,15 +1733,16 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* SECTION 1 — MONTHLY OVERVIEW SUMMARY (KPI Cards with Sparklines & Framer Motion Stagger) */}
+      {/* SECTION 1 — MONTHLY OVERVIEW SUMMARY (KPI Cards with Floating Entry & Staggered Cascade) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Gross Revenue Card */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
-          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+          initial={{ opacity: 0, y: 22, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+          transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-xl text-left transition-shadow duration-300 group"
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
@@ -1769,7 +1770,7 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={2} fill="url(#sparklineRev)" dot={false} />
+                <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={2} fill="url(#sparklineRev)" dot={false} isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1777,10 +1778,11 @@ export default function ReportsPage() {
 
         {/* Total Expenses Card */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
-          className="glass-card rounded-3xl p-6 border-2 border-rose-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+          initial={{ opacity: 0, y: 22, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+          transition={{ duration: 0.45, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-card rounded-3xl p-6 border-2 border-rose-200/80 bg-white relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-xl text-left transition-shadow duration-300 group"
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-danger/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
@@ -1808,7 +1810,7 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#EF4444" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} fill="url(#sparklineExp)" dot={false} />
+                <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} fill="url(#sparklineExp)" dot={false} isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1816,10 +1818,11 @@ export default function ReportsPage() {
 
         {/* Net Profit Card */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.15, ease: "easeOut" }}
-          className="glass-card rounded-3xl p-6 border-2 border-emerald-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+          initial={{ opacity: 0, y: 22, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+          transition={{ duration: 0.45, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-card rounded-3xl p-6 border-2 border-emerald-200/80 bg-white relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-xl text-left transition-shadow duration-300 group"
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
@@ -1847,7 +1850,7 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#22C55E" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="profit" stroke={monthlyMetrics.profit >= 0 ? "#22C55E" : "#EF4444"} strokeWidth={2} fill="url(#sparklineProf)" dot={false} />
+                <Area type="monotone" dataKey="profit" stroke={monthlyMetrics.profit >= 0 ? "#22C55E" : "#EF4444"} strokeWidth={2} fill="url(#sparklineProf)" dot={false} isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1855,10 +1858,11 @@ export default function ReportsPage() {
 
         {/* Growth Percentage Card */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.2, ease: "easeOut" }}
-          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+          initial={{ opacity: 0, y: 22, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+          transition={{ duration: 0.45, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between shadow-sm hover:shadow-xl text-left transition-shadow duration-300 group"
         >
           <div className="absolute inset-0 bg-gradient-to-tr from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
@@ -1886,7 +1890,7 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2} fill="url(#sparklineGrowth)" dot={false} />
+                <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2} fill="url(#sparklineGrowth)" dot={false} isAnimationActive={true} animationDuration={1400} animationEasing="ease-out" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -1896,20 +1900,29 @@ export default function ReportsPage() {
 
       {/* RELOCATED NAVIGATION TABS: Directly Above Financial Health Audit Index Card with Spring Animations */}
       <div className="flex items-center justify-between flex-wrap gap-4 p-2 rounded-2xl border border-slate-200/90 bg-gradient-to-r from-slate-100/90 via-slate-50/80 to-slate-100/90 shadow-xs text-left">
-        <div className="flex p-1 rounded-xl bg-white border border-slate-200/80 w-full sm:w-auto shadow-xs space-x-1">
+        <div className="flex p-1 rounded-xl bg-white border border-slate-200/80 w-full sm:w-auto shadow-xs space-x-1 relative">
           {(["overview", "compare-months", "compare-years"] as const).map((tab) => (
             <motion.button
               key={tab}
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+              className={`relative px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-lg transition-colors cursor-pointer select-none ${
                 activeTab === tab
-                  ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md shadow-primary/20"
+                  ? "text-white shadow-md shadow-primary/20"
                   : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
-              {tab === "overview" ? "Overview" : tab === "compare-months" ? "Compare Months" : "Compare Years"}
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="reportActiveTabIndicator"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className="absolute inset-0 bg-gradient-to-r from-primary to-indigo-600 rounded-lg -z-0"
+                />
+              )}
+              <span className="relative z-10 font-black">
+                {tab === "overview" ? "Overview" : tab === "compare-months" ? "Compare Months" : "Compare Years"}
+              </span>
             </motion.button>
           ))}
         </div>
@@ -2246,15 +2259,15 @@ export default function ReportsPage() {
                           <AreaChart data={trendChartData} margin={{ top: 15, right: 10, left: -20, bottom: 0 }}>
                             <defs>
                               <linearGradient id="trendRev" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
                                 <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.0} />
                               </linearGradient>
                               <linearGradient id="trendExp" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
+                                <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.25} />
                                 <stop offset="100%" stopColor="#f43f5e" stopOpacity={0.0} />
                               </linearGradient>
                               <linearGradient id="trendProfit" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
+                                <stop offset="0%" stopColor="#10b981" stopOpacity={0.25} />
                                 <stop offset="100%" stopColor="#10b981" stopOpacity={0.0} />
                               </linearGradient>
                             </defs>
@@ -2264,46 +2277,13 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Area
-                                type="monotone"
-                                dataKey="Revenue"
-                                stroke="#3b82f6"
-                                strokeWidth={3}
-                                fill="url(#trendRev)"
-                                name="Revenue"
-                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1600}
-                                animationEasing="ease-in-out"
-                              />
+                              <Area type="monotone" dataKey="Revenue" stroke="#3b82f6" strokeWidth={3} fill="url(#trendRev)" name="Revenue" activeDot={{ r: 6, strokeWidth: 0 }} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Area
-                                type="monotone"
-                                dataKey="Expenses"
-                                stroke="#f43f5e"
-                                strokeWidth={3}
-                                fill="url(#trendExp)"
-                                name="Expenses"
-                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1600}
-                                animationEasing="ease-in-out"
-                              />
+                              <Area type="monotone" dataKey="Expenses" stroke="#f43f5e" strokeWidth={3} fill="url(#trendExp)" name="Expenses" activeDot={{ r: 6, strokeWidth: 0 }} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Area
-                                type="monotone"
-                                dataKey="Profit"
-                                stroke="#10b981"
-                                strokeWidth={3}
-                                fill="url(#trendProfit)"
-                                name="Net Profit"
-                                activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1600}
-                                animationEasing="ease-in-out"
-                              />
+                              <Area type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={3} fill="url(#trendProfit)" name="Net Profit" activeDot={{ r: 6, strokeWidth: 0 }} />
                             )}
                           </AreaChart>
                         </ResponsiveContainer>
@@ -2358,13 +2338,13 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Bar dataKey="Revenue" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                              <Bar dataKey="Revenue" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Bar dataKey="Expenses" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                              <Bar dataKey="Expenses" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Bar dataKey="Profit" fill="url(#balanceFront)" name="Net Profit" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                              <Bar dataKey="Profit" fill="url(#balanceFront)" name="Net Profit" shape={<Custom3DBar />} />
                             )}
                           </BarChart>
                         </ResponsiveContainer>
@@ -2379,46 +2359,13 @@ export default function ReportsPage() {
                             <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
                             
                             {(trendDisplay === "all" || trendDisplay === "revenue") && (
-                              <Line
-                                type="monotone"
-                                dataKey="Revenue"
-                                stroke="#3b82f6"
-                                strokeWidth={3.5}
-                                name="Revenue"
-                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#3b82f6" }}
-                                dot={{ r: 3, strokeWidth: 2, stroke: "#3b82f6", fill: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1800}
-                                animationEasing="ease-in-out"
-                              />
+                              <Line type="monotone" dataKey="Revenue" stroke="#3b82f6" strokeWidth={3} name="Revenue" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "expenses") && (
-                              <Line
-                                type="monotone"
-                                dataKey="Expenses"
-                                stroke="#f43f5e"
-                                strokeWidth={3.5}
-                                name="Expenses"
-                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#f43f5e" }}
-                                dot={{ r: 3, strokeWidth: 2, stroke: "#f43f5e", fill: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1800}
-                                animationEasing="ease-in-out"
-                              />
+                              <Line type="monotone" dataKey="Expenses" stroke="#f43f5e" strokeWidth={3} name="Expenses" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
                             )}
                             {(trendDisplay === "all" || trendDisplay === "profit") && (
-                              <Line
-                                type="monotone"
-                                dataKey="Profit"
-                                stroke="#10b981"
-                                strokeWidth={3.5}
-                                name="Net Profit"
-                                activeDot={{ r: 8, strokeWidth: 3, stroke: "#ffffff", fill: "#10b981" }}
-                                dot={{ r: 3, strokeWidth: 2, stroke: "#10b981", fill: "#ffffff" }}
-                                isAnimationActive={true}
-                                animationDuration={1800}
-                                animationEasing="ease-in-out"
-                              />
+                              <Line type="monotone" dataKey="Profit" stroke="#10b981" strokeWidth={3} name="Net Profit" activeDot={{ r: 6, strokeWidth: 0 }} dot={false} />
                             )}
                           </LineChart>
                         </ResponsiveContainer>
@@ -2754,18 +2701,7 @@ export default function ReportsPage() {
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Area
-                          type="monotone"
-                          dataKey="Balance"
-                          stroke="#10b981"
-                          strokeWidth={3}
-                          fill="url(#balanceGrad)"
-                          name="Balance"
-                          activeDot={{ r: 7, strokeWidth: 2, stroke: "#ffffff" }}
-                          isAnimationActive={true}
-                          animationDuration={1600}
-                          animationEasing="ease-in-out"
-                        />
+                        <Area type="monotone" dataKey="Balance" stroke="#10b981" strokeWidth={2.5} fill="url(#balanceGrad)" name="Balance" activeDot={{ r: 6 }} />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
@@ -2802,8 +2738,8 @@ export default function ReportsPage() {
                         <XAxis dataKey="day" style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} />
                         <YAxis style={{ fontSize: "9px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                         <Tooltip content={<CustomTooltip formatCurrency={formatCurrency} />} />
-                        <Bar dataKey="Inflow" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                        <Bar dataKey="Outflow" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                        <Bar dataKey="Inflow" fill="url(#inflowFront)" name="Revenue" shape={<Custom3DBar />} />
+                        <Bar dataKey="Outflow" fill="url(#outflowFront)" name="Expenses" shape={<Custom3DBar />} />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -3026,10 +2962,10 @@ export default function ReportsPage() {
                     <YAxis style={{ fontSize: "10px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                     <Tooltip formatter={(v) => formatCurrency(v as number)} />
                     <Legend />
-                    <Bar dataKey={monthCompData.m1.label} fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                    <Bar dataKey={monthCompData.m2.label} fill="#7C3AED" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                    <Bar dataKey={monthCompData.m1.label} fill="#2563EB" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey={monthCompData.m2.label} fill="#7C3AED" radius={[4, 4, 0, 0]} />
                     {monthCompData.m3 && (
-                      <Bar dataKey={monthCompData.m3.label} fill="#10B981" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey={monthCompData.m3.label} fill="#10B981" radius={[4, 4, 0, 0]} />
                     )}
                   </BarChart>
                 </ResponsiveContainer>
@@ -3093,9 +3029,9 @@ export default function ReportsPage() {
                     <YAxis style={{ fontSize: "10px", fontWeight: "600", fill: "#94A3B8" }} tickLine={false} axisLine={false} tickFormatter={(v) => formatCurrency(v)} />
                     <Tooltip formatter={(v) => formatCurrency(v as number)} />
                     <Legend />
-                    <Bar dataKey="Revenue" fill="#2563EB" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                    <Bar dataKey="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
-                    <Bar dataKey="Profit" fill="#22C55E" radius={[4, 4, 0, 0]} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                    <Bar dataKey="Revenue" fill="#2563EB" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Profit" fill="#22C55E" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
