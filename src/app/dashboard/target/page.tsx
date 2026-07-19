@@ -49,12 +49,25 @@ export default function TargetPage() {
     setMounted(true);
   }, []);
 
-  // Sync inputs when context data is parsed from Supabase
+  const currentMonthStr = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  const isFutureMonth = selectedMonth && selectedMonth !== "All" && selectedMonth > currentMonthStr;
+
+  // Sync inputs when context data is parsed from Supabase OR reset to 0 for future months
   useEffect(() => {
-    if (revenueTarget !== undefined) setLocalRev(revenueTarget);
-    if (netProfitTarget !== undefined) setLocalNet(netProfitTarget);
-    if (expenseCeiling !== undefined) setLocalExp(expenseCeiling);
-  }, [revenueTarget, netProfitTarget, expenseCeiling]);
+    if (isFutureMonth) {
+      setLocalRev(0);
+      setLocalNet(0);
+      setLocalExp(0);
+    } else {
+      if (revenueTarget !== undefined) setLocalRev(revenueTarget);
+      if (netProfitTarget !== undefined) setLocalNet(netProfitTarget);
+      if (expenseCeiling !== undefined) setLocalExp(expenseCeiling);
+    }
+  }, [isFutureMonth, revenueTarget, netProfitTarget, expenseCeiling, selectedMonth]);
 
   // Save targets directly to Supabase via React Context
   const handleSaveTargets = async (e: React.FormEvent) => {

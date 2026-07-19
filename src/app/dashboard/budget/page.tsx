@@ -135,18 +135,48 @@ export default function BudgetPage() {
   // Month selector for historical budget-to-budget/actual analysis
   const [compareMonth, setCompareMonth] = useState("");
 
+  const currentMonthStr = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
+    const isFuture = activeMonth > currentMonthStr;
     const activeBudgets = budgets.filter(b => b.month === activeMonth);
-    if (activeBudgets.length > 0) {
-      setFormRows(activeBudgets.map(b => ({
-        id: b.id,
-        category: b.category,
-        limitAmount: b.limitAmount.toString(),
-        isRecurring: b.isRecurring
-      })));
+
+    if (isFuture) {
+      if (activeBudgets.length > 0) {
+        setFormRows(activeBudgets.map(b => ({
+          id: b.id,
+          category: b.category,
+          limitAmount: "0",
+          isRecurring: b.isRecurring
+        })));
+      } else {
+        const knownCategories = Array.from(new Set(budgets.map(b => b.category))).filter(Boolean);
+        if (knownCategories.length > 0) {
+          setFormRows(knownCategories.map((cat, idx) => ({
+            id: `init-future-${idx}`,
+            category: cat,
+            limitAmount: "0",
+            isRecurring: true
+          })));
+        } else {
+          setFormRows([{ id: "init-1", category: "", limitAmount: "0", isRecurring: true }]);
+        }
+      }
     } else {
-      setFormRows([{ id: "init-1", category: "", limitAmount: "", isRecurring: true }]);
+      if (activeBudgets.length > 0) {
+        setFormRows(activeBudgets.map(b => ({
+          id: b.id,
+          category: b.category,
+          limitAmount: b.limitAmount.toString(),
+          isRecurring: b.isRecurring
+        })));
+      } else {
+        setFormRows([{ id: "init-1", category: "", limitAmount: "", isRecurring: true }]);
+      }
     }
     setIsEditing(true);
   };
@@ -154,16 +184,41 @@ export default function BudgetPage() {
   // Change month inside the Modify Budgets entry panel and load its limits
   const handleEditMonthChange = (newMonth: string) => {
     setSelectedMonth(newMonth);
+    const isFuture = newMonth > currentMonthStr;
     const activeBudgets = budgets.filter(b => b.month === newMonth);
-    if (activeBudgets.length > 0) {
-      setFormRows(activeBudgets.map(b => ({
-        id: b.id,
-        category: b.category,
-        limitAmount: b.limitAmount.toString(),
-        isRecurring: b.isRecurring
-      })));
+
+    if (isFuture) {
+      if (activeBudgets.length > 0) {
+        setFormRows(activeBudgets.map(b => ({
+          id: b.id,
+          category: b.category,
+          limitAmount: "0",
+          isRecurring: b.isRecurring
+        })));
+      } else {
+        const knownCategories = Array.from(new Set(budgets.map(b => b.category))).filter(Boolean);
+        if (knownCategories.length > 0) {
+          setFormRows(knownCategories.map((cat, idx) => ({
+            id: `init-future-${idx}`,
+            category: cat,
+            limitAmount: "0",
+            isRecurring: true
+          })));
+        } else {
+          setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "0", isRecurring: true }]);
+        }
+      }
     } else {
-      setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
+      if (activeBudgets.length > 0) {
+        setFormRows(activeBudgets.map(b => ({
+          id: b.id,
+          category: b.category,
+          limitAmount: b.limitAmount.toString(),
+          isRecurring: b.isRecurring
+        })));
+      } else {
+        setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
+      }
     }
   };
 
