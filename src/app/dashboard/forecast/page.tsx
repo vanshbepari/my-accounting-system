@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
 import {
   LineChart as LucideLineChart,
   TrendingUp,
@@ -221,7 +222,12 @@ export default function ForecastPage() {
   return (
     <div className="space-y-8 pb-12 text-left">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-color pb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-color pb-6"
+      >
         <div>
           <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2">
             <LucideLineChart className="w-7 h-7 text-primary stroke-[2.5]" />
@@ -250,77 +256,109 @@ export default function ForecastPage() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* KPI Cards Grid */}
+      {/* KPI Cards Grid with Floating Entry Transitions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* KPI: Projected Income */}
-        <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/70 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Projected Revenue</span>
-            <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-              <Sparkles className="w-4 h-4" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.05, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-5 border-2 border-indigo-100 bg-white/90 shadow-sm hover:shadow-xl hover-lift flex flex-col justify-between transition-all duration-300 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Projected Revenue</span>
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shadow-xs">
+                <Sparkles className="w-4.5 h-4.5" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{formatCurrency(summaryKPIs.revenue)}</h3>
+              <p className="text-[10px] text-slate-500 font-bold mt-1">
+                Estimated total revenue in {localHorizon}m
+              </p>
             </div>
           </div>
-          <div>
-            <h3 className="text-lg font-black text-text-primary">{formatCurrency(summaryKPIs.revenue)}</h3>
-            <p className="text-[10px] text-text-secondary font-semibold mt-1">
-              Estimated total revenue in {localHorizon}m
-            </p>
-          </div>
-        </div>
+        </motion.div>
 
         {/* KPI: Projected Outflow */}
-        <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/70 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Projected Expenses</span>
-            <div className="w-7 h-7 rounded-lg bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500">
-              <TrendingDown className="w-4 h-4" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-5 border-2 border-rose-100 bg-white/90 shadow-sm hover:shadow-xl hover-lift flex flex-col justify-between transition-all duration-300 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Projected Expenses</span>
+              <div className="w-8 h-8 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shadow-xs">
+                <TrendingDown className="w-4.5 h-4.5" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{formatCurrency(summaryKPIs.expenses)}</h3>
+              <p className="text-[10px] text-slate-500 font-bold mt-1">
+                Reflects savings rate of {localSavingsRate}%
+              </p>
             </div>
           </div>
-          <div>
-            <h3 className="text-lg font-black text-text-primary">{formatCurrency(summaryKPIs.expenses)}</h3>
-            <p className="text-[10px] text-text-secondary font-semibold mt-1">
-              Reflects savings rate of {localSavingsRate}%
-            </p>
-          </div>
-        </div>
+        </motion.div>
 
         {/* KPI: Net surplus */}
-        <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/70 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Net Profit Projection</span>
-            <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${
-              summaryKPIs.net >= 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"
-            }`}>
-              <TrendingUp className="w-4 h-4" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-5 border-2 border-emerald-100 bg-white/90 shadow-sm hover:shadow-xl hover-lift flex flex-col justify-between transition-all duration-300 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Net Profit Projection</span>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center border shadow-xs ${
+                summaryKPIs.net >= 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-rose-50 border-rose-100 text-rose-600"
+              }`}>
+                <TrendingUp className="w-4.5 h-4.5" />
+              </div>
+            </div>
+            <div>
+              <h3 className={`text-xl font-black tracking-tight ${summaryKPIs.net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                {formatCurrency(summaryKPIs.net)}
+              </h3>
+              <p className="text-[10px] text-slate-500 font-bold mt-1">
+                Estimated margin: {summaryKPIs.revenue ? Math.round((summaryKPIs.net / summaryKPIs.revenue) * 100) : 0}%
+              </p>
             </div>
           </div>
-          <div>
-            <h3 className={`text-lg font-black ${summaryKPIs.net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              {formatCurrency(summaryKPIs.net)}
-            </h3>
-            <p className="text-[10px] text-text-secondary font-semibold mt-1">
-              Estimated margin: {summaryKPIs.revenue ? Math.round((summaryKPIs.net / summaryKPIs.revenue) * 100) : 0}%
-            </p>
-          </div>
-        </div>
+        </motion.div>
 
         {/* KPI: Ending Balance */}
-        <div className="glass-card rounded-2xl p-5 border border-border-color bg-white/70 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Ending Cash Balance</span>
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-              <DollarSign className="w-4 h-4" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.2, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-5 border-2 border-indigo-100 bg-white/90 shadow-sm hover:shadow-xl hover-lift flex flex-col justify-between transition-all duration-300 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Ending Cash Balance</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs">
+                <DollarSign className="w-4.5 h-4.5" />
+              </div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900 tracking-tight">{formatCurrency(summaryKPIs.endingBalance)}</h3>
+              <p className="text-[10px] text-slate-500 font-bold mt-1">
+                Runway reserve estimate
+              </p>
             </div>
           </div>
-          <div>
-            <h3 className="text-lg font-black text-text-primary">{formatCurrency(summaryKPIs.endingBalance)}</h3>
-            <p className="text-[10px] text-text-secondary font-semibold mt-1">
-              Runway reserve estimate
-            </p>
-          </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Main Content Area - Split Panel */}
@@ -328,8 +366,13 @@ export default function ForecastPage() {
         
         {/* Real-time Settings Panel (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="glass-card rounded-3xl p-6 bg-white border border-border-color shadow-md space-y-6">
-            <div className="flex items-center space-x-2.5 border-b border-border-color pb-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="glass-card rounded-3xl p-6 bg-white border border-slate-200/80 shadow-lg space-y-6"
+          >
+            <div className="flex items-center space-x-2.5 border-b border-slate-100 pb-4">
               <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
                 <Sliders className="w-4.5 h-4.5" />
               </div>
@@ -399,10 +442,15 @@ export default function ForecastPage() {
                 Base average monthly values are calculated from historical months (Revenue: <strong className="text-text-primary">{formatCurrency(averageMonthlyRevenue)}</strong>, Expenses: <strong className="text-text-primary">{formatCurrency(averageMonthlyExpenses)}</strong>). Projections are compounded monthly.
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Smart Financial Insights Card */}
-          <div className="glass-card rounded-3xl p-6 bg-gradient-to-tr from-primary/5 to-cyan-50/5 border border-primary/10 shadow-md text-xs space-y-3.5">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, delay: 0.1, ease: "easeOut" }}
+            className="glass-card rounded-3xl p-6 bg-gradient-to-tr from-primary/5 to-cyan-50/5 border border-primary/10 shadow-lg text-xs space-y-3.5"
+          >
             <div className="flex items-center space-x-1.5">
               <CheckCircle className="w-5 h-5 text-primary" />
               <h4 className="font-display font-black text-sm text-text-primary uppercase tracking-wider">Forecast Insights</h4>
@@ -428,14 +476,19 @@ export default function ForecastPage() {
                 </span>
               </li>
             </ul>
-          </div>
+          </motion.div>
         </div>
 
         {/* Charts & Table Panel (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           
-          {/* Visual Recharts Forecast */}
-          <div className="glass-card rounded-3xl p-6 bg-white border border-border-color shadow-md">
+          {/* Visual Recharts Forecast with Dynamic Liquid Drawing Line Reveal */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="glass-card rounded-3xl p-6 bg-white border border-slate-200/80 shadow-lg"
+          >
             <div className="flex items-center justify-between border-b border-border-color pb-4 mb-6">
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
@@ -460,7 +513,7 @@ export default function ForecastPage() {
               </div>
             </div>
 
-            {/* Recharts Container */}
+            {/* Recharts Container with Liquid Drawing Line Effect */}
             <div className="w-full h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -485,6 +538,9 @@ export default function ForecastPage() {
                   <Bar
                     dataKey="revenue"
                     radius={[6, 6, 0, 0]}
+                    isAnimationActive={true}
+                    animationDuration={1200}
+                    animationEasing="ease-out"
                   >
                     {chartData.map((entry: any, index: number) => (
                       <Cell
@@ -499,9 +555,12 @@ export default function ForecastPage() {
                     type="monotone"
                     dataKey="expenses"
                     stroke="#F43F5E"
-                    strokeWidth={2.5}
-                    dot={{ r: 3, strokeWidth: 1.5, fill: "#fff" }}
-                    activeDot={{ r: 5 }}
+                    strokeWidth={3}
+                    dot={{ r: 3, strokeWidth: 2, fill: "#ffffff", stroke: "#F43F5E" }}
+                    activeDot={{ r: 7, strokeWidth: 3, stroke: "#ffffff", fill: "#F43F5E" }}
+                    isAnimationActive={true}
+                    animationDuration={1800}
+                    animationEasing="ease-in-out"
                   />
                   {/* Divider Reference line between History and Projection */}
                   <ReferenceLine
@@ -528,10 +587,15 @@ export default function ForecastPage() {
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Breakdown Monthly Table */}
-          <div className="glass-card rounded-3xl p-6 bg-white border border-border-color shadow-md">
+          {/* Breakdown Monthly Table with Floating Entry */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.15, ease: "easeOut" }}
+            className="glass-card rounded-3xl p-6 bg-white border border-slate-200/80 shadow-lg"
+          >
             <div className="flex items-center space-x-2 border-b border-border-color pb-4 mb-4">
               <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
                 <Calendar className="w-4 h-4" />
@@ -580,7 +644,7 @@ export default function ForecastPage() {
                 </tbody>
               </table>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 
