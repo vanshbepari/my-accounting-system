@@ -15,7 +15,6 @@ import {
   insertUserNotification,
   markUserNotificationRead,
   clearUserNotifications,
-  purgeUnwantedDatabaseNotifications,
   Budget
 } from "@/utils/supabaseData";
 
@@ -151,7 +150,7 @@ interface AccountingContextType {
   horizon: number;
   saveTargets: (rev: number, net: number, exp: number) => Promise<void>;
   saveForecastSettings: (growth: number, savings: number, hor: number) => Promise<void>;
-  
+
   // Budgeting feature state
   budgets: Budget[];
   saveBudget: (budget: Omit<Budget, "id"> & { id?: string }) => Promise<void>;
@@ -164,18 +163,18 @@ const AccountingContext = createContext<AccountingContextType | undefined>(undef
 // DEFAULT NOTIFICATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_NOTIFICATIONS: Notification[] = [];
+const DEFAULT_NOTIFICATIONS: Notification[] = [
+  {
+    id: "notif-welcome",
+    title: "Welcome to My Accounting!",
+    message: "Your private accounting dashboard is ready. Start adding your daily entries.",
+    timestamp: "Just now",
+    read: false,
+    type: "info",
+  },
+];
 
-// Helper to filter notifications so only target milestones, budget limits, and PDF report downloads are stored/displayed
-const filterImportantNotifications = (list: Notification[]): Notification[] => {
-  return list.filter(n => {
-    const titleLower = (n.title || "").toLowerCase();
-    const isTargetNotification = titleLower.includes("target");
-    const isBudgetNotification = titleLower.includes("budget");
-    const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
-    return isTargetNotification || isBudgetNotification || isPdfNotification;
-  });
-};
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROVIDER
@@ -208,17 +207,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // ── addNotification (defined early so it can be used in loadUserData) ──────
   const addNotification = useCallback(
     async (title: string, message: string, type: "success" | "warning" | "info" | "danger") => {
-      // STRICT FILTER: Only allow target milestones, budget alerts, and PDF report downloads
-      const titleLower = title.toLowerCase();
-      const isTargetNotification = titleLower.includes("target");
-      const isBudgetNotification = titleLower.includes("budget");
-      const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
-
-      if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
-        // Suppress and do not generate or store generic or unrelated notifications
-        return;
-      }
-
       const newNotifLocal: Notification = {
         id: "notif-" + Math.random().toString(36).substring(2, 9),
         title,
@@ -231,14 +219,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (user?.id && useSupabaseForNotifications) {
         const inserted = await insertUserNotification(user.id, title, message, type);
         if (inserted) {
-          setNotifications((prev) => filterImportantNotifications([inserted, ...prev]));
+          setNotifications((prev) => [inserted, ...prev]);
           return;
         }
       }
 
       // Fallback
       setNotifications((prev) => {
-        const updated = filterImportantNotifications([newNotifLocal, ...prev]);
+        const updated = [newNotifLocal, ...prev];
         if (user?.id) {
           localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updated));
         }
@@ -368,22 +356,16 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setExpenseCeiling(0);
         }
 
-        const hasExistingProfile = Boolean(
-          settings.businessName?.trim() || settings.ownerName?.trim()
-        );
-        const isOnboarded = settings.onboarded === true || hasExistingProfile;
-
-        const fullProfile: UserProfile = { 
-          ...profile, 
+        const fullProfile: UserProfile = {
+          ...profile,
           name: settings.ownerName || profile.name,
           businessName: settings.businessName || "My Retail Shop",
           currencyCode: settings.currencyCode,
           currencySymbol: settings.currencySymbol,
           startingBalance: settings.startingBalance ?? 0,
           mobileNumber: settings.mobileNumber,
-          country: settings.country || "India",
-          email: settings.email || profile.email,
-          onboarded: isOnboarded,
+          country: settings.country,
+          onboarded: settings.onboarded,
         };
         setUser(fullProfile);
         setTransactions(txs);
@@ -402,16 +384,15 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
 
         if (loadedNotifications !== null) {
-          setNotifications(filterImportantNotifications(loadedNotifications));
+          setNotifications(loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
           setUseSupabaseForNotifications(true);
-          purgeUnwantedDatabaseNotifications(userId).catch(err => console.warn("[purgeUnwantedDatabaseNotifications] error:", err));
         } else {
           setUseSupabaseForNotifications(false);
           const savedLocalNotifs = localStorage.getItem(`notifications_${userId}`);
           if (savedLocalNotifs) {
-            setNotifications(filterImportantNotifications(JSON.parse(savedLocalNotifs)));
+            setNotifications(JSON.parse(savedLocalNotifs));
           } else {
-            setNotifications([]);
+            setNotifications(DEFAULT_NOTIFICATIONS);
           }
         }
 
@@ -549,6 +530,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }).catch((err) => console.error("[onAuthStateChange] loadUserData error:", err));
 
         setIsAuthReady(true);
+
+        if (event === "SIGNED_IN") {
+          addNotification(
+            "Signed in successfully",
+            `Welcome back, ${name}! Your private dashboard is ready.`,
+            "success"
+          );
+        }
       } else if (event === "SIGNED_OUT") {
         // Wipe all in-memory data so no trace of previous user remains
         setUser(null);
@@ -699,7 +688,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         async () => {
           console.log("[Realtime] notifications updated, reloading...");
           const loadedNotifications = await fetchUserNotifications(user.id);
-          setNotifications(loadedNotifications ? filterImportantNotifications(loadedNotifications) : []);
+          setNotifications(loadedNotifications && loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
         }
       )
       .subscribe();
@@ -882,10 +871,15 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       return;
     }
 
-    // Update local state so the UI reflects the single unified record instantly without duplicates
+    // Update local state so the UI reflects the change instantly
     setTransactions((prev) => {
-      const filtered = prev.filter((t) => t.date !== record.date);
-      return [saved, ...filtered].sort((a, b) => b.date.localeCompare(a.date));
+      const idx = prev.findIndex((t) => t.date === record.date);
+      if (idx !== -1) {
+        const updated = [...prev];
+        updated[idx] = saved;
+        return updated;
+      }
+      return [saved, ...prev];
     });
 
     const totalExpenses = record.expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -1095,7 +1089,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const pct = (categorySpending / budget.limitAmount) * 100;
 
       const alertKey = `[${budget.month}] ${budget.category}`;
-      
+
       if (pct >= 100) {
         const title = `🚨 Budget Breached: ${alertKey}`;
         const message = `Category "${budget.category}" spending of ${formatCurrency(categorySpending)} has breached the budget limit of ${formatCurrency(budget.limitAmount)} (${pct.toFixed(0)}% reached).`;
@@ -1113,63 +1107,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
   }, [user?.id, budgets, transactions, notifications, addNotification, formatCurrency]);
-
-  const checkTargetMilestoneAlerts = useCallback(() => {
-    if (!user?.id || (revenueTarget === 0 && netProfitTarget === 0 && expenseCeiling === 0) || transactions.length === 0) return;
-
-    const currentMonth = selectedMonth && selectedMonth !== "All"
-      ? selectedMonth
-      : new Date().toISOString().split("T")[0].substring(0, 7);
-
-    const monthTxs = transactions.filter(t => t.date.startsWith(currentMonth));
-    const rev = monthTxs.reduce((acc, t) => acc + t.onlineAmount + t.cashAmount, 0);
-    const exp = monthTxs.reduce((acc, t) => acc + t.expensesAmount, 0);
-    const net = rev - exp;
-
-    // 1. Revenue Target Milestone Achievement
-    if (revenueTarget > 0 && rev >= revenueTarget) {
-      const title = `🏆 Target Milestone Reached: Revenue Goal (${currentMonth})`;
-      const message = `Congratulations! Monthly revenue of ${formatCurrency(rev)} has achieved your revenue target of ${formatCurrency(revenueTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "success");
-      }
-    } else if (revenueTarget > 0 && rev < revenueTarget * 0.5) {
-      const title = `📉 Target Alert: Revenue Milestone Below Target (${currentMonth})`;
-      const message = `Monthly revenue of ${formatCurrency(rev)} is currently below 50% of your revenue target (${formatCurrency(revenueTarget)}).`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "warning");
-      }
-    }
-
-    // 2. Net Profit Target Milestone Achievement / Deficit
-    if (netProfitTarget > 0 && net >= netProfitTarget) {
-      const title = `🎯 Target Milestone Reached: Net Profit Goal (${currentMonth})`;
-      const message = `Net profit of ${formatCurrency(net)} has met or exceeded your profit milestone of ${formatCurrency(netProfitTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "success");
-      }
-    } else if (netProfitTarget > 0 && net < 0) {
-      const title = `⚠️ Target Alert: Net Profit Deficit (${currentMonth})`;
-      const message = `Current net position is in deficit (${formatCurrency(net)}), falling short of your profit target of ${formatCurrency(netProfitTarget)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "danger");
-      }
-    }
-
-    // 3. Expense Ceiling Breached Target Alert
-    if (expenseCeiling > 0 && exp > expenseCeiling) {
-      const title = `🚨 Target Alert: Expense Ceiling Exceeded (${currentMonth})`;
-      const message = `Total expenses of ${formatCurrency(exp)} have breached your monthly expense ceiling limit of ${formatCurrency(expenseCeiling)}.`;
-      const exists = notifications.some(n => n.title === title);
-      if (!exists) {
-        addNotification(title, message, "danger");
-      }
-    }
-  }, [user?.id, revenueTarget, netProfitTarget, expenseCeiling, transactions, selectedMonth, notifications, addNotification, formatCurrency]);
 
   const rolloverRecurringBudgets = useCallback((activeMonthStr: string) => {
     if (!user?.id || budgets.length === 0 || activeMonthStr === "All") return;
@@ -1202,15 +1139,12 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [user?.id, budgets, saveBudget]);
 
-  // Run alerts scanner whenever budgets, targets, or transactions change
+  // Run alerts scanner whenever budgets or transactions change
   useEffect(() => {
-    if (user?.id && transactions.length > 0) {
-      if (budgets.length > 0) {
-        checkBudgetAlerts();
-      }
-      checkTargetMilestoneAlerts();
+    if (user?.id && budgets.length > 0 && transactions.length > 0) {
+      checkBudgetAlerts();
     }
-  }, [budgets, transactions, user?.id, checkBudgetAlerts, checkTargetMilestoneAlerts]);
+  }, [budgets, transactions, user?.id]);
 
   // Run rollover when month changes
   useEffect(() => {
@@ -1257,7 +1191,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         horizon,
         saveTargets,
         saveForecastSettings,
-        
+
         budgets,
         saveBudget,
         deleteBudget

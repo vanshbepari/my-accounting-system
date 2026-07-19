@@ -148,6 +148,7 @@ export interface UserSettings {
   startingBalance?: number;
   mobileNumber?: string;
   country?: string;
+  email?: string;
   onboarded?: boolean;
 }
 
