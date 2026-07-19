@@ -663,7 +663,7 @@ export default function BudgetPage() {
                                   >
                                     <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
                                   </motion.div>
-                                  <span>Over limit by {summary.percentage.toFixed(0)}%</span>
+                                  <span>Over budget by {(summary.percentage - 100).toFixed(0)}%</span>
                                 </>
                               ) : isWarning ? (
                                 <>
