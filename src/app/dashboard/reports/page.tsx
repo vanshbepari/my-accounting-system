@@ -1733,23 +1733,28 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* SECTION 1 — MONTHLY OVERVIEW SUMMARY (KPI Cards with Sparklines) */}
+      {/* SECTION 1 — MONTHLY OVERVIEW SUMMARY (KPI Cards with Sparklines & Framer Motion Stagger) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Gross Revenue Card */}
-        <div className="glass-card rounded-2xl p-6 border bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-md text-left transition-all group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.05, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Gross Revenue</span>
-              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-primary" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Gross Revenue</span>
+              <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+                <DollarSign className="w-4.5 h-4.5" />
               </div>
             </div>
-            <h3 className="text-2xl font-black text-text-primary tracking-tight leading-none pt-3">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none pt-3">
               {formatCurrency(monthlyMetrics.revenue)}
             </h3>
-            <span className="text-[10px] text-text-secondary block mt-1.5 font-semibold">
+            <span className="text-[10px] text-slate-500 block mt-1.5 font-bold">
               Prev Month: {formatCurrency(monthlyMetrics.prevRevenue)}
             </span>
           </div>
@@ -1764,26 +1769,31 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={1.5} fill="url(#sparklineRev)" dot={false} />
+                <Area type="monotone" dataKey="revenue" stroke="#2563EB" strokeWidth={2} fill="url(#sparklineRev)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Total Expenses Card */}
-        <div className="glass-card rounded-2xl p-6 border bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-md text-left transition-all group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-danger/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.1, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-6 border-2 border-rose-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-danger/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Total Expenses</span>
-              <div className="w-7 h-7 rounded-lg bg-danger/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-danger" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Total Expenses</span>
+              <div className="w-8 h-8 rounded-xl bg-danger/10 border border-danger/20 flex items-center justify-center text-danger shadow-xs">
+                <Activity className="w-4.5 h-4.5" />
               </div>
             </div>
-            <h3 className="text-2xl font-black text-text-primary tracking-tight leading-none pt-3">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none pt-3">
               {formatCurrency(monthlyMetrics.expenses)}
             </h3>
-            <span className="text-[10px] text-text-secondary block mt-1.5 font-semibold">
+            <span className="text-[10px] text-slate-500 block mt-1.5 font-bold">
               Prev Month: {formatCurrency(monthlyMetrics.prevExpenses)}
             </span>
           </div>
@@ -1798,26 +1808,31 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#EF4444" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={1.5} fill="url(#sparklineExp)" dot={false} />
+                <Area type="monotone" dataKey="expenses" stroke="#EF4444" strokeWidth={2} fill="url(#sparklineExp)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Net Profit Card */}
-        <div className="glass-card rounded-2xl p-6 border bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-md text-left transition-all group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.15, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-6 border-2 border-emerald-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-success/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Net Surplus / Profit</span>
-              <div className="w-7 h-7 rounded-lg bg-success/10 flex items-center justify-center">
-                <ArrowUpRight className="w-4 h-4 text-success" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Net Surplus / Profit</span>
+              <div className="w-8 h-8 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success shadow-xs">
+                <ArrowUpRight className="w-4.5 h-4.5" />
               </div>
             </div>
-            <h3 className={`text-2xl font-black tracking-tight leading-none pt-3 ${monthlyMetrics.profit >= 0 ? "text-success" : "text-danger"}`}>
+            <h3 className={`text-2xl font-black tracking-tight leading-none pt-3 ${monthlyMetrics.profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
               {monthlyMetrics.profit >= 0 ? "+" : ""}{formatCurrency(monthlyMetrics.profit)}
             </h3>
-            <span className="text-[10px] text-text-secondary block mt-1.5 font-semibold">
+            <span className="text-[10px] text-slate-500 block mt-1.5 font-bold">
               Prev Month: {formatCurrency(monthlyMetrics.prevProfit)}
             </span>
           </div>
@@ -1832,26 +1847,31 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#22C55E" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="profit" stroke={monthlyMetrics.profit >= 0 ? "#22C55E" : "#EF4444"} strokeWidth={1.5} fill="url(#sparklineProf)" dot={false} />
+                <Area type="monotone" dataKey="profit" stroke={monthlyMetrics.profit >= 0 ? "#22C55E" : "#EF4444"} strokeWidth={2} fill="url(#sparklineProf)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
         {/* Growth Percentage Card */}
-        <div className="glass-card rounded-2xl p-6 border bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-md text-left transition-all group">
-          <div className="absolute inset-0 bg-gradient-to-tr from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.2, ease: "easeOut" }}
+          className="glass-card rounded-3xl p-6 border-2 border-indigo-200/80 bg-white relative overflow-hidden flex flex-col justify-between hover-lift shadow-sm hover:shadow-xl text-left transition-all duration-300 group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-tr from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
           <div className="relative z-10">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Net Growth Growth</span>
-              <div className="w-7 h-7 rounded-lg bg-secondary/10 flex items-center justify-center">
-                <Activity className="w-4 h-4 text-secondary" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Net Growth Factor</span>
+              <div className="w-8 h-8 rounded-xl bg-secondary/10 border border-secondary/20 flex items-center justify-center text-secondary shadow-xs">
+                <Activity className="w-4.5 h-4.5" />
               </div>
             </div>
-            <h3 className={`text-2xl font-black tracking-tight leading-none pt-3 ${monthlyMetrics.profitGrowth >= 0 ? "text-success" : "text-danger"}`}>
+            <h3 className={`text-2xl font-black tracking-tight leading-none pt-3 ${monthlyMetrics.profitGrowth >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
               {formatGrowth(monthlyMetrics.profitGrowth)}
             </h3>
-            <span className="text-[10px] text-text-secondary block mt-1.5 font-semibold">
+            <span className="text-[10px] text-slate-500 block mt-1.5 font-bold">
               Trading Momentum Factor
             </span>
           </div>
@@ -1866,29 +1886,31 @@ export default function ReportsPage() {
                     <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={1.5} fill="url(#sparklineGrowth)" dot={false} />
+                <Area type="monotone" dataKey="revenue" stroke="#7C3AED" strokeWidth={2} fill="url(#sparklineGrowth)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </motion.div>
 
       </div>
 
-      {/* RELOCATED NAVIGATION TABS: Directly Above Financial Health Audit Index Card */}
-      <div className="flex items-center justify-between flex-wrap gap-4 p-2 rounded-2xl border border-slate-200/80 bg-slate-100/90 shadow-xs text-left">
-        <div className="flex p-1 rounded-xl bg-white border border-slate-200/70 w-full sm:w-auto shadow-xs">
+      {/* RELOCATED NAVIGATION TABS: Directly Above Financial Health Audit Index Card with Spring Animations */}
+      <div className="flex items-center justify-between flex-wrap gap-4 p-2 rounded-2xl border border-slate-200/90 bg-gradient-to-r from-slate-100/90 via-slate-50/80 to-slate-100/90 shadow-xs text-left">
+        <div className="flex p-1 rounded-xl bg-white border border-slate-200/80 w-full sm:w-auto shadow-xs space-x-1">
           {(["overview", "compare-months", "compare-years"] as const).map((tab) => (
-            <button
+            <motion.button
               key={tab}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
                 activeTab === tab
-                  ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md shadow-primary/20"
                   : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
               {tab === "overview" ? "Overview" : tab === "compare-months" ? "Compare Months" : "Compare Years"}
-            </button>
+            </motion.button>
           ))}
         </div>
         
