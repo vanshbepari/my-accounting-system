@@ -66,7 +66,7 @@ export default function Sidebar({
       style={{ width: isMobile ? "100%" : isCollapsed ? "80px" : "260px" }}
       className={isMobile
         ? "flex flex-col h-full bg-white transition-colors"
-        : `hidden md:flex flex-col h-screen fixed left-0 top-0 z-40 bg-white/95 border-r border-slate-200 ${
+        : `hidden md:flex flex-col h-screen fixed left-0 top-0 z-[60] bg-white/95 backdrop-blur-xl border-r border-slate-200 transition-all duration-300 ${
             !isCollapsed ? "shadow-2xl shadow-slate-900/15" : "shadow-sm"
           }`}
     >

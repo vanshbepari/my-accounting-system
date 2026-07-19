@@ -22,13 +22,9 @@ export default function DashboardLayout({
   // Handle protected route redirect
   React.useEffect(() => {
     if (isAuthReady) {
-      const localOnboarded = user?.id && typeof window !== "undefined"
-        ? localStorage.getItem(`onboarded_${user.id}`) === "true"
-        : false;
-
       if (!user?.isLoggedIn) {
         router.replace("/login");
-      } else if (!user.onboarded && !localOnboarded) {
+      } else if (!user.onboarded) {
         router.replace("/onboarding");
       }
     }
@@ -84,7 +80,7 @@ export default function DashboardLayout({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm md:hidden"
               onClick={() => setMobileSidebarOpen(false)}
             />
             <motion.div
@@ -92,7 +88,7 @@ export default function DashboardLayout({
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-border-color md:hidden"
+              className="fixed inset-y-0 left-0 z-[70] w-72 bg-white border-r border-border-color md:hidden"
             >
               {/* Render Sidebar in mobile drawer */}
               <div className="h-full flex flex-col" onClick={() => setMobileSidebarOpen(false)}>
