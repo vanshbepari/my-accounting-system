@@ -531,17 +531,26 @@ export async function purgeUnwantedDatabaseNotifications(userId: string): Promis
 }
 
 /**
- * Permanently delete a user's entire account footprint from all Supabase database tables.
+ * Permanently delete a user's entire account footprint from auth.users and all Supabase database tables.
  */
 export async function deleteAllUserDataFromDatabase(userId: string): Promise<boolean> {
   try {
-    // 1. Attempt RPC procedure first
-    const { error: rpcErr } = await supabase.rpc("delete_user_account_data", { target_user_id: userId });
-    if (!rpcErr) {
-      console.log("[deleteAllUserDataFromDatabase] RPC execution successful.");
+    // 1. Invoke primary SECURITY DEFINER RPC function (deletes from auth.users + all tables)
+    const { error: rpcOwnErr } = await supabase.rpc("delete_own_user_account");
+    if (!rpcOwnErr) {
+      console.log("[deleteAllUserDataFromDatabase] RPC delete_own_user_account successful.");
+      return true;
+    } else {
+      console.warn("[deleteAllUserDataFromDatabase] RPC delete_own_user_account warning:", rpcOwnErr.message);
     }
 
-    // 2. Client-side multi-table deletion guarantees safe cleanup across all tables
+    // 2. Fallback to parameter-based RPC procedure
+    const { error: rpcErr } = await supabase.rpc("delete_user_account_data", { target_user_id: userId });
+    if (!rpcErr) {
+      console.log("[deleteAllUserDataFromDatabase] RPC delete_user_account_data successful.");
+    }
+
+    // 3. Client-side multi-table deletion guarantees safe cleanup across all 7 application tables
     await Promise.allSettled([
       supabase.from("expense_items").delete().eq("user_id", userId),
       supabase.from("daily_entries").delete().eq("user_id", userId),
