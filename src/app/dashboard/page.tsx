@@ -79,7 +79,20 @@ export default function DashboardPage() {
   const [expandedDates, setExpandedDates] = useState<{ [date: string]: boolean }>({});
   const [mounted, setMounted] = useState(false);
 
-  const dashboardMonthOptions = useMemo(() => generateMonthOptions(6, 3, true), []);
+  const currentMonthStr = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }, []);
+
+  // Exclusively on Dashboard: display only past months and current month (0 future months)
+  const dashboardMonthOptions = useMemo(() => generateMonthOptions(12, 0, true), []);
+
+  // Clamp selected month to current month if a future month was selected elsewhere
+  useEffect(() => {
+    if (selectedMonth && selectedMonth !== "All" && selectedMonth > currentMonthStr) {
+      setSelectedMonth(currentMonthStr);
+    }
+  }, [selectedMonth, currentMonthStr, setSelectedMonth]);
 
   // Hydration safety mount check + back button interceptor
   useEffect(() => {
@@ -162,12 +175,17 @@ export default function DashboardPage() {
     }
   };
 
-  // Switch month helper (prev / next)
+  // Switch month helper (prev / next) restricted to past & current month on Dashboard
   const adjustMonth = (delta: number) => {
     try {
-      const [year, month] = activeMonth.split("-").map(Number);
+      const activeStr = selectedMonth === "All" || !selectedMonth ? currentMonthStr : selectedMonth;
+      const [year, month] = activeStr.split("-").map(Number);
       const d = new Date(year, month - 1 + delta, 1);
       const nextMonthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+      if (nextMonthStr > currentMonthStr) {
+        return;
+      }
       setSelectedMonth(nextMonthStr);
     } catch (e) {
       console.error("Month switcher error:", e);
