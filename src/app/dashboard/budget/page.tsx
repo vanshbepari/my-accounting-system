@@ -9,7 +9,6 @@ import {
   Save,
   CheckCircle,
   Sparkles,
-  CalendarDays,
   AlertTriangle
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
@@ -26,7 +25,37 @@ import {
   Legend
 } from "recharts";
 
+/* --- Count-Up Number Ticker Helper --- */
+function AnimatedNumber({ value, formatFn }: { value: number; formatFn?: (val: number) => string }) {
+  const [displayVal, setDisplayVal] = useState(0);
+
+  useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 900; // ms
+    const startValue = 0;
+    const endValue = value;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // Ease-out-expo timing: 1 - Math.pow(2, -10 * progress)
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const current = Math.round(startValue + (endValue - startValue) * easeProgress);
+      setDisplayVal(current);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    const animationFrame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [value]);
+
+  return <>{formatFn ? formatFn(displayVal) : displayVal}</>;
+}
+
 // Custom Tooltip displaying comparative variance between current and compared month
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTooltip = ({ active, payload }: any) => {
   const { formatCurrency } = useAccounting();
   if (active && payload && payload.length) {
@@ -40,15 +69,15 @@ const CustomTooltip = ({ active, payload }: any) => {
     const compareMonthLabel = new Date(data.compareMonthName + "-15").toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
     return (
-      <div className="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-xl text-left select-none text-[10px] font-bold text-slate-650 space-y-1.5 max-w-xs">
+      <div className="bg-white border border-slate-200 p-3.5 rounded-2xl shadow-xl text-left select-none text-[10px] font-bold text-slate-600 space-y-1.5 max-w-xs">
         <p className="text-[11px] font-black text-slate-800 uppercase tracking-wider">{cat}</p>
         <div className="flex justify-between space-x-6">
           <span>{activeMonthLabel}:</span>
-          <span className="text-slate-905 font-black">{formatCurrency(activeVal)}</span>
+          <span className="text-slate-900 font-black">{formatCurrency(activeVal)}</span>
         </div>
         <div className="flex justify-between space-x-6">
           <span>{compareMonthLabel}:</span>
-          <span className="text-slate-905 font-black">{formatCurrency(compareVal)}</span>
+          <span className="text-slate-900 font-black">{formatCurrency(compareVal)}</span>
         </div>
         <div className="border-t border-slate-100 my-1.5 pt-1.5 flex justify-between space-x-6">
           <span>Variance:</span>
@@ -94,34 +123,6 @@ export default function BudgetPage() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   };
 
-  // Generate the past 6 months dynamically based on the current calendar date
-  const past6Months = useMemo(() => {
-    const list: string[] = [];
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonthNum = now.getMonth();
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(currentYear, currentMonthNum - i, 15);
-      list.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-    }
-    return list;
-  }, []);
-
-  // Generate past 3 months and future 3 months dynamically for the Modify Budgets view
-  const editModeMonths = useMemo(() => {
-    const list: string[] = [];
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonthNum = now.getMonth();
-    
-    // Past 3 months and future 3 months (7 months total range)
-    for (let i = -3; i <= 3; i++) {
-      const d = new Date(currentYear, currentMonthNum - i, 15);
-      list.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-    }
-    return list.sort().reverse();
-  }, []);
-
   // Sync compareMonth automatically to the previous month of activeMonth
   useEffect(() => {
     setCompareMonth(getPreviousMonth(activeMonth));
@@ -133,7 +134,7 @@ export default function BudgetPage() {
   // Local Form state (Notebook-style entry rows)
   const [formRows, setFormRows] = useState<BudgetFormRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [, setSaveSuccess] = useState(false);
 
   // Local session cache for custom future budgets saved manually in Notebook Entry modal
   const [sessionSavedFutureMonths, setSessionSavedFutureMonths] = useState<Record<string, BudgetFormRow[]>>({});
@@ -222,6 +223,7 @@ export default function BudgetPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleRowChange = (id: string, field: keyof BudgetFormRow, value: any) => {
     setFormRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r));
   };
@@ -269,7 +271,7 @@ export default function BudgetPage() {
       setTimeout(() => setSaveSuccess(false), 2500);
       setIsEditing(false);
       addNotification("Budgets Updated", `Category budget limits for ${activeMonth} have been saved successfully to the backend database.`, "success");
-    } catch (err) {
+    } catch {
       addNotification("Save Error", "Failed to update category budget limits.", "danger");
     }
   };
@@ -381,14 +383,24 @@ export default function BudgetPage() {
   }, [transactions, activeMonth, compareMonth, allCategories]);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20 pt-6 px-4 sm:px-6 lg:px-8">
-      {/* Upper Title Hero Panel */}
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 border-b border-slate-200 pb-5 relative z-30">
+    <div className="min-h-screen bg-slate-50/50 pb-20 pt-6 px-4 sm:px-6 lg:px-8 text-left">
+      {/* Upper Title Hero Panel with Entrance Motion */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 border-b border-slate-200 pb-5 relative z-30"
+      >
         <div>
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 text-white flex items-center justify-center shadow-md">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-indigo-600 text-white flex items-center justify-center shadow-md"
+            >
               <Wallet className="w-5 h-5" />
-            </div>
+            </motion.div>
             <div>
               <h1 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
                 Budgeting & Alerts
@@ -400,7 +412,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* Global Month Selection Dropdown */}
+        {/* Global Month Selection Dropdown & Modify Button */}
         <div className="flex items-center space-x-3 self-start md:self-auto">
           {!isEditing && (
             <CustomMonthDropdown
@@ -413,16 +425,18 @@ export default function BudgetPage() {
           )}
 
           {!isEditing && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
               onClick={startEditing}
-              className="flex items-center space-x-2 bg-slate-900 text-white hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+              className="flex items-center space-x-2 bg-slate-900 text-white hover:bg-slate-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
               <span>Modify Budgets</span>
-            </button>
+            </motion.button>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <div className="max-w-6xl mx-auto mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Side: Notebook style budget setup OR active budget status progress */}
@@ -496,7 +510,7 @@ export default function BudgetPage() {
                       <div className="flex items-center justify-between sm:justify-end space-x-2.5 w-full sm:w-auto pl-7 sm:pl-0">
                         {/* Limit amount */}
                         <div className="flex-1 sm:w-28 sm:flex-initial relative min-w-0">
-                          <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-450">{user?.currencySymbol || "₹"}</span>
+                          <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">{user?.currencySymbol || "₹"}</span>
                           <input
                             type="number"
                             value={row.limitAmount}
@@ -507,7 +521,7 @@ export default function BudgetPage() {
                         </div>
 
                         {/* Recurring selector */}
-                        <label className="flex items-center space-x-1.5 px-2.5 py-2 bg-white sm:bg-transparent border border-slate-200 sm:border-slate-150 rounded-xl hover:bg-slate-50 cursor-pointer text-slate-650 shrink-0 select-none">
+                        <label className="flex items-center space-x-1.5 px-2.5 py-2 bg-white sm:bg-transparent border border-slate-200 sm:border-slate-200/60 rounded-xl hover:bg-slate-50 cursor-pointer text-slate-600 shrink-0 select-none">
                           <input
                             type="checkbox"
                             checked={row.isRecurring}
@@ -559,10 +573,10 @@ export default function BudgetPage() {
                 exit={{ opacity: 0, y: -15 }}
                 className="space-y-4"
               >
-                {/* Active category budget statuses list */}
+                {/* Active category budget statuses list with Staggered Cascading Entrance */}
                 {budgetSummaries.length === 0 ? (
                   <div className="bg-white rounded-3xl border border-slate-200/80 p-8 text-center flex flex-col items-center justify-center shadow-sm">
-                    <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-450 mb-3">
+                    <div className="w-14 h-14 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 mb-3">
                       <Wallet className="w-6 h-6" />
                     </div>
                     <h3 className="font-display font-black text-slate-800 text-base">No Budgets Defined</h3>
@@ -579,7 +593,7 @@ export default function BudgetPage() {
                   </div>
                 ) : (
                   <div className="space-y-3.5">
-                    {budgetSummaries.map((summary) => {
+                    {budgetSummaries.map((summary, idx) => {
                       const isBreached = summary.percentage >= 100;
                       const isWarning = summary.percentage >= 80 && summary.percentage < 100;
                       
@@ -588,7 +602,7 @@ export default function BudgetPage() {
                       let cardBorder = "border-slate-200/80";
                       
                       if (isBreached) {
-                        progressColor = "bg-rose-500";
+                        progressColor = "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)] animate-pulse";
                         textColor = "text-rose-600";
                         cardBorder = "border-rose-200/80 bg-rose-50/10";
                       } else if (isWarning) {
@@ -598,9 +612,13 @@ export default function BudgetPage() {
                       }
 
                       return (
-                        <div
+                        <motion.div
                           key={summary.id}
-                          className={`bg-white rounded-2xl border ${cardBorder} p-4.5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between`}
+                          initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
+                          transition={{ duration: 0.45, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                          className={`bg-white rounded-2xl border ${cardBorder} p-4.5 shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col justify-between`}
                         >
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center space-x-2.5">
@@ -608,21 +626,29 @@ export default function BudgetPage() {
                                 {summary.category}
                               </span>
                               {summary.isRecurring && (
-                                <span className="text-[8px] bg-slate-100 border border-slate-200/80 text-slate-450 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                                <motion.span
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: idx * 0.1 + 0.1 }}
+                                  className="text-[8px] bg-slate-100 border border-slate-200/80 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase tracking-wider"
+                                >
                                   Recurring
-                                </span>
+                                </motion.span>
                               )}
                             </div>
                             <span className="text-[11px] font-black text-slate-700">
-                              {formatCurrency(summary.spending)} <span className="text-slate-400 font-semibold">of {formatCurrency(summary.limitAmount)}</span>
+                              <AnimatedNumber value={summary.spending} formatFn={formatCurrency} />{" "}
+                              <span className="text-slate-400 font-semibold">of {formatCurrency(summary.limitAmount)}</span>
                             </span>
                           </div>
 
-                          {/* Progress Line */}
+                          {/* Progress Line with GPU ScaleX Liquid Fill Animation */}
                           <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden relative">
-                            <div
-                              className={`h-full ${progressColor} transition-all duration-300`}
-                              style={{ width: `${Math.min(summary.percentage, 100)}%` }}
+                            <motion.div
+                              initial={{ scaleX: 0 }}
+                              animate={{ scaleX: Math.min(summary.percentage, 100) / 100 }}
+                              transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                              className={`h-full origin-left ${progressColor}`}
                             />
                           </div>
 
@@ -630,12 +656,24 @@ export default function BudgetPage() {
                             <span className={`text-[10px] font-bold ${textColor} flex items-center space-x-1`}>
                               {isBreached ? (
                                 <>
-                                  <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                  <motion.div
+                                    initial={{ scale: 1 }}
+                                    animate={{ scale: [1, 1.15, 1] }}
+                                    transition={{ duration: 0.5, delay: 0.8 }}
+                                  >
+                                    <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                                  </motion.div>
                                   <span>Over limit by {summary.percentage.toFixed(0)}%</span>
                                 </>
                               ) : isWarning ? (
                                 <>
-                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                  >
+                                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  </motion.div>
                                   <span>Approaching limit ({summary.percentage.toFixed(0)}% used)</span>
                                 </>
                               ) : (
@@ -645,11 +683,11 @@ export default function BudgetPage() {
                                 </>
                               )}
                             </span>
-                            <span className="text-[10px] text-slate-405 font-black">
+                            <span className="text-[10px] text-slate-400 font-black">
                               {formatCurrency(Math.max(0, summary.limitAmount - summary.spending))} remaining
                             </span>
                           </div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -659,8 +697,13 @@ export default function BudgetPage() {
           </AnimatePresence>
         </div>
 
-        {/* Right Side: Graph Comparison Charts */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Right Side: Graph Comparison Charts Panel with Delayed Reveal */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-span-5 space-y-6"
+        >
           <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
             <div className="flex flex-col space-y-3.5">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -668,7 +711,7 @@ export default function BudgetPage() {
                   <h3 className="font-display font-black text-slate-800 text-sm">
                     Comparative Graph Analysis
                   </h3>
-                  <p className="text-[10px] text-slate-455 font-black uppercase mt-0.5">
+                  <p className="text-[10px] text-slate-400 font-black uppercase mt-0.5">
                     Monthly Performance Comparison
                   </p>
                 </div>
@@ -717,8 +760,8 @@ export default function BudgetPage() {
                         iconSize={8}
                         wrapperStyle={{ fontSize: "10px", fontWeight: 700, paddingBottom: "10px" }}
                       />
-                      <Bar dataKey={`Current Month (${activeMonth})`} fill="#2563EB" radius={[4, 4, 0, 0]} maxBarSize={20} />
-                      <Bar dataKey={`Compared Month (${compareMonth || getPreviousMonth(activeMonth)})`} fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={20} />
+                      <Bar dataKey={`Current Month (${activeMonth})`} fill="#2563EB" radius={[4, 4, 0, 0]} maxBarSize={20} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
+                      <Bar dataKey={`Compared Month (${compareMonth || getPreviousMonth(activeMonth)})`} fill="#7C3AED" radius={[4, 4, 0, 0]} maxBarSize={20} isAnimationActive={true} animationDuration={1200} animationEasing="ease-out" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -727,7 +770,12 @@ export default function BudgetPage() {
           </div>
 
           {/* Educational Quick Stats Alert Banner Card */}
-          <div className="bg-gradient-to-tr from-primary to-indigo-600 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+            className="bg-gradient-to-tr from-primary to-indigo-600 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden"
+          >
             {/* Sparkles background effect */}
             <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-bl from-white/15 to-transparent rounded-full flex items-center justify-center">
               <Sparkles className="w-7 h-7 text-white/20" />
@@ -739,8 +787,8 @@ export default function BudgetPage() {
             <p className="text-[11px] text-white/95 leading-relaxed font-semibold">
               The alerting scanner continuously reviews transactions and triggers backend-saved in-app alerts at 80% (Warning) and 100% (Breached) category budget allocations. Check your top nav notification bell icon to review status logs.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );
