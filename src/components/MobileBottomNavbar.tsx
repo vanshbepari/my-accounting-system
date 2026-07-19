@@ -24,7 +24,7 @@ export default function MobileBottomNavbar({ onQuickAddTrigger }: MobileBottomNa
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-border-color shadow-[0_-8px_30px_rgba(0,0,0,0.06)] transition-all py-1.5 px-2 pb-safe-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] transition-all py-1.5 px-2 pb-safe-bottom">
         <div className="grid grid-cols-5 h-14 w-full relative items-center justify-items-center">
           {navItems.map((item, idx) => {
             if (item.path === "action_trigger") {
