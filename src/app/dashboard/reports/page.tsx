@@ -1749,7 +1749,7 @@ export default function ReportsPage() {
               setActiveMonth(val);
               setSelectedMonth(val);
             }}
-            options={generateMonthOptions(6, 3, true)}
+            options={generateMonthOptions(12, 0, true)}
             variant="glass"
             size="sm"
           />
