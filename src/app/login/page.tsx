@@ -16,6 +16,7 @@ function LoginContent() {
 
   const authError = searchParams.get("error");
   const logoutStatus = searchParams.get("logout");
+  const isDeleted = searchParams.get("deleted") === "true";
 
   // Already logged in → go to dashboard
   useEffect(() => {
@@ -100,6 +101,16 @@ function LoginContent() {
                 {logoutStatus === "success"
                   ? "✅ Successfully signed out."
                   : "Sign out encountered an error, but your session was cleared."}
+              </p>
+            </div>
+          )}
+
+          {/* Account Deletion Notice */}
+          {isDeleted && (
+            <div className="flex items-center space-x-2 bg-rose-500/10 border border-rose-500/25 rounded-xl px-4 py-3 mb-5 text-left">
+              <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0" />
+              <p className="text-xs text-rose-200 font-medium leading-relaxed">
+                Your account and all historical database records were permanently deleted. Logging in again will register a fresh new account.
               </p>
             </div>
           )}

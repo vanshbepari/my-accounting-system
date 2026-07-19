@@ -15,6 +15,8 @@ import {
   insertUserNotification,
   markUserNotificationRead,
   clearUserNotifications,
+  purgeUnwantedDatabaseNotifications,
+  deleteAllUserDataFromDatabase,
   Budget
 } from "@/utils/supabaseData";
 
@@ -121,6 +123,7 @@ interface AccountingContextType {
 
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<boolean>;
 
   setSelectedMonth: (month: string) => void;
   markNotificationAsRead: (id: string) => void;
@@ -136,7 +139,6 @@ interface AccountingContextType {
     startingBalance?: number;
     mobileNumber?: string;
     country?: string;
-    email?: string;
     onboarded?: boolean;
   }) => Promise<void>;
   formatCurrency: (amount: number) => string;
@@ -150,7 +152,7 @@ interface AccountingContextType {
   horizon: number;
   saveTargets: (rev: number, net: number, exp: number) => Promise<void>;
   saveForecastSettings: (growth: number, savings: number, hor: number) => Promise<void>;
-
+  
   // Budgeting feature state
   budgets: Budget[];
   saveBudget: (budget: Omit<Budget, "id"> & { id?: string }) => Promise<void>;
@@ -163,18 +165,18 @@ const AccountingContext = createContext<AccountingContextType | undefined>(undef
 // DEFAULT NOTIFICATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DEFAULT_NOTIFICATIONS: Notification[] = [
-  {
-    id: "notif-welcome",
-    title: "Welcome to My Accounting!",
-    message: "Your private accounting dashboard is ready. Start adding your daily entries.",
-    timestamp: "Just now",
-    read: false,
-    type: "info",
-  },
-];
+const DEFAULT_NOTIFICATIONS: Notification[] = [];
 
-
+// Helper to filter notifications so only target milestones, budget limits, and PDF report downloads are stored/displayed
+const filterImportantNotifications = (list: Notification[]): Notification[] => {
+  return list.filter(n => {
+    const titleLower = (n.title || "").toLowerCase();
+    const isTargetNotification = titleLower.includes("target");
+    const isBudgetNotification = titleLower.includes("budget");
+    const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+    return isTargetNotification || isBudgetNotification || isPdfNotification;
+  });
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROVIDER
@@ -207,6 +209,17 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // ── addNotification (defined early so it can be used in loadUserData) ──────
   const addNotification = useCallback(
     async (title: string, message: string, type: "success" | "warning" | "info" | "danger") => {
+      // STRICT FILTER: Only allow target milestones, budget alerts, and PDF report downloads
+      const titleLower = title.toLowerCase();
+      const isTargetNotification = titleLower.includes("target");
+      const isBudgetNotification = titleLower.includes("budget");
+      const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+
+      if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
+        // Suppress and do not generate or store generic or unrelated notifications
+        return;
+      }
+
       const newNotifLocal: Notification = {
         id: "notif-" + Math.random().toString(36).substring(2, 9),
         title,
@@ -219,14 +232,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (user?.id && useSupabaseForNotifications) {
         const inserted = await insertUserNotification(user.id, title, message, type);
         if (inserted) {
-          setNotifications((prev) => [inserted, ...prev]);
+          setNotifications((prev) => filterImportantNotifications([inserted, ...prev]));
           return;
         }
       }
 
       // Fallback
       setNotifications((prev) => {
-        const updated = [newNotifLocal, ...prev];
+        const updated = filterImportantNotifications([newNotifLocal, ...prev]);
         if (user?.id) {
           localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updated));
         }
@@ -356,8 +369,8 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setExpenseCeiling(0);
         }
 
-        const fullProfile: UserProfile = {
-          ...profile,
+        const fullProfile: UserProfile = { 
+          ...profile, 
           name: settings.ownerName || profile.name,
           businessName: settings.businessName || "My Retail Shop",
           currencyCode: settings.currencyCode,
@@ -384,15 +397,16 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }
 
         if (loadedNotifications !== null) {
-          setNotifications(loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
+          setNotifications(filterImportantNotifications(loadedNotifications));
           setUseSupabaseForNotifications(true);
+          purgeUnwantedDatabaseNotifications(userId).catch(err => console.warn("[purgeUnwantedDatabaseNotifications] error:", err));
         } else {
           setUseSupabaseForNotifications(false);
           const savedLocalNotifs = localStorage.getItem(`notifications_${userId}`);
           if (savedLocalNotifs) {
-            setNotifications(JSON.parse(savedLocalNotifs));
+            setNotifications(filterImportantNotifications(JSON.parse(savedLocalNotifs)));
           } else {
-            setNotifications(DEFAULT_NOTIFICATIONS);
+            setNotifications([]);
           }
         }
 
@@ -530,14 +544,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         }).catch((err) => console.error("[onAuthStateChange] loadUserData error:", err));
 
         setIsAuthReady(true);
-
-        if (event === "SIGNED_IN") {
-          addNotification(
-            "Signed in successfully",
-            `Welcome back, ${name}! Your private dashboard is ready.`,
-            "success"
-          );
-        }
       } else if (event === "SIGNED_OUT") {
         // Wipe all in-memory data so no trace of previous user remains
         setUser(null);
@@ -688,7 +694,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         async () => {
           console.log("[Realtime] notifications updated, reloading...");
           const loadedNotifications = await fetchUserNotifications(user.id);
-          setNotifications(loadedNotifications && loadedNotifications.length > 0 ? loadedNotifications : DEFAULT_NOTIFICATIONS);
+          setNotifications(loadedNotifications ? filterImportantNotifications(loadedNotifications) : []);
         }
       )
       .subscribe();
@@ -789,7 +795,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     startingBalance?: number;
     mobileNumber?: string;
     country?: string;
-    email?: string;
     onboarded?: boolean;
   }) => {
     if (!user) return;
@@ -804,7 +809,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (updates.startingBalance !== undefined) updated.startingBalance = updates.startingBalance;
       if (updates.mobileNumber !== undefined) updated.mobileNumber = updates.mobileNumber;
       if (updates.country !== undefined) updated.country = updates.country;
-      if (updates.email !== undefined) updated.email = updates.email;
       if (updates.onboarded !== undefined) updated.onboarded = updates.onboarded;
       return updated;
     });
@@ -817,7 +821,6 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (updates.startingBalance !== undefined) dbUpdates.startingBalance = updates.startingBalance;
     if (updates.mobileNumber !== undefined) dbUpdates.mobileNumber = updates.mobileNumber;
     if (updates.country !== undefined) dbUpdates.country = updates.country;
-    if (updates.email !== undefined) dbUpdates.email = updates.email;
     if (updates.onboarded !== undefined) dbUpdates.onboarded = updates.onboarded;
 
     await saveUserSettings(user.id, dbUpdates);
@@ -986,6 +989,67 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     window.location.replace(`/login?logout=${logoutSuccess ? "success" : "error"}`);
   };
 
+  /** Delete Account — Permanently deletes user records across all database tables, wipes storage, and signs out. */
+  const deleteAccount = useCallback(async (): Promise<boolean> => {
+    if (!user?.id) return false;
+
+    const targetUserId = user.id;
+
+    // 1. Wipe database tables for this user
+    await deleteAllUserDataFromDatabase(targetUserId);
+
+    // 2. Clear deduplication ref
+    lastLoadedUserIdRef.current = null;
+
+    // 3. Clear local storage & session storage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.removeItem(`transactions_${targetUserId}`);
+        localStorage.removeItem(`dailySummaries_${targetUserId}`);
+        localStorage.removeItem(`user_settings_${targetUserId}`);
+        localStorage.removeItem(`budgets_${targetUserId}`);
+        localStorage.removeItem(`targeting_${targetUserId}`);
+        localStorage.removeItem(`forecasting_${targetUserId}`);
+        localStorage.removeItem(`notifications_${targetUserId}`);
+        localStorage.removeItem("swag_user_onboarded");
+
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("sb-") || key.includes("supabase")) {
+            localStorage.removeItem(key);
+          }
+        });
+        Object.keys(sessionStorage).forEach((key) => {
+          if (key.startsWith("sb-") || key.includes("supabase")) {
+            sessionStorage.removeItem(key);
+          }
+        });
+      } catch (e) {
+        console.warn("[deleteAccount] storage cleanup error:", e);
+      }
+    }
+
+    // 4. Reset in-memory React state
+    setUser(null);
+    setTransactions([]);
+    setDailySummaries([]);
+    setNotifications([]);
+    setBudgets([]);
+
+    // 5. Sign out of auth session
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (e) {
+      console.warn("[deleteAccount] auth signOut error:", e);
+    }
+
+    // 6. Hard redirect to login page with deletion status
+    if (typeof window !== "undefined") {
+      window.location.replace("/login?deleted=true");
+    }
+
+    return true;
+  }, [user?.id]);
+
 
 
   const markNotificationAsRead = useCallback(
@@ -1089,7 +1153,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       const pct = (categorySpending / budget.limitAmount) * 100;
 
       const alertKey = `[${budget.month}] ${budget.category}`;
-
+      
       if (pct >= 100) {
         const title = `🚨 Budget Breached: ${alertKey}`;
         const message = `Category "${budget.category}" spending of ${formatCurrency(categorySpending)} has breached the budget limit of ${formatCurrency(budget.limitAmount)} (${pct.toFixed(0)}% reached).`;
@@ -1107,6 +1171,63 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       }
     });
   }, [user?.id, budgets, transactions, notifications, addNotification, formatCurrency]);
+
+  const checkTargetMilestoneAlerts = useCallback(() => {
+    if (!user?.id || (revenueTarget === 0 && netProfitTarget === 0 && expenseCeiling === 0) || transactions.length === 0) return;
+
+    const currentMonth = selectedMonth && selectedMonth !== "All"
+      ? selectedMonth
+      : new Date().toISOString().split("T")[0].substring(0, 7);
+
+    const monthTxs = transactions.filter(t => t.date.startsWith(currentMonth));
+    const rev = monthTxs.reduce((acc, t) => acc + t.onlineAmount + t.cashAmount, 0);
+    const exp = monthTxs.reduce((acc, t) => acc + t.expensesAmount, 0);
+    const net = rev - exp;
+
+    // 1. Revenue Target Milestone Achievement
+    if (revenueTarget > 0 && rev >= revenueTarget) {
+      const title = `🏆 Target Milestone Reached: Revenue Goal (${currentMonth})`;
+      const message = `Congratulations! Monthly revenue of ${formatCurrency(rev)} has achieved your revenue target of ${formatCurrency(revenueTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "success");
+      }
+    } else if (revenueTarget > 0 && rev < revenueTarget * 0.5) {
+      const title = `📉 Target Alert: Revenue Milestone Below Target (${currentMonth})`;
+      const message = `Monthly revenue of ${formatCurrency(rev)} is currently below 50% of your revenue target (${formatCurrency(revenueTarget)}).`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "warning");
+      }
+    }
+
+    // 2. Net Profit Target Milestone Achievement / Deficit
+    if (netProfitTarget > 0 && net >= netProfitTarget) {
+      const title = `🎯 Target Milestone Reached: Net Profit Goal (${currentMonth})`;
+      const message = `Net profit of ${formatCurrency(net)} has met or exceeded your profit milestone of ${formatCurrency(netProfitTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "success");
+      }
+    } else if (netProfitTarget > 0 && net < 0) {
+      const title = `⚠️ Target Alert: Net Profit Deficit (${currentMonth})`;
+      const message = `Current net position is in deficit (${formatCurrency(net)}), falling short of your profit target of ${formatCurrency(netProfitTarget)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "danger");
+      }
+    }
+
+    // 3. Expense Ceiling Breached Target Alert
+    if (expenseCeiling > 0 && exp > expenseCeiling) {
+      const title = `🚨 Target Alert: Expense Ceiling Exceeded (${currentMonth})`;
+      const message = `Total expenses of ${formatCurrency(exp)} have breached your monthly expense ceiling limit of ${formatCurrency(expenseCeiling)}.`;
+      const exists = notifications.some(n => n.title === title);
+      if (!exists) {
+        addNotification(title, message, "danger");
+      }
+    }
+  }, [user?.id, revenueTarget, netProfitTarget, expenseCeiling, transactions, selectedMonth, notifications, addNotification, formatCurrency]);
 
   const rolloverRecurringBudgets = useCallback((activeMonthStr: string) => {
     if (!user?.id || budgets.length === 0 || activeMonthStr === "All") return;
@@ -1139,12 +1260,15 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [user?.id, budgets, saveBudget]);
 
-  // Run alerts scanner whenever budgets or transactions change
+  // Run alerts scanner whenever budgets, targets, or transactions change
   useEffect(() => {
-    if (user?.id && budgets.length > 0 && transactions.length > 0) {
-      checkBudgetAlerts();
+    if (user?.id && transactions.length > 0) {
+      if (budgets.length > 0) {
+        checkBudgetAlerts();
+      }
+      checkTargetMilestoneAlerts();
     }
-  }, [budgets, transactions, user?.id]);
+  }, [budgets, transactions, user?.id, checkBudgetAlerts, checkTargetMilestoneAlerts]);
 
   // Run rollover when month changes
   useEffect(() => {
@@ -1173,6 +1297,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
         loginWithGoogle,
         logout,
+        deleteAccount,
 
         setSelectedMonth,
         markNotificationAsRead,
@@ -1191,7 +1316,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         horizon,
         saveTargets,
         saveForecastSettings,
-
+        
         budgets,
         saveBudget,
         deleteBudget

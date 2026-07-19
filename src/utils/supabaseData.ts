@@ -148,7 +148,6 @@ export interface UserSettings {
   startingBalance?: number;
   mobileNumber?: string;
   country?: string;
-  email?: string;
   onboarded?: boolean;
 }
 
@@ -367,7 +366,22 @@ export async function fetchUserNotifications(userId: string): Promise<Notificati
       return [];
     }
 
-    return (data ?? []).map(row => {
+    // Filter out non-whitelisted rows & purge them from DB in background to free storage
+    const validRows = (data ?? []).filter(row => {
+      const t = (row.title || "").toLowerCase();
+      return t.includes("target") || t.includes("budget") || t.includes("pdf") || t.includes("report");
+    });
+
+    const invalidIds = (data ?? []).filter(row => {
+      const t = (row.title || "").toLowerCase();
+      return !t.includes("target") && !t.includes("budget") && !t.includes("pdf") && !t.includes("report");
+    }).map(r => r.id);
+
+    if (invalidIds.length > 0) {
+      await supabase.from("notifications").delete().eq("user_id", userId).in("id", invalidIds);
+    }
+
+    return validRows.map(row => {
       const createdDate = new Date(row.created_at);
       const timeDiff = Date.now() - createdDate.getTime();
       let timestamp = "Just now";
@@ -405,6 +419,17 @@ export async function insertUserNotification(
   message: string,
   type: "success" | "warning" | "info" | "danger"
 ): Promise<NotificationItem | null> {
+  // STRICT DB GUARD: Completely block sign-in, welcome, and generic alerts from being inserted into Supabase
+  const titleLower = (title || "").toLowerCase();
+  const isTargetNotification = titleLower.includes("target");
+  const isBudgetNotification = titleLower.includes("budget");
+  const isPdfNotification = titleLower.includes("pdf") || titleLower.includes("report");
+
+  if (!isTargetNotification && !isBudgetNotification && !isPdfNotification) {
+    // Suppress insertion into database completely
+    return null;
+  }
+
   try {
     const { data, error } = await supabase
       .from("notifications")
@@ -483,8 +508,6 @@ export async function clearUserNotifications(userId: string): Promise<boolean> {
   }
 }
 
-
-
 /**
  * Permanently purge all existing non-whitelisted notifications (Signed in, Welcome, etc.) for a user from Supabase DB.
  */
@@ -508,36 +531,30 @@ export async function purgeUnwantedDatabaseNotifications(userId: string): Promis
 }
 
 /**
- * Permanently delete a user account and all associated database records across all tables and storage.
+ * Permanently delete a user's entire account footprint from all Supabase database tables.
  */
-export async function deleteUserAccountAndData(userId: string): Promise<boolean> {
+export async function deleteAllUserDataFromDatabase(userId: string): Promise<boolean> {
   try {
-    // 1. First attempt to call the RPC function (public.delete_user_account)
-    const { data: rpcData, error: rpcError } = await supabase.rpc("delete_user_account");
-
-    if (!rpcError && rpcData === true) {
-      console.log("[deleteUserAccountAndData] RPC deletion executed successfully.");
-      return true;
+    // 1. Attempt RPC procedure first
+    const { error: rpcErr } = await supabase.rpc("delete_user_account_data", { target_user_id: userId });
+    if (!rpcErr) {
+      console.log("[deleteAllUserDataFromDatabase] RPC execution successful.");
     }
 
-    if (rpcError) {
-      console.warn("[deleteUserAccountAndData] RPC fallback triggered:", rpcError.message);
-    }
+    // 2. Client-side multi-table deletion guarantees safe cleanup across all tables
+    await Promise.allSettled([
+      supabase.from("expense_items").delete().eq("user_id", userId),
+      supabase.from("daily_entries").delete().eq("user_id", userId),
+      supabase.from("budgets").delete().eq("user_id", userId),
+      supabase.from("targeting").delete().eq("user_id", userId),
+      supabase.from("forecasting").delete().eq("user_id", userId),
+      supabase.from("notifications").delete().eq("user_id", userId),
+      supabase.from("user_settings").delete().eq("user_id", userId),
+    ]);
 
-    // 2. Client-side fallback multi-table delete sequence
-    await supabase.from("expense_items").delete().eq("user_id", userId);
-    await supabase.from("daily_entries").delete().eq("user_id", userId);
-    await supabase.from("budgets").delete().eq("user_id", userId);
-    await supabase.from("targeting").delete().eq("user_id", userId);
-    await supabase.from("forecasting").delete().eq("user_id", userId);
-    await supabase.from("notifications").delete().eq("user_id", userId);
-    await supabase.from("user_settings").delete().eq("user_id", userId);
-
-    // 3. Sign out user session completely
-    await supabase.auth.signOut();
     return true;
   } catch (err) {
-    console.error("[deleteUserAccountAndData] exception during deletion:", err);
+    console.error("[deleteAllUserDataFromDatabase] error:", err);
     return false;
   }
 }

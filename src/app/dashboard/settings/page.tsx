@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
 import {
   Settings,
   User,
@@ -11,28 +12,28 @@ import {
   ShieldCheck,
   Phone,
   Wallet,
-  Trash2,
   AlertTriangle,
+  Trash2,
   Loader2,
-  X,
-  Mail
+  X
 } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
-import { deleteUserAccountAndData } from "@/utils/supabaseData";
 
 export default function SettingsPage() {
-  const { user, updateSettings } = useAccounting();
+  const { user, updateSettings, deleteAccount } = useAccounting();
 
   // Settings states initialized with user context
   const [shopName, setShopName] = useState(user?.businessName || "My Retail Shop");
   const [userName, setUserName] = useState(user?.name || "Corporate Owner");
-  const [email, setEmail] = useState(user?.email || "");
   const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || "");
   const [selectedCountry, setSelectedCountry] = useState(user?.country || "India");
   const [startingBalance, setStartingBalance] = useState(user?.startingBalance || 0);
 
   const [isSaved, setIsSaved] = useState(false);
+
+  // Delete Account Modal States
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync state when user context is fully loaded from Supabase
@@ -40,7 +41,6 @@ export default function SettingsPage() {
     if (user) {
       setShopName(user.businessName || "My Retail Shop");
       setUserName(user.name || "Corporate Owner");
-      setEmail(user.email || "");
       setMobileNumber(user.mobileNumber || "");
       setSelectedCountry(user.country || "India");
       setStartingBalance(user.startingBalance || 0);
@@ -58,74 +58,79 @@ export default function SettingsPage() {
     await updateSettings({
       businessName: shopName.trim(),
       ownerName: userName.trim(),
-      email: email.trim(),
       mobileNumber: mobileNumber.trim(),
       country: selectedCountry,
       currencyCode,
       currencySymbol,
-      startingBalance: Number(startingBalance) || 0,
+      startingBalance: Number(startingBalance),
     });
 
     setIsSaved(true);
-    setTimeout(() => {
-      setIsSaved(false);
-    }, 3000);
+    setTimeout(() => setIsSaved(false), 3000);
   };
 
   const handleConfirmDeleteAccount = async () => {
-    if (!user?.id) return;
+    if (confirmText.trim().toUpperCase() !== "DELETE") return;
     setIsDeleting(true);
-
     try {
-      // 1. Purge all records from Supabase database tables & storage
-      await deleteUserAccountAndData(user.id);
-
-      // 2. Clear all local storage keys to ensure zero cached onboarding state
-      if (typeof window !== "undefined") {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-
-      // 3. Perform a hard redirect to landing page
-      window.location.replace("/");
+      await deleteAccount();
     } catch (err) {
-      console.error("[Delete Account] Exception:", err);
+      console.error("[SettingsPage] deleteAccount error:", err);
       setIsDeleting(false);
-      setIsDeleteModalOpen(false);
     }
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-6xl mx-auto pb-10">
+      
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-color pb-6 text-left">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
-            System Preferences
+          <h1 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight flex items-center gap-2">
+            <Settings className="w-7 h-7 text-primary" />
+            <span>Workspace Settings</span>
           </h1>
           <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Manage shop profile credentials, base currency settings, and system values.
+            Manage your shop identity, primary currency, starting capital, and security options.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Settings Form (8 cols) */}
-        <div className="lg:col-span-8">
-          <div className="glass-card rounded-3xl p-6 md:p-8 bg-white border border-border-color shadow-md text-left">
-            <form onSubmit={handleSave} className="space-y-6">
-              <div className="flex items-center space-x-3 border-b border-border-color pb-4 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
-                  <Settings className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-base text-text-primary">Business Settings</h3>
-                  <p className="text-[10px] text-text-secondary">Configure corporate information and base country values</p>
-                </div>
+        
+        {/* Left Side: General Profile Settings Form (8 cols) */}
+        <div className="lg:col-span-8 space-y-6">
+          <div className="glass-card rounded-2xl p-6 border border-border-color bg-white text-left space-y-6 shadow-sm">
+            <div className="flex items-center space-x-3 border-b border-border-color pb-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
+                <Briefcase className="w-5 h-5" />
               </div>
+              <div>
+                <h3 className="font-display font-bold text-base text-text-primary">Shop & Personal Profile</h3>
+                <p className="text-[10px] text-text-secondary">Updates persist to Supabase backend database</p>
+              </div>
+            </div>
 
+            <form onSubmit={handleSave} className="space-y-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* User Name */}
+                {/* Shop Name */}
+                <div>
+                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
+                    Shop / Workspace Name
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      value={shopName}
+                      onChange={(e) => setShopName(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
+                    />
+                    <Briefcase className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
+                  </div>
+                </div>
+
+                {/* Owner Name */}
                 <div>
                   <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
                     Owner Name
@@ -141,45 +146,13 @@ export default function SettingsPage() {
                     <User className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
                 </div>
+              </div>
 
-                {/* Shop Name */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Mobile Phone */}
                 <div>
                   <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
-                    Shop / Corporate Name
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={shopName}
-                      onChange={(e) => setShopName(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
-                    />
-                    <Briefcase className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
-                  </div>
-                </div>
-
-                {/* Email Address */}
-                <div>
-                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
-                    />
-                    <Mail className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
-                  </div>
-                </div>
-
-                {/* Mobile Number */}
-                <div>
-                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
-                    Mobile Number
+                    Mobile Phone
                   </label>
                   <div className="relative">
                     <input
@@ -251,10 +224,10 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Security & Danger Zone Sidebar (4 cols) */}
+        {/* Right Side: Security Card + Danger Zone Delete Account Card (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Data Security Card */}
-          <div className="glass-card rounded-2xl p-5 border border-border-color bg-white text-left space-y-4">
+          {/* Security Card */}
+          <div className="glass-card rounded-2xl p-5 border border-border-color bg-white text-left space-y-4 shadow-sm">
             <h4 className="text-xs font-bold text-text-primary flex items-center space-x-1.5 border-b border-border-color pb-3">
               <ShieldCheck className="w-4 h-4 text-success" />
               <span>Data Security</span>
@@ -264,97 +237,153 @@ export default function SettingsPage() {
                 Your data is stored securely in Supabase with Row Level Security enabled.
               </p>
               <p>
-                Only your authenticated account can access your business records.
+                Only your authenticated Google account can access your business records.
+                No other user can view your data.
               </p>
               <div className="flex items-center space-x-1.5 mt-2 text-success font-semibold">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>RLS enforced · Private workspace</span>
+                <span>RLS enforced · Data isolated · Private workspace</span>
               </div>
             </div>
           </div>
 
-          {/* Danger Zone Card */}
-          <div className="glass-card rounded-2xl p-5 border border-red-200 bg-red-50/40 text-left space-y-4">
-            <h4 className="text-xs font-extrabold text-red-600 flex items-center space-x-1.5 border-b border-red-200 pb-3">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span>Danger Zone</span>
-            </h4>
-            <div className="space-y-2 text-xs text-slate-600 leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                Permanently Delete Account
-              </p>
-              <p className="text-[11px] text-slate-500">
-                Once deleted, all your transactions, ledgers, target goals, and settings will be permanently erased.
-              </p>
+          {/* Danger Zone: Delete Account Card */}
+          <div className="glass-card rounded-2xl p-5 border border-rose-200 bg-rose-50/40 text-left space-y-4 shadow-sm relative overflow-hidden">
+            <div className="flex items-center space-x-2.5 border-b border-rose-200/80 pb-3">
+              <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-600/20">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-rose-950 uppercase tracking-wider">
+                  Danger Zone
+                </h4>
+                <p className="text-[10px] text-rose-700 font-semibold">
+                  Irreversible Account Deletion
+                </p>
+              </div>
             </div>
+
+            <p className="text-xs text-rose-900/80 leading-relaxed">
+              Permanently purge your business account, transaction ledgers, target goals, category budgets, and cloud database records.
+            </p>
+
             <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              className="w-full flex items-center justify-center space-x-2 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-red-600/25 cursor-pointer active:scale-98"
+              type="button"
+              onClick={() => {
+                setConfirmText("");
+                setIsDeleteModalOpen(true);
+              }}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
-              <span>Delete Account</span>
+              <span>Delete Account & Data</span>
             </button>
           </div>
         </div>
+
       </div>
 
-      {/* Confirmation Modal */}
+      {/* CONFIRMATION MODAL FOR ACCOUNT DELETION */}
       <AnimatePresence>
         {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isDeleting && setIsDeleteModalOpen(false)}
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-md"
+            />
+
+            {/* Modal Dialog Card */}
             <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-left relative overflow-hidden"
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="relative w-full max-w-lg bg-white border border-rose-200 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 text-left overflow-hidden space-y-6"
             >
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                disabled={isDeleting}
-                className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-100 border border-rose-200 flex items-center justify-center text-rose-600 shadow-md">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-xl text-slate-900 tracking-tight">
+                      Delete Account Permanently?
+                    </h3>
+                    <p className="text-xs text-rose-600 font-bold uppercase tracking-wider mt-0.5">
+                      Warning: Action cannot be undone
+                    </p>
+                  </div>
+                </div>
 
-              <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
-                <AlertTriangle className="w-6 h-6 animate-bounce" />
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <h3 className="font-display font-black text-xl text-slate-900 tracking-tight">
-                Delete Account &amp; Erase History?
-              </h3>
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed font-semibold">
-                This will permanently delete all your ledger transactions, budgets, targeting milestones, and business settings.
-              </p>
-
-              <div className="my-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-bold leading-normal">
-                ⚠️ Warning: If you log in again in the future using this email or Google account, you will be treated as a brand-new user and prompted to create a fresh account from scratch.
+              {/* Warning Content Checklist */}
+              <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-100 space-y-2.5 text-xs text-rose-950 font-medium">
+                <p className="font-extrabold text-rose-900">
+                  The following data for <span className="underline">{user?.email || user?.businessName}</span> will be permanently erased:
+                </p>
+                <ul className="space-y-1.5 list-disc pl-4 text-rose-800">
+                  <li>All daily transaction logs, income entries, and cash/online payments.</li>
+                  <li>Itemized expense records and category budget limit floors.</li>
+                  <li>Corporate revenue targets, net profit goals, and forecasting rules.</li>
+                  <li>Workspace profile, custom currency settings, and starting balances.</li>
+                  <li>Supabase cloud database user records and isolated storage cache.</li>
+                </ul>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+              {/* Confirmation Input Guard */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700">
+                  Type <span className="font-black text-rose-600 font-mono">DELETE</span> below to confirm permanent removal:
+                </label>
+                <input
+                  type="text"
+                  value={confirmText}
+                  disabled={isDeleting}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="Type DELETE"
+                  className="w-full px-4 py-3 text-sm font-mono font-bold border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 text-slate-900 tracking-widest"
+                />
+              </div>
+
+              {/* Modal Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
                 <button
                   type="button"
                   disabled={isDeleting}
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 rounded-xl text-xs font-bold text-slate-650 hover:bg-slate-100 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="button"
-                  disabled={isDeleting}
+                  disabled={confirmText.trim().toUpperCase() !== "DELETE" || isDeleting}
                   onClick={handleConfirmDeleteAccount}
-                  className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-lg shadow-red-600/25 transition-all cursor-pointer disabled:opacity-50"
+                  className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/25 transition-all active:scale-98 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isDeleting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Deleting Everything...</span>
+                      <span>Deleting Account & Data...</span>
                     </>
                   ) : (
                     <>
                       <Trash2 className="w-4 h-4" />
-                      <span>Yes, Delete Everything</span>
+                      <span>Permanently Delete My Account</span>
                     </>
                   )}
                 </button>
