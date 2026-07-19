@@ -74,7 +74,7 @@ export function formatMonthLabel(monthStr: string): string {
     const [yr, mo] = monthStr.split("-").map(Number);
     const d = new Date(yr, mo - 1, 15);
     return d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  } catch (e) {
+  } catch {
     return monthStr;
   }
 }

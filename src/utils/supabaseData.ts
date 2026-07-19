@@ -218,7 +218,7 @@ export async function saveUserSettings(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Helper to identify if a table is not yet migrated to the user's Supabase backend
-function isTableMissingError(error: any): boolean {
+function isTableMissingError(error: { message?: string; code?: string } | null | undefined): boolean {
   if (!error) return false;
   const msg = (error.message || "").toLowerCase();
   const code = error.code || "";
@@ -286,7 +286,7 @@ export async function upsertUserBudget(
   budget: Omit<Budget, "id"> & { id?: string }
 ): Promise<Budget | null> {
   try {
-    const dataToSave: any = {
+    const dataToSave: Record<string, unknown> = {
       user_id: userId,
       category: budget.category,
       limit_amount: budget.limitAmount,
