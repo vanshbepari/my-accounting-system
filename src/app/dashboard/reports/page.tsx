@@ -1742,51 +1742,63 @@ export default function ReportsPage() {
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
       doc.text("Forecast Horizon", 24, fY + 5.5);
-      doc.text("Projected Revenue", 68, fY + 5.5);
-      doc.text("Baseline Expense", 108, fY + 5.5);
-      doc.text("Net Cash Flow", 145, fY + 5.5);
-      doc.text("Reserve Buffer", 172, fY + 5.5);
+      doc.text("Projected Revenue", 65, fY + 5.5);
+      doc.text("Baseline Expense", 104, fY + 5.5);
+      doc.text("Net Cash Flow", 140, fY + 5.5);
+      doc.text("Reserve Buffer", 186, fY + 5.5, { align: "right" });
 
       fY += 8;
       doc.setFont("helvetica", "normal");
 
-      // Reconcile forecast baseline with live user metrics & growth rate settings
-      const baseRev = monthlyMetrics.revenue > 0 ? monthlyMetrics.revenue : (monthlyMetrics.prevRevenue > 0 ? monthlyMetrics.prevRevenue : (user?.startingBalance || 0));
-      const baseExp = monthlyMetrics.expenses > 0 ? monthlyMetrics.expenses : (monthlyMetrics.prevExpenses > 0 ? monthlyMetrics.prevExpenses : 0);
-      const projGrowthPct = growthRate > 0 ? (growthRate / 100) : (monthlyMetrics.revGrowth > 0 ? Math.min(0.2, monthlyMetrics.revGrowth / 100) : 0.05);
+      // Reconcile forecast baseline directly with live Forecast page formula
+      const historicalGroups: Record<string, { rev: number; exp: number }> = {};
+      transactions.forEach(tx => {
+        if (!tx.date) return;
+        const mKey = tx.date.substring(0, 7);
+        if (!historicalGroups[mKey]) historicalGroups[mKey] = { rev: 0, exp: 0 };
+        historicalGroups[mKey].rev += tx.onlineAmount + tx.cashAmount;
+        historicalGroups[mKey].exp += tx.expensesAmount;
+      });
 
+      const histList = Object.values(historicalGroups);
+      const avgRev = histList.length > 0 ? histList.reduce((s, h) => s + h.rev, 0) / histList.length : monthlyMetrics.revenue;
+      const avgExp = histList.length > 0 ? histList.reduce((s, h) => s + h.exp, 0) / histList.length : monthlyMetrics.expenses;
+
+      const gRate = growthRate !== undefined && growthRate !== null ? growthRate : 10;
+      const sRate = savingsRate !== undefined && savingsRate !== null ? savingsRate : 15;
+
+      const projRev = Math.round(avgRev * (1 + gRate / 100));
+      const projExp = Math.round(avgExp * (1 - sRate / 100));
+      const projNet = projRev - projExp;
+
+      let runningReserve = (user?.startingBalance || 0) + cashFlowMetrics.opening + monthlyMetrics.profit;
       const forecastRows = Array.from({ length: 6 }, (_, idx) => {
-        const monthNum = idx + 1;
-        const revFactor = Math.pow(1 + projGrowthPct, monthNum);
-        const expFactor = Math.pow(1 + (projGrowthPct * 0.3), monthNum);
-        const projRev = baseRev > 0 ? Math.round(baseRev * revFactor) : Math.round((revenueTarget || 50000) * (0.75 + idx * 0.05));
-        const projExp = baseExp > 0 ? Math.round(baseExp * expFactor) : Math.round((expenseCeiling || 25000) * (0.75 + idx * 0.03));
+        runningReserve += projNet;
         return {
-          period: `Month ${monthNum} (Projected)`,
+          period: `Month ${idx + 1} (Projected)`,
           rev: projRev,
-          exp: projExp
+          exp: projExp,
+          net: projNet,
+          reserve: runningReserve
         };
       });
 
-      let cumReserve = monthlyMetrics.profit;
       forecastRows.forEach((r, idx) => {
-        const netSurplus = r.rev - r.exp;
-        cumReserve += netSurplus;
         if (idx % 2 === 1) {
           doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
           doc.rect(20, fY, 170, 7.5, "F");
         }
         doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
         doc.text(r.period, 24, fY + 5);
-        doc.text(formatCurrencyPDF(r.rev), 68, fY + 5);
-        doc.text(formatCurrencyPDF(r.exp), 108, fY + 5);
+        doc.text(formatCurrencyPDF(r.rev), 65, fY + 5);
+        doc.text(formatCurrencyPDF(r.exp), 104, fY + 5);
 
-        doc.setTextColor(netSurplus >= 0 ? successEmerald[0] : dangerRed[0], netSurplus >= 0 ? successEmerald[1] : dangerRed[1], netSurplus >= 0 ? successEmerald[2] : dangerRed[2]);
+        doc.setTextColor(r.net >= 0 ? successEmerald[0] : dangerRed[0], r.net >= 0 ? successEmerald[1] : dangerRed[1], r.net >= 0 ? successEmerald[2] : dangerRed[2]);
         doc.setFont("helvetica", "bold");
-        doc.text(`${netSurplus >= 0 ? "+" : ""}${formatCurrencyPDF(netSurplus)}`, 145, fY + 5);
+        doc.text(`${r.net >= 0 ? "+" : ""}${formatCurrencyPDF(r.net)}`, 140, fY + 5);
 
         doc.setTextColor(brandBlue[0], brandBlue[1], brandBlue[2]);
-        doc.text(formatCurrencyPDF(cumReserve), 172, fY + 5);
+        doc.text(formatCurrencyPDF(r.reserve), 186, fY + 5, { align: "right" });
         doc.setFont("helvetica", "normal");
         fY += 7.5;
       });
@@ -1918,10 +1930,10 @@ export default function ReportsPage() {
       doc.setFont("helvetica", "bold");
       doc.setTextColor(255, 255, 255);
       doc.text("Expense Sector Category", 24, bY + 5.5);
-      doc.text("Monthly Cap", 80, bY + 5.5);
-      doc.text("Realized Burn", 115, bY + 5.5);
-      doc.text("Remaining Buffer", 148, bY + 5.5);
-      doc.text("Status", 178, bY + 5.5);
+      doc.text("Monthly Cap", 78, bY + 5.5);
+      doc.text("Realized Burn", 112, bY + 5.5);
+      doc.text("Remaining Buffer", 146, bY + 5.5);
+      doc.text("Status", 186, bY + 5.5, { align: "right" });
 
       bY += 8;
       doc.setFont("helvetica", "normal");
@@ -1948,15 +1960,15 @@ export default function ReportsPage() {
         }
         doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
         doc.text(r.name, 24, bY + 5);
-        doc.text(formatCurrencyPDF(r.cap), 80, bY + 5);
-        doc.text(formatCurrencyPDF(r.burn), 115, bY + 5);
+        doc.text(formatCurrencyPDF(r.cap), 78, bY + 5);
+        doc.text(formatCurrencyPDF(r.burn), 112, bY + 5);
 
         doc.setTextColor(r.isSafe ? successEmerald[0] : dangerRed[0], r.isSafe ? successEmerald[1] : dangerRed[1], r.isSafe ? successEmerald[2] : dangerRed[2]);
-        doc.text(formatCurrencyPDF(r.buffer), 148, bY + 5);
+        doc.text(formatCurrencyPDF(r.buffer), 146, bY + 5);
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(7.5);
-        doc.text(r.isSafe ? "[SAFE]" : "[ALERT]", 178, bY + 5);
+        doc.text(r.isSafe ? "[SAFE]" : "[ALERT]", 186, bY + 5, { align: "right" });
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
 
