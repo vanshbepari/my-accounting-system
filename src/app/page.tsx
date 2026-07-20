@@ -16,7 +16,10 @@ import {
   Star,
   Users,
   Building2,
-  Quote
+  Quote,
+  Award,
+  PieChart,
+  Target
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -111,6 +114,58 @@ export default function LandingPage() {
       rating: 5,
       review: "Clean, elegant, and super fast! Tracking monthly profit milestones keeps our business growing steady month after month."
     }
+  ];
+
+  // "Why Choose Us" Benefits Data
+  const whyChooseUsData = [
+    {
+      icon: Award,
+      badge: "100% Simple",
+      title: "Zero Accounting Knowledge Needed",
+      desc: "Designed specifically for store managers and shop owners. No debit, credit, or complex ledger terminology required.",
+      accent: "from-primary/10 to-indigo-500/10 text-primary border-primary/20",
+      badgeColor: "bg-primary/10 text-primary border-primary/20",
+    },
+    {
+      icon: ShieldCheck,
+      badge: "Bank-Grade Security",
+      title: "100% Encrypted & Private",
+      desc: "Sign in safely with Google OAuth. Your financial statements are encrypted so only you can access your shop data.",
+      accent: "from-emerald-500/10 to-teal-500/10 text-emerald-600 border-emerald-500/20",
+      badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-300",
+    },
+    {
+      icon: Zap,
+      badge: "AI Quick Entry",
+      title: "Instant Natural Text Parser",
+      desc: "Type or paste WhatsApp sales notes like 'Rent 8000 cash, UPI sales 15000'. Our AI parser fills out your form in seconds.",
+      accent: "from-amber-500/10 to-orange-500/10 text-amber-600 border-amber-500/20",
+      badgeColor: "bg-amber-50 text-amber-700 border-amber-300",
+    },
+    {
+      icon: PieChart,
+      badge: "Cash Flow Clarity",
+      title: "Automated Cash vs Online Split",
+      desc: "Keep UPI, card, and cash drawer balances completely distinct so your end-of-day register reconciliation is always accurate.",
+      accent: "from-cyan-500/10 to-blue-500/10 text-cyan-600 border-cyan-500/20",
+      badgeColor: "bg-cyan-50 text-cyan-700 border-cyan-300",
+    },
+    {
+      icon: FileText,
+      badge: "CA & Tax Ready",
+      title: "One-Click Printable PDF Reports",
+      desc: "Download clean, professional monthly accounting summaries formatted for printing or emailing directly to your CA.",
+      accent: "from-purple-500/10 to-pink-500/10 text-purple-600 border-purple-500/20",
+      badgeColor: "bg-purple-50 text-purple-700 border-purple-300",
+    },
+    {
+      icon: Target,
+      badge: "Margin Booster",
+      title: "Smart Budgeting & Target Goals",
+      desc: "Set spending caps per category and track profit milestones to eliminate budget leaks and scale net business earnings.",
+      accent: "from-rose-500/10 to-secondary/10 text-rose-600 border-rose-500/20",
+      badgeColor: "bg-rose-50 text-rose-700 border-rose-300",
+    },
   ];
 
   return (
@@ -456,7 +511,7 @@ export default function LandingPage() {
           >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Customer Reviews</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
-              Loved By Over 10,000 Small Business Owners
+              Loved by over 10,000+ business owners
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Here is what store managers, boutique founders, and retail merchants say about simplifying their daily bookkeeping.
@@ -513,6 +568,76 @@ export default function LandingPage() {
                 </div>
               ))}
             </motion.div>
+          </div>
+        </section>
+
+        {/* ── WHY CHOOSE US SECTION ── */}
+        <section className="py-16 md:py-24 border-t border-slate-100/60 bg-gradient-to-b from-transparent via-primary/3 to-transparent relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[70vw] bg-primary/3 rounded-full blur-[140px] pointer-events-none -z-10" />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4 max-w-3xl mx-auto text-center mb-16"
+            >
+              <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
+                Why Choose Us
+              </span>
+              <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
+                Why 10,000+ Business Owners Trust Us Daily
+              </h2>
+              <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
+                Engineered specifically for retail store owners, boutique founders, and freelancers to eliminate accounting headache and optimize cash flow.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+              {whyChooseUsData.map((item, idx) => {
+                const Icon = item.icon;
+                return (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 25 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -8, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20, delay: idx * 0.08 }}
+                    className="glass-card rounded-3xl p-8 bg-white border border-border-color shadow-sm hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group cursor-pointer"
+                  >
+                    {/* Ambient corner light gradient */}
+                    <div className="absolute -top-12 -right-12 w-28 h-28 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-xl group-hover:scale-150 transition-transform duration-500 pointer-events-none" />
+
+                    <div className="space-y-4 relative z-10">
+                      <div className="flex items-center justify-between">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${item.accent} border flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${item.badgeColor} font-display`}>
+                          {item.badge}
+                        </span>
+                      </div>
+
+                      <h3 className="font-display font-black text-lg text-text-primary tracking-tight group-hover:text-primary transition-colors duration-200">
+                        {item.title}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-text-secondary leading-relaxed font-semibold">
+                        {item.desc}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-400 group-hover:text-primary transition-colors duration-200 relative z-10">
+                      <span>Learn More</span>
+                      <Sparkles className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
