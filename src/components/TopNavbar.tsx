@@ -80,7 +80,7 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-200 border-b border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-xs`}
+      className={`sticky top-0 z-50 w-full transition-all duration-200 border-b border-slate-200 bg-white shadow-xs`}
     >
       <div className="px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Left side: Mobile Menu Button & Business Name */}

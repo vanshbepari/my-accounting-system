@@ -41,10 +41,10 @@ export default function Navbar({ onLoginClick }: NavbarProps = {}) {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
         scrolled
-          ? "py-3 glass shadow-lg shadow-black/2 bg-white/70 border-b border-border-color"
-          : "py-5 bg-transparent border-b border-transparent"
+          ? "py-3 shadow-md border-b border-slate-200"
+          : "py-5 border-b border-slate-100/80"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

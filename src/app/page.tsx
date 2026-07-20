@@ -135,7 +135,7 @@ export default function LandingPage() {
                 >
                   Simple Accounting <br />
                   <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    For Small Businesses.
+                    For All Businesses.
                   </span>
                 </motion.h1>
                 <motion.p
