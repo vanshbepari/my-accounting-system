@@ -717,19 +717,6 @@ export default function BudgetPage() {
                     Monthly Performance Comparison
                   </p>
                 </div>
-                
-                {/* Comparison Month Dropdown */}
-                <CustomMonthDropdown
-                  value={compareMonth}
-                  onChange={(val) => setCompareMonth(val)}
-                  options={[
-                    { value: "", label: "No Month Selected" },
-                    ...generateMonthOptions(6, 0, false).filter(opt => opt.value !== activeMonth)
-                  ]}
-                  variant="glass"
-                  size="sm"
-                  align="right"
-                />
               </div>
 
               {chartData.length === 0 ? (
