@@ -376,10 +376,19 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           setExpenseCeiling(0);
         }
 
+        const activeEmail = settings.email || profile.email;
+
+        // Auto-sync & backfill: If email is missing or NULL in user_settings table in Supabase, write it now!
+        if (!settings.email && activeEmail && userId) {
+          saveUserSettings(userId, { email: activeEmail }).catch(err =>
+            console.warn("[loadUserData] Auto-backfilling user_settings email failed:", err)
+          );
+        }
+
         const fullProfile: UserProfile = { 
           ...profile, 
           name: settings.ownerName || profile.name,
-          email: settings.email || profile.email,
+          email: activeEmail,
           businessName: settings.businessName || "My Retail Shop",
           currencyCode: settings.currencyCode,
           currencySymbol: settings.currencySymbol,
