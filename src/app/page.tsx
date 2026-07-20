@@ -94,6 +94,22 @@ export default function LandingPage() {
       avatarBg: "bg-cyan-500",
       rating: 5,
       review: "Downloading tax-ready PDF reports for my CA takes just one click. Simple, reliable, and extremely easy to use for small business owners!"
+    },
+    {
+      name: "Sanjay Gupta",
+      role: "Founder, Gupta Hardware & Supplies",
+      city: "Jaipur, Rajasthan",
+      avatarBg: "bg-amber-500",
+      rating: 5,
+      review: "The split between UPI and cash sales gives me complete daily clarity. I know exactly how much cash is in the drawer at the end of every day."
+    },
+    {
+      name: "Meera Reddy",
+      role: "Director, Artisan Decor Studio",
+      city: "Hyderabad, Telangana",
+      avatarBg: "bg-rose-500",
+      rating: 5,
+      review: "Clean, elegant, and super fast! Tracking monthly profit milestones keeps our business growing steady month after month."
     }
   ];
 
@@ -102,7 +118,7 @@ export default function LandingPage() {
       {/* Navbar invokes real Google login directly on sign-in clicks */}
       <Navbar onLoginClick={handleGoogleLogin} />
 
-      <main className="relative min-h-screen bg-brand-bg text-text-primary transition-all duration-300 overflow-x-hidden pt-24 md:pt-32">
+      <main className="relative min-h-screen bg-brand-bg text-text-primary transition-all duration-300 overflow-x-hidden pt-32 sm:pt-36 md:pt-40 lg:pt-44">
         {/* Ambient glow backgrounds */}
         <div className="absolute top-0 right-1/4 w-[60vw] h-[60vw] bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
         <div className="absolute top-1/3 left-10 w-[45vw] h-[45vw] bg-secondary/4 rounded-full blur-[100px] -z-10 pointer-events-none" />
@@ -114,7 +130,7 @@ export default function LandingPage() {
 
             {/* Left Column: Premium Text Elements */}
             <div className="lg:col-span-6 space-y-8 text-left">
-              {/* Badge featuring 5,000+ Happy Users */}
+              {/* Badge featuring 10,000+ Happy Users */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -122,7 +138,7 @@ export default function LandingPage() {
                 className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-extrabold uppercase tracking-wider font-display"
               >
                 <Users className="w-4 h-4 text-primary" />
-                <span>Trusted by 5,000+ Happy Business Owners</span>
+                <span>Trusted by 10,000+ Happy Business Owners</span>
               </motion.div>
 
               {/* Title & Subtitle */}
@@ -177,7 +193,7 @@ export default function LandingPage() {
                     <span className="w-6 h-6 rounded-full bg-indigo-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-black">AS</span>
                     <span className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-black">VM</span>
                   </div>
-                  <span>Join 5,000+ business owners</span>
+                  <span>Join 10,000+ business owners</span>
                 </div>
               </motion.div>
 
@@ -429,64 +445,74 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── MOCK CUSTOMER REVIEWS / TESTIMONIALS SECTION ── */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 border-t border-slate-100/60 bg-gradient-to-b from-transparent via-primary/2 to-transparent">
+        {/* ── MOCK CUSTOMER REVIEWS / INFINITE TICKER CAROUSEL ── */}
+        <section className="py-16 md:py-24 border-t border-slate-100/60 bg-gradient-to-b from-transparent via-primary/2 to-transparent overflow-hidden">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="space-y-4 max-w-3xl mx-auto text-center mb-16"
+            className="space-y-4 max-w-3xl mx-auto text-center mb-12 px-4"
           >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Customer Reviews</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
-              Loved By Over 5,000 Small Business Owners
+              Loved By Over 10,000 Small Business Owners
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Here is what store managers, boutique founders, and retail merchants say about simplifying their daily bookkeeping.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-            {customerReviews.map((item, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -6, scale: 1.015 }}
-                whileTap={{ scale: 0.99 }}
-                transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                className="glass-card rounded-3xl p-7 bg-white border border-border-color shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden"
-              >
-                <div className="absolute top-4 right-4 text-slate-200/60 pointer-events-none">
-                  <Quote className="w-12 h-12" />
-                </div>
+          {/* Continuous Ticker Marquee Track */}
+          <div className="relative w-full overflow-hidden py-4 select-none">
+            {/* Left & Right ambient fade masks */}
+            <div className="absolute top-0 bottom-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-brand-bg via-brand-bg/80 to-transparent z-10 pointer-events-none" />
+            <div className="absolute top-0 bottom-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-brand-bg via-brand-bg/80 to-transparent z-10 pointer-events-none" />
 
-                <div className="space-y-3 relative z-10">
-                  {/* Star Rating */}
-                  <div className="flex items-center space-x-1">
-                    {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
+            <motion.div
+              className="flex space-x-6 w-max"
+              animate={{ x: ["0%", "-50%"] }}
+              transition={{
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 32,
+                ease: "linear"
+              }}
+            >
+              {[...customerReviews, ...customerReviews].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="w-[320px] sm:w-[380px] flex-shrink-0 glass-card rounded-3xl p-7 bg-white border border-border-color shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden group hover:-translate-y-1"
+                >
+                  <div className="absolute top-4 right-4 text-slate-200/60 pointer-events-none">
+                    <Quote className="w-10 h-10" />
                   </div>
 
-                  <p className="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed italic">
-                    &quot;{item.review}&quot;
-                  </p>
-                </div>
+                  <div className="space-y-3 relative z-10 text-left">
+                    {/* Star Rating */}
+                    <div className="flex items-center space-x-1">
+                      {[...Array(item.rating)].map((_, i) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
 
-                <div className="flex items-center space-x-3.5 pt-4 border-t border-slate-100 relative z-10">
-                  <div className={`w-11 h-11 rounded-2xl ${item.avatarBg} text-white flex items-center justify-center font-display font-black text-sm shadow-md shrink-0`}>
-                    {item.name.split(" ").map(n => n[0]).join("")}
+                    <p className="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed italic">
+                      &quot;{item.review}&quot;
+                    </p>
                   </div>
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-text-primary">{item.name}</h4>
-                    <p className="text-[11px] text-text-secondary font-medium">{item.role} • <span className="text-slate-400">{item.city}</span></p>
+
+                  <div className="flex items-center space-x-3.5 pt-4 border-t border-slate-100 relative z-10 text-left">
+                    <div className={`w-11 h-11 rounded-2xl ${item.avatarBg} text-white flex items-center justify-center font-display font-black text-sm shadow-md shrink-0`}>
+                      {item.name.split(" ").map(n => n[0]).join("")}
+                    </div>
+                    <div className="overflow-hidden">
+                      <h4 className="font-display font-bold text-sm text-text-primary truncate">{item.name}</h4>
+                      <p className="text-[11px] text-text-secondary font-medium truncate">{item.role} • <span className="text-slate-400">{item.city}</span></p>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </div>
         </section>
 
@@ -612,7 +638,7 @@ export default function LandingPage() {
 
             <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-extrabold uppercase tracking-wider font-display">
               <Users className="w-4 h-4 text-emerald-600" />
-              <span>5,000+ Active Business Owners</span>
+              <span>10,000+ Active Business Owners</span>
             </div>
 
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">

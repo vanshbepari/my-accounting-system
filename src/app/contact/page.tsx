@@ -85,7 +85,7 @@ export default function ContactPage() {
     <>
       <Navbar />
 
-      <main className="relative min-h-screen pt-24 pb-16 overflow-hidden bg-brand-bg transition-all duration-300">
+      <main className="relative min-h-screen pt-32 sm:pt-36 md:pt-40 lg:pt-44 pb-16 overflow-hidden bg-brand-bg transition-all duration-300">
         {/* Ambient glows */}
         <div className="absolute top-0 right-1/4 w-[60vw] h-[60vw] bg-primary/4 rounded-full blur-[120px] -z-10 pointer-events-none" />
         <div className="absolute bottom-1/4 left-10 w-[50vw] h-[50vw] bg-secondary/3 rounded-full blur-[100px] -z-10 pointer-events-none" />

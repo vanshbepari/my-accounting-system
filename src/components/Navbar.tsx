@@ -43,8 +43,8 @@ export default function Navbar({ onLoginClick }: NavbarProps = {}) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
         scrolled
-          ? "py-3 shadow-md border-b border-slate-200"
-          : "py-5 border-b border-slate-100/80"
+          ? "py-2.5 shadow-md border-b border-slate-200"
+          : "py-3.5 border-b border-slate-100/80"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +56,7 @@ export default function Navbar({ onLoginClick }: NavbarProps = {}) {
               alt="My Accounting"
               width={300}
               height={90}
-              className="object-contain h-16 sm:h-20 md:h-24 w-auto group-hover:opacity-95 transition-opacity duration-200"
+              className="object-contain h-12 sm:h-14 md:h-16 w-auto group-hover:opacity-95 transition-opacity duration-200"
               priority
             />
           </Link>
