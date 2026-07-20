@@ -413,7 +413,7 @@ function AddEntryContent() {
         /* ── MANUAL INPUT FORM TAB (Expanded Vertically & High Information Density) ── */
         <form onSubmit={handleSaveEntry} className="space-y-8 text-left">
           {/* Custom Animated Date Selector Card */}
-          <div className="glass-card p-5 rounded-3xl bg-white border border-border-color shadow-sm max-w-md">
+          <div className="glass-card p-4 sm:p-5 rounded-3xl bg-white border border-border-color shadow-sm w-full max-w-md">
             <CustomDatePicker
               value={date}
               onChange={(newDate) => setDate(newDate)}
@@ -475,7 +475,7 @@ function AddEntryContent() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             
             {/* ── MONEY EARNED (INCOME) SECTION ── */}
-            <div className="glass-card rounded-3xl p-7 bg-white border border-emerald-100 shadow-md hover:shadow-xl transition-all space-y-6 text-left relative overflow-hidden">
+            <div className="glass-card rounded-3xl p-4.5 sm:p-7 bg-white border border-emerald-100 shadow-md hover:shadow-xl transition-all space-y-6 text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-bl-full pointer-events-none" />
 
               <div className="flex items-center space-x-3 border-b border-slate-100 pb-5">
@@ -554,7 +554,7 @@ function AddEntryContent() {
             </div>
 
             {/* ── MONEY SPENT (EXPENSES) SECTION ── */}
-            <div className="glass-card rounded-3xl p-7 bg-white border border-rose-100 shadow-md hover:shadow-xl transition-all space-y-6 text-left relative overflow-hidden">
+            <div className="glass-card rounded-3xl p-4.5 sm:p-7 bg-white border border-rose-100 shadow-md hover:shadow-xl transition-all space-y-6 text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-bl-full pointer-events-none" />
 
               <div className="flex items-center space-x-3 border-b border-slate-100 pb-5">
@@ -582,39 +582,43 @@ function AddEntryContent() {
                       animate={{ opacity: 1, height: "auto", y: 0 }}
                       exit={{ opacity: 0, height: 0, y: -10 }}
                       transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                      className="flex items-center space-x-2 border border-slate-200/90 rounded-2xl bg-slate-50/60 p-2.5 hover:bg-slate-100/50 transition-all shadow-xs"
+                      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 border border-slate-200/90 rounded-2xl bg-slate-50/60 p-3 sm:p-2.5 hover:bg-slate-100/50 transition-all shadow-xs"
                     >
-                      <span className="w-5 text-center text-[10px] font-black text-slate-400 shrink-0">
-                        {idx + 1}
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="e.g. Electricity, Stock, Rent"
-                        value={row.title}
-                        onChange={(e) => handleExpenseChange(row.id, "title", e.target.value)}
-                        className="flex-grow px-3.5 py-2.5 text-xs font-bold border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 min-w-0"
-                      />
-                      <div className="relative w-32 flex-shrink-0">
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="0"
-                          value={row.amount}
-                          onChange={(e) => handleExpenseChange(row.id, "amount", e.target.value)}
-                          className="w-full pl-7 pr-3 py-2.5 text-xs font-black border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
-                        />
-                        <span className="text-xs font-black text-slate-400 absolute left-2.5 top-2.5">
-                          {user?.currencySymbol || "₹"}
+                      <div className="flex items-center space-x-2 flex-grow min-w-0">
+                        <span className="w-5 text-center text-[10px] font-black text-slate-400 shrink-0">
+                          {idx + 1}
                         </span>
+                        <input
+                          type="text"
+                          placeholder="e.g. Electricity, Stock, Rent"
+                          value={row.title}
+                          onChange={(e) => handleExpenseChange(row.id, "title", e.target.value)}
+                          className="w-full px-3.5 py-3 sm:py-2.5 text-sm sm:text-xs font-bold border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 min-w-0"
+                        />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveExpenseRow(row.id)}
-                        className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex-shrink-0 cursor-pointer"
-                        title="Remove item row"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center space-x-2 shrink-0 justify-between sm:justify-end pl-7 sm:pl-0">
+                        <div className="relative flex-1 sm:w-32">
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="0"
+                            value={row.amount}
+                            onChange={(e) => handleExpenseChange(row.id, "amount", e.target.value)}
+                            className="w-full pl-7 pr-3 py-2.5 text-xs font-black border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
+                          />
+                          <span className="text-xs font-black text-slate-400 absolute left-2.5 top-2.5">
+                            {user?.currencySymbol || "₹"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExpenseRow(row.id)}
+                          className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex-shrink-0 cursor-pointer"
+                          title="Remove item row"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
