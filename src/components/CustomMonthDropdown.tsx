@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, ChevronDown, Check, Sparkles } from "lucide-react";
+import { CalendarDays, ChevronDown, Check, Sparkles, X } from "lucide-react";
 
 export interface MonthOption {
   value: string; // YYYY-MM or "All"
@@ -33,49 +33,16 @@ export default function CustomMonthDropdown({
 }: CustomMonthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
-    const checkMobile = () => setIsMobile(window.innerWidth < 640);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const updateCoords = () => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom + 6,
-        left: rect.left + rect.width / 2
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      updateCoords();
-      window.addEventListener("resize", updateCoords);
-      window.addEventListener("scroll", updateCoords, true);
-      return () => {
-        window.removeEventListener("resize", updateCoords);
-        window.removeEventListener("scroll", updateCoords, true);
-      };
-    }
-  }, [isOpen]);
-
-  // Close dropdown on click outside
+  // Close dropdown on click outside for desktop view
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        // Also check if click is inside portal element
-        const portalEl = document.getElementById("custom-dropdown-portal-menu");
-        if (portalEl && portalEl.contains(event.target as Node)) {
-          return;
-        }
         setIsOpen(false);
       }
     };
@@ -124,10 +91,18 @@ export default function CustomMonthDropdown({
     <>
       <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
         <span>Select Ledger Period</span>
-        <Sparkles className="w-3 h-3 text-primary" />
+        <div className="flex items-center space-x-2">
+          <Sparkles className="w-3 h-3 text-primary" />
+          <button
+            onClick={() => setIsOpen(false)}
+            className="sm:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      <div className="py-1 space-y-0.5">
+      <div className="py-1 space-y-0.5 max-h-[60vh] sm:max-h-[280px] overflow-y-auto overscroll-contain">
         {options.map((opt) => {
           const isSelected = opt.value === value;
 
@@ -218,39 +193,38 @@ export default function CustomMonthDropdown({
         </motion.div>
       </button>
 
-      {/* Render Dropdown Menu */}
+      {/* Mobile Modal Dropdown Portal (dead-centered on mobile viewports) */}
+      {isOpen && mounted && createPortal(
+        <div 
+          className="fixed inset-0 z-[99999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 sm:hidden"
+          onClick={() => setIsOpen(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.92, y: 10 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className={`w-full max-w-xs rounded-3xl border p-2 space-y-1 shadow-2xl ${menuVariantClass}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {menuItemsList}
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {/* Desktop Inline Popover Dropdown */}
       <AnimatePresence>
         {isOpen && (
-          isMobile && mounted ? (
-            createPortal(
-              <motion.div
-                id="custom-dropdown-portal-menu"
-                initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 0.96 }}
-                transition={{ duration: 0.18, ease: "easeOut" }}
-                className={`fixed left-1/2 -translate-x-1/2 z-[99999] w-[calc(100vw-2rem)] max-w-[320px] max-h-[260px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
-                style={{
-                  top: `${coords?.top ?? 100}px`,
-                  WebkitOverflowScrolling: "touch"
-                }}
-              >
-                {menuItemsList}
-              </motion.div>,
-              document.body
-            )
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 4, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.96 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className={`absolute ${alignClassDesktop} z-[9999] mt-1.5 w-[280px] max-h-[320px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
-              {menuItemsList}
-            </motion.div>
-          )
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 4, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.96 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={`hidden sm:block absolute ${alignClassDesktop} z-50 mt-1.5 w-[280px] rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
+          >
+            {menuItemsList}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
