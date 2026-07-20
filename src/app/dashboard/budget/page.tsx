@@ -421,6 +421,7 @@ export default function BudgetPage() {
               options={generateMonthOptions(12, 0, false)}
               variant="light"
               size="sm"
+              align="right"
             />
           )}
 
@@ -470,6 +471,7 @@ export default function BudgetPage() {
                       options={generateMonthOptions(0, 3, false)}
                       variant="glass"
                       size="sm"
+                      align="right"
                     />
 
                     <button
@@ -726,6 +728,7 @@ export default function BudgetPage() {
                   ]}
                   variant="glass"
                   size="sm"
+                  align="right"
                 />
               </div>
 
