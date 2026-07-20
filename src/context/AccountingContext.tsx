@@ -140,6 +140,7 @@ interface AccountingContextType {
     mobileNumber?: string;
     country?: string;
     onboarded?: boolean;
+    email?: string;
   }) => Promise<void>;
   formatCurrency: (amount: number) => string;
 
@@ -378,6 +379,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         const fullProfile: UserProfile = { 
           ...profile, 
           name: settings.ownerName || profile.name,
+          email: settings.email || profile.email,
           businessName: settings.businessName || "My Retail Shop",
           currencyCode: settings.currencyCode,
           currencySymbol: settings.currencySymbol,
@@ -820,6 +822,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     mobileNumber?: string;
     country?: string;
     onboarded?: boolean;
+    email?: string;
   }) => {
     if (!user) return;
 
@@ -834,6 +837,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (updates.mobileNumber !== undefined) updated.mobileNumber = updates.mobileNumber;
       if (updates.country !== undefined) updated.country = updates.country;
       if (updates.onboarded !== undefined) updated.onboarded = updates.onboarded;
+      if (updates.email !== undefined) updated.email = updates.email;
       return updated;
     });
 
@@ -846,6 +850,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (updates.mobileNumber !== undefined) dbUpdates.mobileNumber = updates.mobileNumber;
     if (updates.country !== undefined) dbUpdates.country = updates.country;
     if (updates.onboarded !== undefined) dbUpdates.onboarded = updates.onboarded;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
 
     await saveUserSettings(user.id, dbUpdates);
 

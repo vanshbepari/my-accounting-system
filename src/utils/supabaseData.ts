@@ -149,6 +149,7 @@ export interface UserSettings {
   mobileNumber?: string;
   country?: string;
   onboarded?: boolean;
+  email?: string;
 }
 
 /**
@@ -157,7 +158,7 @@ export interface UserSettings {
 export async function fetchUserSettings(userId: string): Promise<UserSettings> {
   const { data, error } = await supabase
     .from("user_settings")
-    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, onboarded")
+    .select("business_name, currency_code, currency_symbol, owner_name, starting_balance, mobile_number, country, onboarded, email")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -174,6 +175,7 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
     mobileNumber: data?.mobile_number ?? undefined,
     country: data?.country ?? undefined,
     onboarded: data?.onboarded ?? false,
+    email: data?.email ?? undefined,
   };
 }
 
@@ -194,6 +196,7 @@ export async function saveUserSettings(
     mobile_number?: string;
     country?: string;
     onboarded?: boolean;
+    email?: string;
   } = { user_id: userId };
   if (settings.businessName !== undefined) updateData.business_name = settings.businessName;
   if (settings.currencyCode !== undefined) updateData.currency_code = settings.currencyCode;
@@ -203,6 +206,7 @@ export async function saveUserSettings(
   if (settings.mobileNumber !== undefined) updateData.mobile_number = settings.mobileNumber;
   if (settings.country !== undefined) updateData.country = settings.country;
   if (settings.onboarded !== undefined) updateData.onboarded = settings.onboarded;
+  if (settings.email !== undefined) updateData.email = settings.email;
 
   const { error } = await supabase
     .from("user_settings")

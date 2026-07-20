@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Trash2,
   Loader2,
-  X
+  X,
+  Mail
 } from "lucide-react";
 import { useAccounting, SUPPORTED_COUNTRIES } from "@/context/AccountingContext";
 
@@ -25,6 +26,7 @@ export default function SettingsPage() {
   // Settings states initialized with user context
   const [shopName, setShopName] = useState(user?.businessName || "My Retail Shop");
   const [userName, setUserName] = useState(user?.name || "Corporate Owner");
+  const [userEmail, setUserEmail] = useState(user?.email || "");
   const [mobileNumber, setMobileNumber] = useState(user?.mobileNumber || "");
   const [selectedCountry, setSelectedCountry] = useState(user?.country || "India");
   const [startingBalance, setStartingBalance] = useState(user?.startingBalance || 0);
@@ -41,6 +43,7 @@ export default function SettingsPage() {
     if (user) {
       setShopName(user.businessName || "My Retail Shop");
       setUserName(user.name || "Corporate Owner");
+      setUserEmail(user.email || "");
       setMobileNumber(user.mobileNumber || "");
       setSelectedCountry(user.country || "India");
       setStartingBalance(user.startingBalance || 0);
@@ -49,7 +52,7 @@ export default function SettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !userName || !mobileNumber || !selectedCountry) return;
+    if (!shopName || !userName || !userEmail || !mobileNumber || !selectedCountry) return;
 
     const matchedCountry = SUPPORTED_COUNTRIES.find(c => c.country === selectedCountry);
     const currencyCode = matchedCountry?.currencyCode || "INR";
@@ -58,6 +61,7 @@ export default function SettingsPage() {
     await updateSettings({
       businessName: shopName.trim(),
       ownerName: userName.trim(),
+      email: userEmail.trim(),
       mobileNumber: mobileNumber.trim(),
       country: selectedCountry,
       currencyCode,
@@ -133,7 +137,7 @@ export default function SettingsPage() {
             </div>
 
             <form onSubmit={handleSave} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* Shop Name */}
                 <div>
                   <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
@@ -165,6 +169,29 @@ export default function SettingsPage() {
                       className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
                     />
                     <User className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
+                  </div>
+                </div>
+
+                {/* Dedicated Account Email Address Field (Google Account Captured) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider truncate">
+                      Email Address
+                    </label>
+                    <span className="text-[9px] font-extrabold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20 shrink-0">
+                      Google OAuth
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={userEmail}
+                      onChange={(e) => setUserEmail(e.target.value)}
+                      placeholder="owner@domain.com"
+                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:shadow-md focus:shadow-primary/10 text-text-primary transition-all duration-200"
+                    />
+                    <Mail className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
                   </div>
                 </div>
               </div>
