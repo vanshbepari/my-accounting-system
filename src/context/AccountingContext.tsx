@@ -384,7 +384,7 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           currencyCode: settings.currencyCode,
           currencySymbol: settings.currencySymbol,
           startingBalance: settings.startingBalance ?? 0,
-          mobileNumber: settings.mobileNumber,
+          mobileNumber: settings.mobileNumber !== undefined ? settings.mobileNumber : profile.mobileNumber,
           country: settings.country,
           onboarded: settings.onboarded,
         };
