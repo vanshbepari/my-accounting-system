@@ -643,6 +643,21 @@ export default function ReportsPage() {
     const profitMarginRatio = metrics.revenue > 0 ? (metrics.profit / metrics.revenue) : 0;
     const marginVal = profitMarginRatio * 100;
 
+    // Safe ASCII Currency Formatter to prevent UTF-8 character encoding glitches (such as '¹' instead of 'INR')
+    const formatCurrencySafe = (val: number) => {
+      const code = user?.currencyCode || "INR";
+      const locale = code === "INR" ? "en-IN" : "en-US";
+      const absVal = Math.abs(val);
+      const formatted = new Intl.NumberFormat(locale, {
+        style: "currency",
+        currency: code,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(absVal);
+      const cleanVal = formatted.replace(/[^\d,\-\.]/g, "").trim();
+      return val < 0 ? `-${code} ${cleanVal || "0"}` : `${code} ${cleanVal || "0"}`;
+    };
+
     // 1. Break-Even Threshold Analysis
     const breakEvenMonthly = metrics.expenses;
     const breakEvenDaily = dailyBurn;
@@ -651,14 +666,14 @@ export default function ReportsPage() {
     if (metrics.profit > 0) {
       list.push({
         title: "Break-Even Threshold Analysis",
-        desc: `With a daily operating expense burn of ${formatCurrency(breakEvenDaily)} (${formatCurrency(metrics.expenses)}/mo), your current average daily sales of ${formatCurrency(dailyRevAvg)} are covering costs cleanly. To secure a safe 20% profit margin buffer, maintain a daily sales floor of ${formatCurrency(salesFloorForHealthyMargin)}. Currently, you operate ${dailyRevAvg >= salesFloorForHealthyMargin ? "above" : "slightly below"} this threshold.`,
+        desc: `With a daily operating expense burn of ${formatCurrencySafe(breakEvenDaily)} (${formatCurrencySafe(metrics.expenses)}/mo), your current average daily sales of ${formatCurrencySafe(dailyRevAvg)} are covering costs cleanly. To secure a safe 20% profit margin buffer, maintain a daily sales floor of ${formatCurrencySafe(salesFloorForHealthyMargin)}. Currently, you operate ${dailyRevAvg >= salesFloorForHealthyMargin ? "above" : "slightly below"} this threshold.`,
         type: "info",
         badge: "Break-Even"
       });
     } else {
       list.push({
         title: "Break-Even Deficit Warning",
-        desc: `Your daily operating expense burn of ${formatCurrency(breakEvenDaily)} (${formatCurrency(metrics.expenses)}/mo) is outstripping average daily sales of ${formatCurrency(dailyRevAvg)}. You require an additional ${formatCurrency(breakEvenMonthly - metrics.revenue)} in monthly sales to reach break-even. Target an immediate daily sales floor of ${formatCurrency(breakEvenDaily)} just to cover costs.`,
+        desc: `Your daily operating expense burn of ${formatCurrencySafe(breakEvenDaily)} (${formatCurrencySafe(metrics.expenses)}/mo) is outstripping average daily sales of ${formatCurrencySafe(dailyRevAvg)}. You require an additional ${formatCurrencySafe(breakEvenMonthly - metrics.revenue)} in monthly sales to reach break-even. Target an immediate daily sales floor of ${formatCurrencySafe(breakEvenDaily)} just to cover costs.`,
         type: "warning",
         badge: "Break-Even Deficit"
       });
@@ -671,7 +686,7 @@ export default function ReportsPage() {
 
     list.push({
       title: "Cash Runway Safety Index",
-      desc: `Your liquid carry forward balance of ${formatCurrency(carryForward)} provides an estimated runway of ${runwayVal.toFixed(1)} months under the current monthly expense structure of ${formatCurrency(metrics.expenses)}. To secure the recommended 6-month operating safety reserve (${formatCurrency(targetBuffer)}), you need to accumulate an additional ${formatCurrency(Math.max(0, bufferGap))} in cash reserves. Discretionary expansion investments should be deferred until reserves cross this safety threshold.`,
+      desc: `Your liquid carry forward balance of ${formatCurrencySafe(carryForward)} provides an estimated runway of ${runwayVal.toFixed(1)} months under the current monthly expense structure of ${formatCurrencySafe(metrics.expenses)}. To secure the recommended 6-month operating safety reserve (${formatCurrencySafe(targetBuffer)}), you need to accumulate an additional ${formatCurrencySafe(Math.max(0, bufferGap))} in cash reserves. Discretionary expansion investments should be deferred until reserves cross this safety threshold.`,
       type: "purple",
       badge: runwayVal >= 6 ? "Runway Safe" : "Runway Low"
     });
@@ -691,7 +706,7 @@ export default function ReportsPage() {
       const potentialMargin = ((metrics.profit + savings10) / (metrics.revenue || 1)) * 100;
       list.push({
         title: "Overhead Allocation Audit",
-        desc: `Your primary cost center is '${topExpName}', consuming ${topExpPct.toFixed(1)}% of total expenses (${formatCurrency(topExpVal)}). A 10% efficiency trim in this sector would save ${formatCurrency(savings10)}/month, directly transferring to your bottom line and increasing your net profit margin from ${marginVal.toFixed(1)}% to ${potentialMargin.toFixed(1)}%.`,
+        desc: `Your primary cost center is '${topExpName}', consuming ${topExpPct.toFixed(1)}% of total expenses (${formatCurrencySafe(topExpVal)}). A 10% efficiency trim in this sector would save ${formatCurrencySafe(savings10)}/month, directly transferring to your bottom line and increasing your net profit margin from ${marginVal.toFixed(1)}% to ${potentialMargin.toFixed(1)}%.`,
         type: "warning",
         badge: "Cost Trim"
       });
@@ -701,7 +716,7 @@ export default function ReportsPage() {
     if (marginVal < 15) {
       list.push({
         title: "Profit Margin Calibration",
-        desc: `Your net margin is currently low at ${marginVal.toFixed(1)}% (target benchmark is 20-30%). With daily overhead at ${formatCurrency(breakEvenDaily)}, consider a structured 5-8% price optimization on low-overhead retail items or renegotiating recurring SaaS subscriptions to lift the margin index.`,
+        desc: `Your net margin is currently low at ${marginVal.toFixed(1)}% (target benchmark is 20-30%). With daily overhead at ${formatCurrencySafe(breakEvenDaily)}, consider a structured 5-8% price optimization on low-overhead retail items or renegotiating recurring SaaS subscriptions to lift the margin index.`,
         type: "warning",
         badge: "Margin Weak"
       });
@@ -715,14 +730,14 @@ export default function ReportsPage() {
     } else {
       list.push({
         title: "Profit Margin Calibration",
-        desc: `Outstanding profit margin of ${marginVal.toFixed(1)}% is in the top decile of retail efficiency! With a monthly net profit of ${formatCurrency(metrics.profit)}, you have high capital reinvestment capacity. Consider allocating 15% of this surplus to digital customer acquisition or SEO optimization to drive next-quarter growth.`,
+        desc: `Outstanding profit margin of ${marginVal.toFixed(1)}% is in the top decile of retail efficiency! With a monthly net profit of ${formatCurrencySafe(metrics.profit)}, you have high capital reinvestment capacity. Consider allocating 15% of this surplus to digital customer acquisition or SEO optimization to drive next-quarter growth.`,
         type: "success",
         badge: "Margin Premium"
       });
     }
 
     return list;
-  }, [activeMonth, transactions, monthlyMetrics, cashFlowMetrics, expenseBreakdownData, formatCurrency]);
+  }, [activeMonth, transactions, monthlyMetrics, cashFlowMetrics, expenseBreakdownData, user]);
 
   // 8. Advanced Smart Decisions Summary Paragraph
   const smartAdvancedSummary = useMemo(() => {
