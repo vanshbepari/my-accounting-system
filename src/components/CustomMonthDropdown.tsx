@@ -76,10 +76,10 @@ export default function CustomMonthDropdown({
 
   const alignClass =
     align === "right"
-      ? "right-0 left-auto"
+      ? "left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0"
       : align === "center"
       ? "left-1/2 -translate-x-1/2"
-      : "right-0 sm:right-auto sm:left-0";
+      : "left-1/2 -translate-x-1/2 sm:left-0 sm:right-auto sm:translate-x-0";
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
