@@ -22,7 +22,8 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
-  Tag
+  Tag,
+  ChevronsUpDown
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
 import { parseNaturalLanguageTransactions } from "@/utils/nlpParser";
@@ -557,82 +558,126 @@ function AddEntryContent() {
             <div className="glass-card rounded-3xl p-4.5 sm:p-7 bg-white border border-rose-100 shadow-md hover:shadow-xl transition-all space-y-6 text-left relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-bl-full pointer-events-none" />
 
-              <div className="flex items-center space-x-3 border-b border-slate-100 pb-5">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-500 border border-rose-400/20 flex items-center justify-center text-white shadow-lg shadow-rose-500/25 shrink-0">
-                  <TrendingDown className="w-6 h-6" />
+              <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-500 border border-rose-400/20 flex items-center justify-center text-white shadow-lg shadow-rose-500/25 shrink-0">
+                    <TrendingDown className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-black text-lg text-slate-900 flex items-center gap-2">
+                      <span>Money Spent</span>
+                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+                        Outflows
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-500 font-semibold mt-0.5">Itemize all shop expenditures and costs</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-display font-black text-lg text-slate-900 flex items-center gap-2">
-                    <span>Money Spent</span>
-                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
-                      Outflows
-                    </span>
-                  </h3>
-                  <p className="text-xs text-slate-500 font-semibold mt-0.5">Itemize all shop expenditures and costs</p>
-                </div>
+
+                {expensesList.length > 2 && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-[10px] font-extrabold bg-rose-50 border border-rose-200/90 text-rose-700 px-2.5 py-1 rounded-xl shadow-xs flex items-center space-x-1 shrink-0"
+                  >
+                    <ChevronsUpDown className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+                    <span className="hidden xs:inline">{expensesList.length} Items (Scrollable)</span>
+                    <span className="xs:hidden">{expensesList.length} Items</span>
+                  </motion.span>
+                )}
               </div>
 
-              {/* Itemized Expenses Dynamic List - Expanded Height & High-Density Rows */}
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-                <AnimatePresence initial={false}>
-                  {expensesList.map((row, idx) => (
-                    <motion.div
-                      key={row.id}
-                      initial={{ opacity: 0, height: 0, y: -10 }}
-                      animate={{ opacity: 1, height: "auto", y: 0 }}
-                      exit={{ opacity: 0, height: 0, y: -10 }}
-                      transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 border border-slate-200/90 rounded-2xl bg-slate-50/60 p-3 sm:p-2.5 hover:bg-slate-100/50 transition-all shadow-xs"
-                    >
-                      <div className="flex items-center space-x-2 flex-grow min-w-0">
-                        <span className="w-5 text-center text-[10px] font-black text-slate-400 shrink-0">
-                          {idx + 1}
-                        </span>
-                        <input
-                          type="text"
-                          placeholder="e.g. Electricity, Stock, Rent"
-                          value={row.title}
-                          onChange={(e) => handleExpenseChange(row.id, "title", e.target.value)}
-                          className="w-full px-3.5 py-3 sm:py-2.5 text-sm sm:text-xs font-bold border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 min-w-0"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2 shrink-0 justify-between sm:justify-end pl-7 sm:pl-0">
-                        <div className="relative flex-1 sm:w-32">
-                          <input
-                            type="number"
-                            min="0"
-                            placeholder="0"
-                            value={row.amount}
-                            onChange={(e) => handleExpenseChange(row.id, "amount", e.target.value)}
-                            className="w-full pl-7 pr-3 py-2.5 text-xs font-black border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
-                          />
-                          <span className="text-xs font-black text-slate-400 absolute left-2.5 top-2.5">
-                            {user?.currencySymbol || "₹"}
-                          </span>
+              {/* Itemized Expenses Dynamic List - With Scroll Indicators & Fluid Animations */}
+              <div className="relative group">
+                {/* Top & Bottom Gradient Shadows for Visual Scroll cues */}
+                {expensesList.length > 2 && (
+                  <>
+                    <div className="absolute top-0 inset-x-0 h-4 bg-gradient-to-b from-white via-white/80 to-transparent z-10 pointer-events-none rounded-t-2xl" />
+                    <div className="absolute bottom-0 inset-x-0 h-5 bg-gradient-to-t from-white via-white/80 to-transparent z-10 pointer-events-none rounded-b-2xl" />
+                  </>
+                )}
+
+                <div className="space-y-3 max-h-80 sm:max-h-96 overflow-y-auto px-0.5 py-1 pr-1.5 scrollbar-thin scrollbar-thumb-rose-300 hover:scrollbar-thumb-rose-400 scrollbar-track-slate-100 rounded-2xl">
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {expensesList.map((row, idx) => (
+                      <motion.div
+                        key={row.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.96, y: -12, height: 0 }}
+                        animate={{ opacity: 1, scale: 1, y: 0, height: "auto" }}
+                        exit={{ opacity: 0, scale: 0.94, y: -12, height: 0 }}
+                        transition={{
+                          height: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                          opacity: { duration: 0.25 },
+                          scale: { duration: 0.25 },
+                          y: { duration: 0.3, ease: [0.16, 1, 0.3, 1] },
+                          layout: { type: "spring", stiffness: 400, damping: 32 }
+                        }}
+                        className="overflow-hidden rounded-2xl"
+                      >
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 border border-slate-200/90 rounded-2xl bg-slate-50/60 p-3 sm:p-2.5 hover:bg-slate-100/50 hover:border-rose-200/80 transition-all shadow-xs">
+                          <div className="flex items-center space-x-2 flex-grow min-w-0">
+                            <span className="w-5 text-center text-[10px] font-black text-slate-400 shrink-0">
+                              {idx + 1}
+                            </span>
+                            <input
+                              type="text"
+                              placeholder="e.g. Electricity, Stock, Rent"
+                              value={row.title}
+                              onChange={(e) => handleExpenseChange(row.id, "title", e.target.value)}
+                              className="w-full px-3.5 py-3 sm:py-2.5 text-sm sm:text-xs font-bold border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900 min-w-0"
+                            />
+                          </div>
+                          <div className="flex items-center space-x-2 shrink-0 justify-between sm:justify-end pl-7 sm:pl-0">
+                            <div className="relative flex-1 sm:w-32">
+                              <input
+                                type="number"
+                                min="0"
+                                placeholder="0"
+                                value={row.amount}
+                                onChange={(e) => handleExpenseChange(row.id, "amount", e.target.value)}
+                                className="w-full pl-7 pr-3 py-2.5 text-xs font-black border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-slate-900"
+                              />
+                              <span className="text-xs font-black text-slate-400 absolute left-2.5 top-2.5">
+                                {user?.currencySymbol || "₹"}
+                              </span>
+                            </div>
+                            <motion.button
+                              type="button"
+                              whileHover={{ scale: 1.1, color: "#e11d48" }}
+                              whileTap={{ scale: 0.88 }}
+                              onClick={() => handleRemoveExpenseRow(row.id)}
+                              className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex-shrink-0 cursor-pointer"
+                              title="Remove item row"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </motion.button>
+                          </div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExpenseRow(row.id)}
-                          className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex-shrink-0 cursor-pointer"
-                          title="Remove item row"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+
+                {expensesList.length > 2 && (
+                  <div className="flex items-center justify-center space-x-1.5 mt-2.5 text-[10px] font-black text-rose-500/90 tracking-wide uppercase">
+                    <ChevronsUpDown className="w-3.5 h-3.5 animate-bounce text-rose-500" />
+                    <span>Scroll to view all {expensesList.length} itemized expenses</span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4 pt-2">
-                <button
+                <motion.button
                   type="button"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleAddExpenseRow}
-                  className="w-full flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-slate-200 hover:border-primary/40 rounded-2xl text-slate-600 hover:text-primary hover:bg-primary/5 text-xs font-black transition-all hover-lift cursor-pointer"
+                  className="w-full flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-slate-200 hover:border-primary/40 rounded-2xl text-slate-600 hover:text-primary hover:bg-primary/5 text-xs font-black transition-all cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Add Another Itemized Expense</span>
-                </button>
+                </motion.button>
 
                 {/* Total Expenses Summary Banner */}
                 <div className="p-4 border border-rose-200/80 rounded-2xl bg-gradient-to-r from-rose-50/90 to-pink-50/60 flex items-center justify-between shadow-xs">
