@@ -121,7 +121,14 @@ export default function CustomMonthDropdown({
             <button
               key={opt.value}
               type="button"
-              onClick={() => handleSelect(opt.value)}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                handleSelect(opt.value);
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelect(opt.value);
+              }}
               className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none ${
                 isSelected
                   ? "bg-primary/10 text-primary border border-primary/20"
