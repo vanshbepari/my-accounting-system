@@ -312,7 +312,13 @@ export default function LandingPage() {
 
         {/* ── BENTO FEATURES GRID (Simplified SMB Language) ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-          <div className="space-y-4 max-w-3xl mx-auto text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 max-w-3xl mx-auto text-center mb-16"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Key Software Capabilities</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
               Everything Your Business Needs To Stay Profitable
@@ -320,18 +326,25 @@ export default function LandingPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               No complex accounting jargon. Log daily income, record expenses, track net profits, and print monthly reports effortlessly.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
             {/* Bento box 1: Smart Quick Parser (8 cols) */}
-            <div className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -6, scale: 1.01 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between shadow-sm hover:shadow-xl transition-shadow duration-300"
+            >
               <div className="space-y-4 max-w-lg">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
                   <Zap className="w-5 h-5" />
                 </div>
                 <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">AI Quick Parser</h3>
-                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed font-semibold">
                   Type sentences in plain English like <em>&quot;Stock supply 15000 online, Store rent 8000 cash&quot;</em>. Our quick parser automatically splits expenses, categorizes items, and fills out your form instantly.
                 </p>
               </div>
@@ -339,16 +352,23 @@ export default function LandingPage() {
                 <span>Automatic text parsing & categorization</span>
                 <span className="text-primary font-bold">Fast & Simple</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Bento box 2: Google Sign-in Security (4 cols) */}
-            <div className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -6, scale: 1.01 }}
+              transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between shadow-sm hover:shadow-xl transition-shadow duration-300"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center shadow-inner">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">100% Private & Secure</h3>
-                <p className="text-xs text-text-secondary leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   Sign in safely with your Google account. Your financial records are encrypted and completely private. Only you can view your shop data.
                 </p>
               </div>
@@ -356,16 +376,23 @@ export default function LandingPage() {
                 <span>Google OAuth Sign-In</span>
                 <span className="text-success font-bold">Encrypted Vault</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Bento box 3: PDF Statements (4 cols) */}
-            <div className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -6, scale: 1.01 }}
+              transition={{ duration: 0.45, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between shadow-sm hover:shadow-xl transition-shadow duration-300"
+            >
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shadow-inner">
                   <FileText className="w-5 h-5" />
                 </div>
                 <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Printable PDF Reports</h3>
-                <p className="text-xs text-text-secondary leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   Generate clean, professional accounting summaries formatted specifically for printing or sending to your CA during tax season.
                 </p>
               </div>
@@ -373,16 +400,23 @@ export default function LandingPage() {
                 <span>One-Click PDF Download</span>
                 <span className="text-primary font-bold">Tax-Ready</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Bento box 4: Excel Exporter (8 cols) */}
-            <div className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ y: -6, scale: 1.01 }}
+              transition={{ duration: 0.45, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between shadow-sm hover:shadow-xl transition-shadow duration-300"
+            >
               <div className="space-y-4 max-w-lg">
                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-primary flex items-center justify-center shadow-inner">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Excel & CSV Exports</h3>
-                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                <p className="text-xs sm:text-sm text-text-secondary leading-relaxed font-semibold">
                   Need raw data for spreadsheet analysis? Export your complete transaction history to Excel or Google Sheets with a single click anytime.
                 </p>
               </div>
@@ -390,14 +424,20 @@ export default function LandingPage() {
                 <span>Instant CSV Downloads</span>
                 <span className="text-secondary font-bold">Excel & Sheets Compatible</span>
               </div>
-            </div>
+            </motion.div>
 
           </div>
         </section>
 
         {/* ── MOCK CUSTOMER REVIEWS / TESTIMONIALS SECTION ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 border-t border-slate-100/60 bg-gradient-to-b from-transparent via-primary/2 to-transparent">
-          <div className="space-y-4 max-w-3xl mx-auto text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 max-w-3xl mx-auto text-center mb-16"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Customer Reviews</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
               Loved By Over 5,000 Small Business Owners
@@ -405,7 +445,7 @@ export default function LandingPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Here is what store managers, boutique founders, and retail merchants say about simplifying their daily bookkeeping.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
             {customerReviews.map((item, idx) => (
@@ -414,8 +454,10 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="glass-card rounded-3xl p-7 bg-white border border-border-color shadow-sm hover-lift flex flex-col justify-between space-y-6 relative overflow-hidden"
+                whileHover={{ y: -6, scale: 1.015 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-card rounded-3xl p-7 bg-white border border-border-color shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between space-y-6 relative overflow-hidden"
               >
                 <div className="absolute top-4 right-4 text-slate-200/60 pointer-events-none">
                   <Quote className="w-12 h-12" />

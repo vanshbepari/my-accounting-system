@@ -87,7 +87,13 @@ export default function AboutPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           {/* Header */}
-          <div className="space-y-4 max-w-3xl mx-auto mb-16">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 max-w-3xl mx-auto mb-16"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
               About My Accounting
             </span>
@@ -97,10 +103,17 @@ export default function AboutPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Our mission is to eliminate accounting headache. We provide shopkeepers, retail merchants, and small business owners with simple, automated daily accounting tools.
             </p>
-          </div>
+          </motion.div>
 
           {/* Core narrative card */}
-          <div className="glass-card rounded-3xl p-8 md:p-10 border border-border-color text-left bg-white max-w-4xl mx-auto mb-20 space-y-6 hover-lift">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -6, scale: 1.01 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            className="glass-card rounded-3xl p-8 md:p-10 border border-border-color text-left bg-white max-w-4xl mx-auto mb-20 space-y-6 shadow-sm hover:shadow-xl transition-shadow duration-300"
+          >
             <div className="flex items-center space-x-3">
               <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-md">
                 <HelpCircle className="w-5.5 h-5.5" />
@@ -115,16 +128,22 @@ export default function AboutPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed font-semibold">
               My Accounting was engineered to fix this. By blending modern fintech aesthetics, intelligent Natural Language (NLP) text processing, and clean mobile-first sheets, we made daily accounting feel fast, simple, and visually beautiful.
             </p>
-          </div>
+          </motion.div>
 
           {/* Timeline Section */}
           <div className="max-w-5xl mx-auto mb-20">
-            <div className="space-y-4 text-center mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="space-y-4 text-center mb-12"
+            >
               <span className="text-[10px] uppercase font-bold tracking-widest text-secondary font-display block">The Bookkeeping Evolution</span>
               <h2 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
                 Advancing Digital Bookkeeping
               </h2>
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
               {processSteps.map((step, idx) => {
@@ -132,11 +151,13 @@ export default function AboutPage() {
                 return (
                   <motion.div
                     key={idx}
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 25 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: idx * 0.1 }}
-                    className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift relative"
+                    whileHover={{ y: -6, scale: 1.015 }}
+                    whileTap={{ scale: 0.99 }}
+                    transition={{ duration: 0.45, delay: idx * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                    className="glass-card rounded-3xl p-6 bg-white border border-border-color shadow-sm hover:shadow-xl transition-shadow duration-300 relative"
                   >
                     {/* Header circle indicator */}
                     <div className="flex items-center justify-between mb-6">
@@ -159,23 +180,31 @@ export default function AboutPage() {
           </div>
 
           {/* Values Grid */}
-          <div className="space-y-4 text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 text-center mb-12"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-500 font-display block">Our Foundations</span>
             <h2 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
               Values We Live By
             </h2>
-          </div>
+          </motion.div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left max-w-5xl mx-auto mb-16">
             {values.map((val, idx) => {
               const Icon = val.icon;
               return (
                 <motion.div 
                   key={idx} 
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
+                  initial={{ opacity: 0, scale: 0.98, y: 25 }}
+                  whileInView={{ opacity: 1, scale: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.08 }}
-                  className="glass-card p-6 border border-border-color rounded-3xl bg-white hover-lift flex flex-col justify-between"
+                  whileHover={{ y: -6, scale: 1.015 }}
+                  whileTap={{ scale: 0.99 }}
+                  transition={{ duration: 0.45, delay: idx * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                  className="glass-card p-6 border border-border-color rounded-3xl bg-white shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
                 >
                   <div>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-inner mb-4 ${val.accent}`}>
@@ -195,14 +224,16 @@ export default function AboutPage() {
 
           {/* CTA Banner */}
           <div className="mt-16 md:mt-24 text-center">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleCTA}
               disabled={loading}
-              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:shadow-lg transition-all hover-lift inline-flex items-center space-x-2.5 mx-auto cursor-pointer"
+              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:shadow-lg transition-all inline-flex items-center space-x-2.5 mx-auto cursor-pointer shadow-md"
             >
               <span>{loading ? "Connecting to Google..." : "Launch Your Dashboard"}</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </motion.button>
           </div>
         </div>
       </main>

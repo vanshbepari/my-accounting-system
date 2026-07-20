@@ -92,7 +92,12 @@ export default function ContactPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {/* Header */}
-          <div className="space-y-4 max-w-3xl mx-auto mb-16 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 max-w-3xl mx-auto mb-16 text-center"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
               Reach Out
             </span>
@@ -102,12 +107,20 @@ export default function ContactPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Have questions about statement compliance, feature requests, or custom database settings? Send us a line.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-5xl mx-auto items-start">
             {/* Contact details & FAQ */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="glass-card rounded-2xl p-5 border border-border-color bg-white flex items-start space-x-4 hover-lift">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, scale: 1.015 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-card rounded-2xl p-5 border border-border-color bg-white flex items-start space-x-4 shadow-sm hover:shadow-lg transition-shadow duration-300"
+              >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 shadow-sm">
                   <Mail className="w-5 h-5" />
                 </div>
@@ -116,9 +129,17 @@ export default function ContactPage() {
                   <p className="text-[10px] text-text-secondary mt-0.5 font-semibold">Our accounting success team replies inside 24 hours.</p>
                   <p className="text-xs font-black text-primary mt-1.5">support@myaccounting.app</p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="glass-card rounded-2xl p-5 border border-border-color bg-white flex items-start space-x-4 hover-lift">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -5, scale: 1.015 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-card rounded-2xl p-5 border border-border-color bg-white flex items-start space-x-4 shadow-sm hover:shadow-lg transition-shadow duration-300"
+              >
                 <div className="w-10 h-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center flex-shrink-0 shadow-sm">
                   <MessageSquare className="w-5 h-5" />
                 </div>
@@ -127,10 +148,16 @@ export default function ContactPage() {
                   <p className="text-[10px] text-text-secondary mt-0.5 font-semibold">Talk to developer engineers about custom compliance builds.</p>
                   <p className="text-xs font-black text-secondary mt-1.5">Mon-Fri · 9am to 6pm</p>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Mini FAQ accordion */}
-              <div className="glass-card rounded-3xl p-6 border border-border-color bg-white text-left">
+              <motion.div
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-card rounded-3xl p-6 border border-border-color bg-white text-left shadow-sm"
+              >
                 <h3 className="font-display font-black text-sm text-text-primary uppercase tracking-wider mb-4 flex items-center space-x-2">
                   <Award className="w-4 h-4 text-primary" />
                   <span>Frequently Asked Questions</span>
@@ -140,12 +167,18 @@ export default function ContactPage() {
                     <FAQItem key={i} question={faq.question} answer={faq.answer} />
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Form */}
-            <div className="lg:col-span-7">
-              <div className="glass-card rounded-3xl p-8 border border-border-color bg-white relative overflow-hidden text-left">
+            <motion.div
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-7"
+            >
+              <div className="glass-card rounded-3xl p-8 border border-border-color bg-white relative overflow-hidden text-left shadow-md">
                 {submitted ? (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -210,17 +243,19 @@ export default function ContactPage() {
                       </div>
                     </div>
 
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                       type="submit"
-                      className="w-full flex items-center justify-center space-x-2.5 p-3.5 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-primary/20 hover:brightness-105 transition-all hover-lift active:scale-98 cursor-pointer mt-4"
+                      className="w-full flex items-center justify-center space-x-2.5 p-3.5 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-primary/20 hover:brightness-105 transition-all cursor-pointer mt-4"
                     >
                       <Send className="w-4 h-4" />
                       <span>Transmit Message</span>
-                    </button>
+                    </motion.button>
                   </form>
                 )}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </main>

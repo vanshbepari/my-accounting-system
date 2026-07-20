@@ -118,7 +118,12 @@ export default function FeaturesPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           {/* Header */}
-          <div className="space-y-4 max-w-3xl mx-auto mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="space-y-4 max-w-3xl mx-auto mb-16"
+          >
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
               Software Features
             </span>
@@ -128,7 +133,7 @@ export default function FeaturesPage() {
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
               Everything you need to track daily sales, record expenses, monitor profit margins, and manage shop accounts effortlessly.
             </p>
-          </div>
+          </motion.div>
 
           {/* Bento Grid */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6 text-left">
@@ -137,11 +142,13 @@ export default function FeaturesPage() {
               return (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 25 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: (idx % 3) * 0.08 }}
-                  className={`glass-card rounded-3xl p-6 md:p-8 bg-white border border-border-color hover-lift flex flex-col justify-between ${item.className}`}
+                  viewport={{ once: true, margin: "-40px" }}
+                  whileHover={{ y: -6, scale: 1.015 }}
+                  whileTap={{ scale: 0.99 }}
+                  transition={{ duration: 0.45, delay: (idx % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                  className={`glass-card rounded-3xl p-6 md:p-8 bg-white border border-border-color shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between ${item.className}`}
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -178,22 +185,30 @@ export default function FeaturesPage() {
           </div>
 
           {/* Bottom callout */}
-          <div className="mt-20 glass-card rounded-3xl p-8 md:p-12 bg-gradient-to-tr from-primary/5 to-secondary/5 border border-border-color/60 max-w-4xl mx-auto text-center space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-20 glass-card rounded-3xl p-8 md:p-12 bg-gradient-to-tr from-primary/5 to-secondary/5 border border-border-color/60 max-w-4xl mx-auto text-center space-y-6 shadow-sm hover:shadow-lg transition-shadow duration-300"
+          >
             <h2 className="font-display font-black text-2xl sm:text-3xl text-text-primary tracking-tight">
               Ready to automate your daily balances?
             </h2>
             <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto leading-relaxed font-semibold">
               Launch your corporate trial instantly. Secure Google login aggregates transactions cleanly in under 2 minutes.
             </p>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={handleCTA}
               disabled={loading}
-              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:shadow-lg transition-all hover-lift inline-flex items-center space-x-2.5 mx-auto cursor-pointer disabled:opacity-80"
+              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold text-xs uppercase tracking-wider rounded-2xl hover:shadow-lg transition-all inline-flex items-center space-x-2.5 mx-auto cursor-pointer disabled:opacity-80 shadow-md"
             >
               <span>{loading ? "Connecting to Google..." : "Get Started Now"}</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </div>
       </main>
 
