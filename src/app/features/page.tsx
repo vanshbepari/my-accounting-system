@@ -35,74 +35,74 @@ export default function FeaturesPage() {
   const bentoFeatures = [
     {
       icon: Zap,
-      title: "Daily Ledger System",
+      title: "Easy Daily Accounting",
       tagline: "Speed",
-      desc: "Log daily sales and store expenses in seconds. No complex double-entry accounting training required.",
+      desc: "Log daily sales and store expenses in seconds. Designed for shop owners—no accounting degree required.",
       className: "md:col-span-8",
-      benefits: ["Double-entry auto mapping", "Keyboard-optimized inputs", "Zero lag ledger saves"],
+      benefits: ["Instant daily logging", "Simple number inputs", "Fast & responsive ledger"],
       accent: "text-primary bg-primary/5"
     },
     {
       icon: DollarSign,
-      title: "UPI & Cash Splits",
+      title: "Cash & Online Sales Tracker",
       tagline: "Channels",
-      desc: "Track online payments (Stripe, UPI, cards) separately from cash desk receipts dynamically.",
+      desc: "Track online payments (UPI, cards, QR codes) separately from cash register receipts automatically.",
       className: "md:col-span-4",
-      benefits: ["Cash desk balance match", "UPI/Card reconciliation", "Split-channel charts"],
+      benefits: ["Cash drawer matching", "UPI & Card breakdown", "Split-channel summary"],
       accent: "text-emerald-500 bg-emerald-500/5"
     },
     {
       icon: Activity,
-      title: "Automated P/L Engine",
+      title: "Automatic Profit & Loss",
       tagline: "Formulas",
-      desc: "Calculate revenues, calculate operating margins, and compile net profits instantly on save.",
+      desc: "Calculate total revenue, subtract itemized expenses, and view your net profit margin in real time.",
       className: "md:col-span-4",
-      benefits: ["Real-time formula audits", "Automatic cost deductions", "Margin health alerts"],
+      benefits: ["Instant profit calculation", "Automatic cost deduction", "Margin health alerts"],
       accent: "text-secondary bg-secondary/5"
     },
     {
       icon: FileText,
-      title: "Smart Expense Categories",
-      tagline: "Tax Mapping",
-      desc: "Automatically map expenses like store rent, inventory supplies, and utilities with keyword detection.",
+      title: "Smart Expense Categorization",
+      tagline: "Categories",
+      desc: "Automatically organize costs into categories like store rent, inventory stock, gas, utilities, and staff wages.",
       className: "md:col-span-8",
-      benefits: ["Keyword auto categorization", "GST tax group mapping", "Custom ledger tags"],
+      benefits: ["Smart auto-tagging", "Custom expense groups", "Clear itemized records"],
       accent: "text-indigo-500 bg-indigo-500/5"
     },
     {
       icon: FileBarChart2,
-      title: "Tax-Ready PDF Reports",
-      tagline: "Compliance",
-      desc: "Compile clean, professional accounting summaries formatted specifically for browser print-to-PDF styles.",
+      title: "Printable Monthly PDF Reports",
+      tagline: "Tax-Ready",
+      desc: "Download clean, professional accounting summaries formatted specifically for printing or sending to your CA.",
       className: "md:col-span-8",
-      benefits: ["CSS print layout optimization", "Monthly/Yearly balance summaries", "Shareable audit PDFs"],
+      benefits: ["One-click PDF downloads", "Monthly/Yearly balance summaries", "CA & Tax review friendly"],
       accent: "text-cyan-500 bg-cyan-500/5"
     },
     {
       icon: TrendingUp,
-      title: "Excel CSV Exporter",
+      title: "Excel & Google Sheets Export",
       tagline: "Data Portability",
-      desc: "Download complete history as standard spreadsheets compatible with Microsoft Excel and Google Sheets.",
+      desc: "Export your entire ledger history to standard CSV files compatible with Microsoft Excel and Google Sheets.",
       className: "md:col-span-4",
-      benefits: ["One-tap ledger download", "Fully normalized data rows", "Accountant friendly schema"],
+      benefits: ["One-tap spreadsheet export", "Complete transaction history", "Shareable with accountants"],
       accent: "text-purple-500 bg-purple-500/5"
     },
     {
       icon: ShieldCheck,
-      title: "Secure Google OAuth",
-      tagline: "Identity",
-      desc: "Verify identity and secure bookkeeping vaults using standard Google corporate handshake protocols.",
+      title: "Safe Google Login & Encryption",
+      tagline: "Security",
+      desc: "Sign in securely with your Google account. Your financial data is private, encrypted, and isolated.",
       className: "md:col-span-4",
-      benefits: ["No password storage leaks", "Google OAuth 2.0 direct", "Session cookie boundaries"],
+      benefits: ["No passwords to remember", "Secure Google Authentication", "100% Private Business Records"],
       accent: "text-rose-500 bg-rose-500/5"
     },
     {
       icon: Sparkles,
-      title: "Real-time Metrics Dashboard",
-      tagline: "Audits",
-      desc: "Monitor month-on-month revenues, dynamic sales trends, and cash flow alerts in one location.",
+      title: "Simple Financial Dashboard",
+      tagline: "Overview",
+      desc: "View monthly revenue trends, operating profit margins, and spending alerts on a single, easy-to-read screen.",
       className: "md:col-span-8",
-      benefits: ["Instant metric counters", "Comparative calendar tabs", "Ambient neon warning indicators"],
+      benefits: ["Instant financial stats", "Monthly calendar filter", "Budget limit alerts"],
       accent: "text-amber-500 bg-amber-500/5"
     }
   ];
@@ -120,13 +120,13 @@ export default function FeaturesPage() {
           {/* Header */}
           <div className="space-y-4 max-w-3xl mx-auto mb-16">
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
-              Engine Capabilities
+              Software Features
             </span>
             <h1 className="font-display font-black text-4xl sm:text-5xl text-text-primary tracking-tight leading-tight">
-              Designed For High-Growth Businesses
+              Designed For Small & Medium Businesses
             </h1>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
-              Everything you need to audit, log, and inspect daily accounting balances without spreadsheets or cluttered ERP software.
+              Everything you need to track daily sales, record expenses, monitor profit margins, and manage shop accounts effortlessly.
             </p>
           </div>
 

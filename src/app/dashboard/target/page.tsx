@@ -183,8 +183,8 @@ export default function TargetPage() {
             </motion.div>
             <span>Target Control Center</span>
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Establish monthly corporate budgets, milestones, and net profit expectations.
+          <p className="text-xs sm:text-sm text-text-secondary mt-1 font-semibold">
+            Set monthly revenue goals, net profit milestones, and expense spending limits to keep your shop on track.
           </p>
         </div>
         

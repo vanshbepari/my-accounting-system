@@ -227,8 +227,8 @@ export default function ForecastPage() {
             <LucideLineChart className="w-7 h-7 text-primary stroke-[2.5]" />
             <span>Cash Flow Forecast</span>
           </h1>
-          <p className="text-xs sm:text-sm text-text-secondary mt-1">
-            Analyze historical ledger trends to predict and guide future revenue objectives.
+          <p className="text-xs sm:text-sm text-text-secondary mt-1 font-semibold">
+            Project your future business growth by testing different revenue growth rates and expense optimization targets.
           </p>
         </div>
 

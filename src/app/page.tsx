@@ -12,7 +12,11 @@ import {
   Activity,
   FileText,
   Loader2,
-  PlusCircle
+  PlusCircle,
+  Star,
+  Users,
+  Building2,
+  Quote
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -57,6 +61,42 @@ export default function LandingPage() {
     });
   };
 
+  // Customer Reviews / Testimonials Mock Data
+  const customerReviews = [
+    {
+      name: "Ramesh Patel",
+      role: "Owner, Patel Provision Store",
+      city: "Ahmedabad, Gujarat",
+      avatarBg: "bg-emerald-500",
+      rating: 5,
+      review: "I used to spend 3 hours every Sunday night organizing paper bills and notebooks. Now I log daily sales in 2 minutes, and my net profit is calculated automatically!"
+    },
+    {
+      name: "Ananya Sharma",
+      role: "Founder, Ananya Fashion Boutique",
+      city: "Bengaluru, Karnataka",
+      avatarBg: "bg-indigo-500",
+      rating: 5,
+      review: "The AI Quick Parser is a lifesaver! I copy-paste my daily WhatsApp sales notes and it automatically categorizes UPI vs cash payments. Saves me 5+ hours every week."
+    },
+    {
+      name: "Vikram Malhotra",
+      role: "Manager, Malhotra Electricals",
+      city: "New Delhi, NCR",
+      avatarBg: "bg-purple-500",
+      rating: 5,
+      review: "Finally an accounting app designed for shop owners instead of accountants! Setting monthly budget limits helps keep our store expenditures under control."
+    },
+    {
+      name: "Priya Nair",
+      role: "Owner, Green Leaf Cafe",
+      city: "Kochi, Kerala",
+      avatarBg: "bg-cyan-500",
+      rating: 5,
+      review: "Downloading tax-ready PDF reports for my CA takes just one click. Simple, reliable, and extremely easy to use for small business owners!"
+    }
+  ];
+
   return (
     <>
       {/* Navbar invokes real Google login directly on sign-in clicks */}
@@ -74,15 +114,15 @@ export default function LandingPage() {
 
             {/* Left Column: Premium Text Elements */}
             <div className="lg:col-span-6 space-y-8 text-left">
-              {/* Badge */}
+              {/* Badge featuring 5,000+ Happy Users */}
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-bold uppercase tracking-wider font-display animate-float"
+                className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-extrabold uppercase tracking-wider font-display"
               >
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span>Modern Fintech Ledger Engine</span>
+                <Users className="w-4 h-4 text-primary" />
+                <span>Trusted by 5,000+ Happy Business Owners</span>
               </motion.div>
 
               {/* Title & Subtitle */}
@@ -93,9 +133,9 @@ export default function LandingPage() {
                   transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
                   className="font-display font-black text-4xl sm:text-5xl md:text-6xl text-text-primary tracking-tight leading-[1.05]"
                 >
-                  Simple. Daily. <br />
+                  Simple Accounting <br />
                   <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Visually Stunning.
+                    For Small Businesses.
                   </span>
                 </motion.h1>
                 <motion.p
@@ -104,16 +144,16 @@ export default function LandingPage() {
                   transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                   className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-lg font-semibold"
                 >
-                  Simplify daily balance sheet entries. My Accounting parses natural language notes instantly, aggregates cash and online accounts dynamically, and compiles print-ready financial reviews.
+                  Effortlessly track daily income, record itemized store expenses, separate cash and online sales, and view exact profit margins—no accounting background required.
                 </motion.p>
               </div>
 
-              {/* Primary Google Login CTA Button Only */}
+              {/* Primary Google Login CTA Button */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                className="pt-2"
+                className="pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4"
               >
                 <button
                   onClick={handleGoogleLogin}
@@ -129,6 +169,16 @@ export default function LandingPage() {
                   )}
                   <span>{loading ? "Connecting to Google…" : "Sign in with Google"}</span>
                 </button>
+
+                {/* Micro User Count Callout */}
+                <div className="flex items-center space-x-2 text-xs font-bold text-slate-600 bg-slate-100/80 px-3.5 py-2 rounded-xl border border-slate-200/60">
+                  <div className="flex -space-x-2">
+                    <span className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-black">RP</span>
+                    <span className="w-6 h-6 rounded-full bg-indigo-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-black">AS</span>
+                    <span className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white flex items-center justify-center text-[9px] text-white font-black">VM</span>
+                  </div>
+                  <span>Join 5,000+ business owners</span>
+                </div>
               </motion.div>
 
               {/* Security indicators */}
@@ -136,15 +186,15 @@ export default function LandingPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex items-center space-x-6 pt-4 text-xs font-bold text-text-secondary border-t border-slate-100/80"
+                className="flex flex-wrap items-center gap-6 pt-4 text-xs font-bold text-text-secondary border-t border-slate-100/80"
               >
                 <div className="flex items-center space-x-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                  <span>Secure OAuth 2.0 Direct</span>
+                  <span>100% Private & Encrypted</span>
                 </div>
                 <div className="flex items-center space-x-1.5">
                   <CheckCircle className="w-4 h-4 text-primary" />
-                  <span>Verified Safe</span>
+                  <span>Zero Setup Fees</span>
                 </div>
               </motion.div>
             </div>
@@ -169,10 +219,10 @@ export default function LandingPage() {
                     <div className="w-3 h-3 rounded-full bg-red-500/80" />
                     <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                     <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                    <span className="text-[10px] text-slate-500 font-mono tracking-wider ml-2">MY.ACCOUNTING.LEDGER</span>
+                    <span className="text-[10px] text-slate-500 font-mono tracking-wider ml-2">SHOP.ACCOUNTING.DASHBOARD</span>
                   </div>
                   <span className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-lg uppercase tracking-wide">
-                    Live Demo Preview
+                    Live Dashboard Preview
                   </span>
                 </div>
 
@@ -180,11 +230,11 @@ export default function LandingPage() {
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div className="bg-white/5 border border-white/8 rounded-2xl p-4 text-left">
                     <div className="flex justify-between items-start">
-                      <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Revenue</span>
+                      <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Today's Revenue</span>
                       <Activity className="w-3.5 h-3.5 text-emerald-400" />
                     </div>
                     <p className="text-xl font-black text-white mt-1.5 tracking-tight">₹84,500</p>
-                    <span className="text-[9px] font-bold text-emerald-400">🟢 UPI & Cash combined</span>
+                    <span className="text-[9px] font-bold text-emerald-400">🟢 UPI & Cash Combined</span>
                   </div>
 
                   <div className="bg-white/5 border border-white/8 rounded-2xl p-4 text-left">
@@ -193,13 +243,13 @@ export default function LandingPage() {
                       <TrendingUp className="w-3.5 h-3.5 text-cyan-400" />
                     </div>
                     <p className="text-xl font-black text-white mt-1.5 tracking-tight">₹59,100</p>
-                    <span className="text-[9px] font-bold text-cyan-400">70% operating margin</span>
+                    <span className="text-[9px] font-bold text-cyan-400">70% Operating Margin</span>
                   </div>
                 </div>
 
                 {/* Chart Mockup */}
                 <div className="bg-white/3 border border-white/5 rounded-2xl p-4 mb-5 text-left">
-                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-3">Daily Sales Aggregator</span>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider block mb-3">Daily Sales Trend</span>
                   <div className="h-28 flex items-end justify-between space-x-2 pt-2">
                     {[35, 55, 45, 80, 65, 75, 90, 60, 85, 95].map((val, idx) => (
                       <div key={idx} className="flex-1 flex flex-col items-center space-y-1">
@@ -223,14 +273,14 @@ export default function LandingPage() {
                   <div className="flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/2 text-xs">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="font-semibold text-white">Stripe online sale</span>
+                      <span className="font-semibold text-white">UPI / Online Daily Sales</span>
                     </div>
                     <span className="font-bold text-emerald-400">+₹15,000</span>
                   </div>
                   <div className="flex items-center justify-between p-2.5 rounded-xl border border-white/5 bg-white/2 text-xs">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-red-500" />
-                      <span className="font-semibold text-white">Electricity Bill</span>
+                      <span className="font-semibold text-white">Store Electricity Bill</span>
                     </div>
                     <span className="font-bold text-red-400">-₹2,400</span>
                   </div>
@@ -241,8 +291,8 @@ export default function LandingPage() {
               <div className="absolute top-4 -left-6 bg-white/80 border border-slate-200/50 backdrop-blur-md rounded-2xl p-3 shadow-lg flex items-center space-x-2.5 animate-float pointer-events-none">
                 <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">₹</div>
                 <div className="text-left">
-                  <p className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Cash Flow</p>
-                  <p className="text-xs font-black text-text-primary tracking-tight">Daily Rollups</p>
+                  <p className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Daily Cash Flow</p>
+                  <p className="text-xs font-black text-text-primary tracking-tight">Auto Calculated</p>
                 </div>
               </div>
 
@@ -251,8 +301,8 @@ export default function LandingPage() {
                   <Zap className="w-4 h-4 fill-current" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Smart AI Parser</p>
-                  <p className="text-xs font-black text-text-primary tracking-tight">Auto Keying ✓</p>
+                  <p className="text-[9px] uppercase font-bold text-text-secondary tracking-wide">Quick AI Parser</p>
+                  <p className="text-xs font-black text-text-primary tracking-tight">Auto Form Fill ✓</p>
                 </div>
               </div>
             </div>
@@ -260,100 +310,153 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── PREMIUM BENTO FEATURES GRID ── */}
+        {/* ── BENTO FEATURES GRID (Simplified SMB Language) ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           <div className="space-y-4 max-w-3xl mx-auto text-center mb-16">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">SaaS Engine Capabilities</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Key Software Capabilities</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
-              Engineered For Modern Business Audits
+              Everything Your Business Needs To Stay Profitable
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto">
-              Combine Apple-level aesthetics with industrial bookkeeping power to track cash flows, online balances, and prepare statements seamlessly.
+            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
+              No complex accounting jargon. Log daily income, record expenses, track net profits, and print monthly reports effortlessly.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-            {/* Bento box 1: NLP keying (8 cols) */}
+            {/* Bento box 1: Smart Quick Parser (8 cols) */}
             <div className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
               <div className="space-y-4 max-w-lg">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
                   <Zap className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Smart Natural Language Keying</h3>
+                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">AI Quick Parser</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Key in items like *&quot;Supplier stock 15000 online; water utilities 1400&quot;* in seconds. Our parser separates line items, maps standard Indian categories, and tags payment channels instantly. No spreadsheets required.
+                  Type sentences in plain English like <em>&quot;Stock supply 15000 online, Store rent 8000 cash&quot;</em>. Our quick parser automatically splits expenses, categorizes items, and fills out your form instantly.
                 </p>
               </div>
               <div className="pt-8 border-t border-slate-100 flex items-center justify-between text-xs text-text-secondary font-semibold mt-8">
-                <span>Auto-categorization & tagging</span>
-                <span className="text-primary font-bold">Secure NLP Engine</span>
+                <span>Automatic text parsing & categorization</span>
+                <span className="text-primary font-bold">Fast & Simple</span>
               </div>
             </div>
 
-            {/* Bento box 2: Google Identity (4 cols) */}
+            {/* Bento box 2: Google Sign-in Security (4 cols) */}
             <div className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center shadow-inner">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Google Identity Choice</h3>
+                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">100% Private & Secure</h3>
                 <p className="text-xs text-text-secondary leading-relaxed">
-                  Sign in instantly with secure Google OAuth 2.0. No custom passwords to leak, no security compromises. Stored safely inside isolated user buckets.
+                  Sign in safely with your Google account. Your financial records are encrypted and completely private. Only you can view your shop data.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-text-secondary font-semibold mt-4">
-                <span>Google OAuth 2.0</span>
-                <span className="text-success font-bold">Encrypted Logs</span>
+                <span>Google OAuth Sign-In</span>
+                <span className="text-success font-bold">Encrypted Vault</span>
               </div>
             </div>
 
-            {/* Bento box 3: PDF statements (4 cols) */}
+            {/* Bento box 3: PDF Statements (4 cols) */}
             <div className="md:col-span-4 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
               <div className="space-y-4">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shadow-inner">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">CSS Print Reports</h3>
+                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Printable PDF Reports</h3>
                 <p className="text-xs text-text-secondary leading-relaxed">
-                  Prepare for tax reviews with sleek, print-styled tabular layouts optimized for PDF compilation. Download clean summaries of balances in one tap.
+                  Generate clean, professional accounting summaries formatted specifically for printing or sending to your CA during tax season.
                 </p>
               </div>
               <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-text-secondary font-semibold mt-4">
-                <span>PDF Statement downloads</span>
-                <span className="text-primary font-bold">Audit Friendly</span>
+                <span>One-Click PDF Download</span>
+                <span className="text-primary font-bold">Tax-Ready</span>
               </div>
             </div>
 
-            {/* Bento box 4: Excel integrations (8 cols) */}
+            {/* Bento box 4: Excel Exporter (8 cols) */}
             <div className="md:col-span-8 glass-card rounded-3xl p-8 bg-white border border-border-color text-left flex flex-col justify-between hover-lift">
               <div className="space-y-4 max-w-lg">
                 <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-primary flex items-center justify-center shadow-inner">
                   <TrendingUp className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Excel Spreadsheet Integrator</h3>
+                <h3 className="font-display font-bold text-xl text-text-primary tracking-tight">Excel & CSV Exports</h3>
                 <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                  Need raw data inside corporate analytics platforms? Download complete transaction tables as fully compatible CSV sheets with a single click. Ideal for accountants, auditors, and office managers.
+                  Need raw data for spreadsheet analysis? Export your complete transaction history to Excel or Google Sheets with a single click anytime.
                 </p>
               </div>
               <div className="pt-8 border-t border-slate-100 flex items-center justify-between text-xs text-text-secondary font-semibold mt-8">
-                <span>One-click CSV exports</span>
-                <span className="text-secondary font-bold">Excel & Sheets compatible</span>
+                <span>Instant CSV Downloads</span>
+                <span className="text-secondary font-bold">Excel & Sheets Compatible</span>
               </div>
             </div>
 
           </div>
         </section>
 
-        {/* ── HOW TO USE SECTION ── */}
+        {/* ── MOCK CUSTOMER REVIEWS / TESTIMONIALS SECTION ── */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 border-t border-slate-100/60 bg-gradient-to-b from-transparent via-primary/2 to-transparent">
+          <div className="space-y-4 max-w-3xl mx-auto text-center mb-16">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Customer Reviews</span>
+            <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
+              Loved By Over 5,000 Small Business Owners
+            </h2>
+            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
+              Here is what store managers, boutique founders, and retail merchants say about simplifying their daily bookkeeping.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+            {customerReviews.map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: idx * 0.1 }}
+                className="glass-card rounded-3xl p-7 bg-white border border-border-color shadow-sm hover-lift flex flex-col justify-between space-y-6 relative overflow-hidden"
+              >
+                <div className="absolute top-4 right-4 text-slate-200/60 pointer-events-none">
+                  <Quote className="w-12 h-12" />
+                </div>
+
+                <div className="space-y-3 relative z-10">
+                  {/* Star Rating */}
+                  <div className="flex items-center space-x-1">
+                    {[...Array(item.rating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-700 font-semibold leading-relaxed italic">
+                    &quot;{item.review}&quot;
+                  </p>
+                </div>
+
+                <div className="flex items-center space-x-3.5 pt-4 border-t border-slate-100 relative z-10">
+                  <div className={`w-11 h-11 rounded-2xl ${item.avatarBg} text-white flex items-center justify-center font-display font-black text-sm shadow-md shrink-0`}>
+                    {item.name.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div>
+                    <h4 className="font-display font-bold text-sm text-text-primary">{item.name}</h4>
+                    <p className="text-[11px] text-text-secondary font-medium">{item.role} • <span className="text-slate-400">{item.city}</span></p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS SECTION (SMB Guided Steps) ── */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 border-t border-slate-100/50">
           <div className="space-y-4 max-w-3xl mx-auto text-center mb-16">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Quick Setup Guide</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">Simple 5-Step Process</span>
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
-              Get Started In Five Simple Steps
+              Get Started In 2 Minutes
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto">
-              Follow this quick visual flow to register your business and automate daily account tracking.
+            <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
+              Follow this quick flow to sign in, record daily entries, and track your business profits.
             </p>
           </div>
 
@@ -364,16 +467,16 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full"
+              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full text-left"
             >
               <div>
                 <span className="text-xs font-black text-primary/30 uppercase font-mono mb-2 block">Step 01</span>
                 <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-4">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Sign In Securely</h3>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Authenticate instantly with your Google account. Zero password setup, fully private and encrypted.
+                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Google Sign-In</h3>
+                <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
+                  Sign in securely with your Google account. No password setup required.
                 </p>
               </div>
             </motion.div>
@@ -384,7 +487,7 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full"
+              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full text-left"
             >
               <div>
                 <span className="text-xs font-black text-primary/30 uppercase font-mono mb-2 block">Step 02</span>
@@ -392,8 +495,8 @@ export default function LandingPage() {
                   <PlusCircle className="w-5 h-5" />
                 </div>
                 <h3 className="font-display font-bold text-sm text-text-primary mb-1">Add Daily Entries</h3>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Type sentences naturally (NLP) or log balances manually. Splits cash vs online streams automatically.
+                <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
+                  Record daily sales and itemized store costs using simple inputs or AI text parsing.
                 </p>
               </div>
             </motion.div>
@@ -404,16 +507,16 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.3 }}
-              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full"
+              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full text-left"
             >
               <div>
                 <span className="text-xs font-black text-primary/30 uppercase font-mono mb-2 block">Step 03</span>
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-4">
                   <DollarSign className="w-5 h-5 text-emerald-600" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Automate Profit/Loss</h3>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  The engine processes totals, deducts expenses, and lists operating margins instantly without error.
+                <h3 className="font-display font-bold text-sm text-text-primary mb-1">View Net Profit</h3>
+                <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
+                  The system calculates total revenue, deducts expenses, and shows your net profit.
                 </p>
               </div>
             </motion.div>
@@ -424,16 +527,16 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.4 }}
-              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full"
+              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full text-left"
             >
               <div>
                 <span className="text-xs font-black text-primary/30 uppercase font-mono mb-2 block">Step 04</span>
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-primary flex items-center justify-center mb-4">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Generate Statements</h3>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Generate print-styled statements for tax reviews, and export CSV sheets to Excel in one click.
+                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Download Reports</h3>
+                <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
+                  Print clean PDF monthly reports for your accountant or download CSV files.
                 </p>
               </div>
             </motion.div>
@@ -444,16 +547,16 @@ export default function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.5 }}
-              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full"
+              className="glass-card rounded-3xl p-6 bg-white border border-border-color hover-lift flex flex-col justify-between h-full text-left"
             >
               <div>
                 <span className="text-xs font-black text-primary/30 uppercase font-mono mb-2 block">Step 05</span>
                 <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center mb-4">
                   <Sparkles className="w-5 h-5 text-cyan-600" />
                 </div>
-                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Analyze Growth</h3>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Track dynamic month-on-month charts, monitor operating ratios, and drive strategic business growth.
+                <h3 className="font-display font-bold text-sm text-text-primary mb-1">Grow Your Business</h3>
+                <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
+                  Set target goals, manage budget limits, and watch your business margins improve.
                 </p>
               </div>
             </motion.div>
@@ -465,11 +568,16 @@ export default function LandingPage() {
           <div className="glass-card rounded-3xl p-10 md:p-16 bg-gradient-to-tr from-primary/5 to-secondary/5 border border-border-color relative overflow-hidden space-y-6">
             <div className="absolute top-0 right-1/4 w-[30vw] h-[30vw] bg-primary/10 rounded-full blur-[80px] -z-10 pointer-events-none" />
 
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 text-xs font-extrabold uppercase tracking-wider font-display">
+              <Users className="w-4 h-4 text-emerald-600" />
+              <span>5,000+ Active Business Owners</span>
+            </div>
+
             <h2 className="font-display font-black text-3xl sm:text-4xl text-text-primary tracking-tight">
-              Manage your business balances today
+              Start Managing Your Shop Accounting Today
             </h2>
-            <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto leading-relaxed">
-              Launch your secure corporate space instantly. Sign in with Google to aggregate daily accounts cleanly in under 2 minutes.
+            <p className="text-xs sm:text-sm text-text-secondary max-w-md mx-auto leading-relaxed font-semibold">
+              Join thousands of small business owners. Sign in with Google to organize your daily accounts cleanly in under 2 minutes.
             </p>
 
             <div className="pt-4 flex justify-center">

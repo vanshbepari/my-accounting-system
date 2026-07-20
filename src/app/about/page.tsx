@@ -34,20 +34,20 @@ export default function AboutPage() {
   const values = [
     {
       icon: Heart,
-      title: "Designed for People",
-      desc: "Accounting doesn't need to be dry or frustrating. We build clean, lightweight interfaces that make daily bookkeeping a delight for store owners and startup founders.",
+      title: "Designed for Business Owners",
+      desc: "Accounting doesn't need to be dry or overwhelming. We build clean, intuitive interfaces that make daily bookkeeping fast and effortless for shop managers and entrepreneurs.",
       accent: "text-primary bg-primary/5"
     },
     {
       icon: ShieldCheck,
-      title: "Private Sandboxes",
-      desc: "Your records, transactions, and business statistics belong entirely to you. Stored inside secure vaults and completely protected from advertisement scrapers.",
+      title: "100% Private & Isolated",
+      desc: "Your records, transactions, and business numbers belong entirely to you. Encrypted safely and accessible only through your authenticated Google account.",
       accent: "text-emerald-500 bg-emerald-500/5"
     },
     {
       icon: Sparkles,
-      title: "Stripe-Level Detail",
-      desc: "We prioritize typography, HSL-harmonized themes, and spring physics. Every button press, toggle, and ledger transaction feels responsive and modern.",
+      title: "Fast & Responsive Design",
+      desc: "We prioritize mobile-first speed, clear typography, and clean layouts so entering transactions on your phone or laptop feels instant and enjoyable.",
       accent: "text-secondary bg-secondary/5"
     }
   ];
@@ -55,22 +55,22 @@ export default function AboutPage() {
   const processSteps = [
     {
       phase: "01",
-      title: "The Spreadsheet Trap",
-      desc: "Legacy systems rely on massive cell grids, manual formatting, and error-prone formulas. Store owners lose hours of productive time mapping cash flow splits.",
+      title: "The Notebook & Spreadsheet Trap",
+      desc: "Paper notebooks and messy spreadsheet grids lead to entry mistakes, miscalculated expenses, and hours of wasted time every week.",
       icon: Clock,
       color: "border-rose-200 bg-rose-50/50 text-rose-500"
     },
     {
       phase: "02",
-      title: "The Simple Ledger Shift",
-      desc: "My Accounting simplifies logging to a single-line flow. Type transactions in natural sentences (NLP) or key them in via optimized numeric fields in seconds.",
+      title: "Simple Daily Bookkeeping",
+      desc: "My Accounting simplifies entries into a clear flow. Record sales and itemized costs in seconds using simple fields or AI text parsing.",
       icon: BookOpen,
       color: "border-primary/20 bg-primary/5 text-primary"
     },
     {
       phase: "03",
-      title: "Automated Profit Clarity",
-      desc: "Instant ledger processing provides dynamic net P/L statements, operating margin charts, and clean PDF compilations ready for audit reviews.",
+      title: "Instant Profit Clarity",
+      desc: "Automatic profit calculation provides instant Net P&L visibility, spending alerts, and clean PDF statements ready for CA or tax review.",
       icon: TrendingUp,
       color: "border-emerald-200 bg-emerald-50/50 text-emerald-500"
     }
@@ -89,13 +89,13 @@ export default function AboutPage() {
           {/* Header */}
           <div className="space-y-4 max-w-3xl mx-auto mb-16">
             <span className="text-[10px] uppercase font-bold tracking-widest text-primary font-display block">
-              Corporate Mission
+              About My Accounting
             </span>
             <h1 className="font-display font-black text-4xl sm:text-5xl text-text-primary tracking-tight leading-tight">
-              Empowering Small Businesses & Founders
+              Empowering Small & Medium Businesses
             </h1>
             <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-xl mx-auto font-semibold">
-              Our purpose is to eliminate spreadsheet complexity. My Accounting provides shop keepers, merchants, and digital founders with elegant, instant accounting rollups.
+              Our mission is to eliminate accounting headache. We provide shopkeepers, retail merchants, and small business owners with simple, automated daily accounting tools.
             </p>
           </div>
 

@@ -1708,7 +1708,7 @@ export default function ReportsPage() {
             Performance Analytics Hub
           </h1>
           <p className="text-sm text-text-secondary mt-1 max-w-xl">
-            Real-time financial indicators, automated intelligent advisor insights, carry forwards, and multi-period comparisons.
+            View your shop's financial health, profit margins, monthly comparisons, and download print-ready PDF reports.
           </p>
         </div>
 

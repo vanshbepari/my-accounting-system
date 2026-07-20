@@ -406,7 +406,7 @@ export default function BudgetPage() {
                 Budgeting & Alerts
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-0.5">
-                Set category limits, trigger status warnings, and monitor expenditure trends.
+                Set category spending limits for recurring expenses like rent, gas, or vendor bills, and get warning alerts before you overspend.
               </p>
             </div>
           </div>
