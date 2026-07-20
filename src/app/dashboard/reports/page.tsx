@@ -1750,9 +1750,6 @@ export default function ReportsPage() {
       fY += 8;
       doc.setFont("helvetica", "normal");
 
-      fY += 8;
-      doc.setFont("helvetica", "normal");
-
       // Reconcile forecast baseline with live user metrics & growth rate settings
       const baseRev = monthlyMetrics.revenue > 0 ? monthlyMetrics.revenue : (monthlyMetrics.prevRevenue > 0 ? monthlyMetrics.prevRevenue : (user?.startingBalance || 0));
       const baseExp = monthlyMetrics.expenses > 0 ? monthlyMetrics.expenses : (monthlyMetrics.prevExpenses > 0 ? monthlyMetrics.prevExpenses : 0);
