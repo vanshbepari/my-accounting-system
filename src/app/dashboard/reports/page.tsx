@@ -886,90 +886,95 @@ export default function ReportsPage() {
       // ───────────────────────────────────────────────────────────────────────
       // PAGE 1: COVER PAGE & EXECUTIVE SUMMARIES
       // ───────────────────────────────────────────────────────────────────────
+      // ───────────────────────────────────────────────────────────────────────
+      // PAGE 1: COVER PAGE & EXECUTIVE SUMMARIES
+      // ───────────────────────────────────────────────────────────────────────
       drawHeaderBanner("FINANCIAL PERFORMANCE OVERVIEW");
 
       // Title Block
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
       doc.text("EXECUTIVE PERFORMANCE REPORT", 20, 29);
       
       // Confidentiality Badge
       doc.setFillColor(241, 245, 249);
-      doc.roundedRect(158, 24, 32, 7, 1.5, 1.5, "F");
-      doc.setFontSize(7.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text("OFFICIAL REPORT", 174, 28.5, { align: "center" });
-
-      // Workspace metadata block (arranged as two parallel columns to guarantee no overlaps)
+      doc.roundedRect(154, 24, 36, 7, 1.5, 1.5, "F");
+      doc.setFontSize(7);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(8.5);
-      doc.setTextColor(100, 116, 139);
-      
-      doc.text("WORKSPACE PROFILE:", 20, 38);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(30, 41, 59);
-      doc.text(user?.businessName || "My Retail Shop", 58, 38);
+      doc.setTextColor(51, 65, 85);
+      doc.text("CONFIDENTIAL AUDIT", 172, 28.5, { align: "center" });
 
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 116, 139);
-      doc.text("BASE CURRENCY:", 20, 43);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(30, 41, 59);
-      doc.text(`${user?.currencyCode || "INR"}`, 58, 43); // Fixed: Removed the unsupported emoji symbol code
-
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 116, 139);
-      doc.text("REPORTING SCOPE:", 110, 38);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(30, 41, 59);
-      doc.text(getMonthLabel(activeMonth), 146, 38);
-
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(100, 116, 139);
-      doc.text("EXPORT TIMESTAMP:", 110, 43);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(30, 41, 59);
-      doc.text(new Date().toLocaleString("en-US", { hour12: true }), 146, 43);
-
+      // Workspace metadata block card
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.roundedRect(20, 34, 170, 14, 1.5, 1.5, "F");
       doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-      doc.line(20, 47, 190, 47);
+      doc.roundedRect(20, 34, 170, 14, 1.5, 1.5, "S");
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+      doc.text("WORKSPACE:", 24, 39.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(user?.businessName || "My Retail Shop", 50, 39.5);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+      doc.text("CURRENCY:", 24, 44.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(`${user?.currencyCode || "INR"}`, 50, 44.5);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+      doc.text("STATEMENT PERIOD:", 110, 39.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(getMonthLabel(activeMonth), 148, 39.5);
+
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+      doc.text("AUDIT TIMESTAMP:", 110, 44.5);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(new Date().toLocaleString("en-US", { hour12: true }), 148, 44.5);
 
       // KPI Cards Row (Y=52 to 80)
       const cardY = 52;
       const cardH = 28;
-      const cardW = 51;
-      const cardGap = 59; // spacing between column starts
+      const cardW = 52;
+      const cardGap = 59;
 
       // KPI Card 1: Revenue
-      doc.setFillColor(248, 250, 252);
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
       doc.roundedRect(20, cardY, cardW, cardH, 2, 2, "F");
       doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
       doc.roundedRect(20, cardY, cardW, cardH, 2, 2, "S");
-      doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-      doc.rect(20, cardY, 1.5, cardH, "F");
+      doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+      doc.rect(20, cardY, 1.8, cardH, "F");
 
-      doc.setTextColor(100, 116, 139);
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
       doc.setFontSize(7.5);
       doc.setFont("helvetica", "bold");
       doc.text("GROSS REVENUE", 25, cardY + 7);
-      doc.setTextColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFontSize(11);
       doc.text(formatCurrencyPDF(monthlyMetrics.revenue), 25, cardY + 16);
       
       const revIsUp = monthlyMetrics.revGrowth >= 0;
       doc.setTextColor(revIsUp ? successEmerald[0] : dangerRed[0], revIsUp ? successEmerald[1] : dangerRed[1], revIsUp ? successEmerald[2] : dangerRed[2]);
       doc.setFontSize(7.5);
-      doc.text(formatGrowthPDF(monthlyMetrics.revGrowth) + " MoM", 25, cardY + 23);
+      doc.text(formatGrowthPDF(monthlyMetrics.revGrowth) + " MoM Growth", 25, cardY + 23);
 
       // KPI Card 2: Expenses
-      doc.setFillColor(248, 250, 252);
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
       doc.roundedRect(20 + cardGap, cardY, cardW, cardH, 2, 2, "F");
       doc.roundedRect(20 + cardGap, cardY, cardW, cardH, 2, 2, "S");
       doc.setFillColor(dangerRed[0], dangerRed[1], dangerRed[2]);
-      doc.rect(20 + cardGap, cardY, 1.5, cardH, "F");
+      doc.rect(20 + cardGap, cardY, 1.8, cardH, "F");
 
-      doc.setTextColor(100, 116, 139);
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
       doc.setFont("helvetica", "bold");
       doc.text("TOTAL OUTFLOWS", 25 + cardGap, cardY + 7);
       doc.setTextColor(dangerRed[0], dangerRed[1], dangerRed[2]);
@@ -979,19 +984,19 @@ export default function ReportsPage() {
       const expIsDown = monthlyMetrics.expGrowth <= 0;
       doc.setTextColor(expIsDown ? successEmerald[0] : warningAmber[0], expIsDown ? successEmerald[1] : warningAmber[1], expIsDown ? successEmerald[2] : warningAmber[2]);
       doc.setFontSize(7.5);
-      doc.text(formatGrowthPDF(monthlyMetrics.expGrowth) + " MoM", 25 + cardGap, cardY + 23);
+      doc.text(formatGrowthPDF(monthlyMetrics.expGrowth) + " MoM Burn", 25 + cardGap, cardY + 23);
 
       // KPI Card 3: Net Profit
-      doc.setFillColor(248, 250, 252);
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
       doc.roundedRect(20 + cardGap * 2, cardY, cardW, cardH, 2, 2, "F");
       doc.roundedRect(20 + cardGap * 2, cardY, cardW, cardH, 2, 2, "S");
       const isSurplus = monthlyMetrics.profit >= 0;
       doc.setFillColor(isSurplus ? successEmerald[0] : dangerRed[0], isSurplus ? successEmerald[1] : dangerRed[1], isSurplus ? successEmerald[2] : dangerRed[2]);
-      doc.rect(20 + cardGap * 2, cardY, 1.5, cardH, "F");
+      doc.rect(20 + cardGap * 2, cardY, 1.8, cardH, "F");
 
-      doc.setTextColor(100, 116, 139);
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
       doc.setFont("helvetica", "bold");
-      doc.text("NET SURPLUS", 25 + cardGap * 2, cardY + 7);
+      doc.text("NET SURPLUS / DEFICIT", 25 + cardGap * 2, cardY + 7);
       doc.setTextColor(isSurplus ? successEmerald[0] : dangerRed[0], isSurplus ? successEmerald[1] : dangerRed[1], isSurplus ? successEmerald[2] : dangerRed[2]);
       doc.setFontSize(11);
       doc.text(formatCurrencyPDF(monthlyMetrics.profit), 25 + cardGap * 2, cardY + 16);
@@ -999,54 +1004,62 @@ export default function ReportsPage() {
       const profIsUp = monthlyMetrics.profitGrowth >= 0;
       doc.setTextColor(profIsUp ? successEmerald[0] : dangerRed[0], profIsUp ? successEmerald[1] : dangerRed[1], profIsUp ? successEmerald[2] : dangerRed[2]);
       doc.setFontSize(7.5);
-      doc.text(formatGrowthPDF(monthlyMetrics.profitGrowth) + " MoM", 25 + cardGap * 2, cardY + 23);
+      doc.text(formatGrowthPDF(monthlyMetrics.profitGrowth) + " MoM Net", 25 + cardGap * 2, cardY + 23);
 
-      // Executive Summary Section
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-      doc.setFontSize(10.5);
+      // Executive Performance Summary Section
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
-      doc.text("EXECUTIVE PERFORMANCE SUMMARY", 20, 89);
+      doc.text("EXECUTIVE PERFORMANCE SUMMARY", 20, 87);
       doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
       doc.setLineWidth(0.3);
-      doc.line(20, 92, 190, 92);
+      doc.line(20, 89.5, 190, 89.5);
+
+      const adviceParagraph = smartAdvancedSummary || "Operating ledger reports stable cash runway for this billing cycle.";
+      const splitAdvice = doc.splitTextToSize(adviceParagraph, 162);
+      const summaryBoxH = splitAdvice.length * 4.5 + 8;
+
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.roundedRect(20, 91.5, 170, summaryBoxH, 1.5, 1.5, "F");
+      doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+      doc.roundedRect(20, 91.5, 170, summaryBoxH, 1.5, 1.5, "S");
+      doc.setFillColor(accentBlue[0], accentBlue[1], accentBlue[2]);
+      doc.rect(20, 91.5, 1.5, summaryBoxH, "F");
 
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(71, 85, 105);
-      const adviceParagraph = smartAdvancedSummary || "Operating ledger reports stable cash runway for this billing cycle.";
-      const splitAdvice = doc.splitTextToSize(adviceParagraph, 170);
-      doc.text(splitAdvice, 20, 97);
+      doc.setFontSize(8.5);
+      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.text(splitAdvice, 24, 96.5);
 
       // Smart Insights Cards Section
-      const insightsY = 97 + (splitAdvice.length * 4.5) + 8;
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-      doc.setFontSize(10.5);
+      const insightsY = 91.5 + summaryBoxH + 10;
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
       doc.text("AUTOMATED SMART ADVISORY INSIGHTS", 20, insightsY);
-      doc.line(20, insightsY + 3, 190, insightsY + 3);
+      doc.line(20, insightsY + 2.5, 190, insightsY + 2.5);
 
-      let insightItemY = insightsY + 9;
-      doc.setFont("helvetica", "normal");
+      let insightItemY = insightsY + 7.5;
       
       smartInsights.slice(0, 4).forEach((insight) => {
-        doc.setFillColor(248, 250, 252);
-        doc.roundedRect(20, insightItemY - 4, 170, 13, 1, 1, "F");
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.roundedRect(20, insightItemY - 3, 170, 13.5, 1, 1, "F");
         doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-        doc.roundedRect(20, insightItemY - 4, 170, 13, 1, 1, "S");
+        doc.roundedRect(20, insightItemY - 3, 170, 13.5, 1, 1, "S");
         
-        let accentColor = primaryBlue;
+        let accentColor = brandBlue;
         if (insight.type === "success") accentColor = successEmerald;
         else if (insight.type === "warning") accentColor = dangerRed;
         else if (insight.type === "purple") accentColor = secondaryPurple;
         else if (insight.type === "info") accentColor = warningAmber;
 
         doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-        doc.rect(20, insightItemY - 4, 1.5, 13, "F");
+        doc.rect(20, insightItemY - 3, 1.5, 13.5, "F");
 
         doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.text(`[${insight.badge}]`, 25, insightItemY + 3.5);
+        doc.text(`[${insight.badge}]`, 24, insightItemY + 4.5);
 
         doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
         doc.setFont("helvetica", "normal");
