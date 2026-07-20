@@ -43,6 +43,7 @@ import {
 import { useAccounting } from "@/context/AccountingContext";
 import CustomMonthDropdown from "@/components/CustomMonthDropdown";
 import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
+import { triggerBlobDownload } from "@/utils/downloadHelper";
 
 const generateRefId = () => Math.random().toString(36).substring(2, 9).toUpperCase();
 
@@ -2326,11 +2327,12 @@ export default function ReportsPage() {
       doc.setFontSize(6);
       addFooter(8, 8);
 
-      // Save compiled PDF file directly to browser download directory (triggers automatic client saving)
-      doc.save(`My_Accounting_Report_${activeMonth}.pdf`);
+      // Generate Blob object and trigger native browser file download prompt bypassing intermediate tab view
+      const pdfBlob = doc.output("blob");
+      triggerBlobDownload(pdfBlob, "Executive_Performance_Report.pdf");
       addNotification(
         "PDF Report Downloaded",
-        `Your financial report PDF statement for ${getMonthLabel(activeMonth)} has been generated and downloaded successfully.`,
+        `Your Executive Performance Report PDF statement for ${getMonthLabel(activeMonth)} has been generated and downloaded successfully.`,
         "success"
       );
     } catch (e) {
