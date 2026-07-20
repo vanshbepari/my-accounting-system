@@ -191,7 +191,21 @@ const CustomTooltip = ({ active, payload, label, formatCurrency: propFormatCurre
 };
 
 export default function ReportsPage() {
-  const { transactions, dailySummaries, user, selectedMonth, setSelectedMonth, formatCurrency, addNotification } = useAccounting();
+  const {
+    transactions,
+    dailySummaries,
+    user,
+    selectedMonth,
+    setSelectedMonth,
+    formatCurrency,
+    addNotification,
+    revenueTarget,
+    netProfitTarget,
+    expenseCeiling,
+    growthRate,
+    savingsRate,
+    budgets
+  } = useAccounting();
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"overview" | "compare-months" | "compare-years" | "cashflow">("overview");
@@ -1736,16 +1750,26 @@ export default function ReportsPage() {
       fY += 8;
       doc.setFont("helvetica", "normal");
 
-      const baseRev = monthlyMetrics.revenue || 35000;
-      const baseExp = monthlyMetrics.expenses || 25000;
-      const forecastRows = [
-        { period: "Month 1 (Projected)", rev: baseRev * 1.05, exp: baseExp * 1.01 },
-        { period: "Month 2 (Projected)", rev: baseRev * 1.10, exp: baseExp * 1.02 },
-        { period: "Month 3 (Projected)", rev: baseRev * 1.15, exp: baseExp * 1.03 },
-        { period: "Month 4 (Projected)", rev: baseRev * 1.20, exp: baseExp * 1.04 },
-        { period: "Month 5 (Projected)", rev: baseRev * 1.25, exp: baseExp * 1.05 },
-        { period: "Month 6 (Projected)", rev: baseRev * 1.30, exp: baseExp * 1.06 },
-      ];
+      fY += 8;
+      doc.setFont("helvetica", "normal");
+
+      // Reconcile forecast baseline with live user metrics & growth rate settings
+      const baseRev = monthlyMetrics.revenue > 0 ? monthlyMetrics.revenue : (monthlyMetrics.prevRevenue > 0 ? monthlyMetrics.prevRevenue : (user?.startingBalance || 0));
+      const baseExp = monthlyMetrics.expenses > 0 ? monthlyMetrics.expenses : (monthlyMetrics.prevExpenses > 0 ? monthlyMetrics.prevExpenses : 0);
+      const projGrowthPct = growthRate > 0 ? (growthRate / 100) : (monthlyMetrics.revGrowth > 0 ? Math.min(0.2, monthlyMetrics.revGrowth / 100) : 0.05);
+
+      const forecastRows = Array.from({ length: 6 }, (_, idx) => {
+        const monthNum = idx + 1;
+        const revFactor = Math.pow(1 + projGrowthPct, monthNum);
+        const expFactor = Math.pow(1 + (projGrowthPct * 0.3), monthNum);
+        const projRev = baseRev > 0 ? Math.round(baseRev * revFactor) : Math.round((revenueTarget || 50000) * (0.75 + idx * 0.05));
+        const projExp = baseExp > 0 ? Math.round(baseExp * expFactor) : Math.round((expenseCeiling || 25000) * (0.75 + idx * 0.03));
+        return {
+          period: `Month ${monthNum} (Projected)`,
+          rev: projRev,
+          exp: projExp
+        };
+      });
 
       let cumReserve = monthlyMetrics.profit;
       forecastRows.forEach((r, idx) => {
@@ -1795,7 +1819,7 @@ export default function ReportsPage() {
       // Plot Revenue Trajectory Line (Blue) & Expense Baseline (Red)
       const graphW = 145;
       const stepX = graphW / (forecastRows.length - 1);
-      const maxVal = baseRev * 1.35;
+      const maxVal = Math.max(...forecastRows.map(r => Math.max(r.rev, r.exp)), 1000) * 1.15;
       const scaleY = 44 / maxVal;
       const baseGroundY = fY + 58;
 
@@ -1905,8 +1929,10 @@ export default function ReportsPage() {
       bY += 8;
       doc.setFont("helvetica", "normal");
 
+      // Reconcile budget caps directly with user budgets array if configured, else 15% operating buffer
       const budgetRows = expenseBreakdownData.slice(0, 6).map(item => {
-        const allocatedCap = Math.round(item.value * 1.15); // 15% safety buffer above actual burn
+        const foundBudget = (budgets || []).find(b => b.category.toLowerCase() === item.name.toLowerCase());
+        const allocatedCap = foundBudget ? foundBudget.limitAmount : Math.round(item.value * 1.15);
         const remaining = allocatedCap - item.value;
         const isSafe = remaining >= 0;
         return {
@@ -1953,14 +1979,14 @@ export default function ReportsPage() {
       doc.roundedRect(20, bY, 170, 52, 2, 2, "F");
       doc.roundedRect(20, bY, 170, 52, 2, 2, "S");
 
-      // Gauge 1: Revenue Goal
-      const targetRevGoal = 50000;
-      const revPct = Math.min(100, (monthlyMetrics.revenue / targetRevGoal) * 100);
+      // Reconcile Target Milestones with live revenueTarget and netProfitTarget
+      const targetRevGoal = revenueTarget > 0 ? revenueTarget : (monthlyMetrics.revenue > 0 ? Math.round(monthlyMetrics.revenue * 1.25) : 50000);
+      const revPct = Math.min(100, Math.max(0, (monthlyMetrics.revenue / targetRevGoal) * 100));
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text("REVENUE TARGET MILESTONE (Monthly Floor: INR 50,000)", 26, bY + 8);
+      doc.text(`REVENUE TARGET MILESTONE (Monthly Goal: ${formatCurrencyPDF(targetRevGoal)})`, 26, bY + 8);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
@@ -1973,13 +1999,13 @@ export default function ReportsPage() {
       doc.roundedRect(26, bY + 18, 158 * (revPct / 100), 4, 1, 1, "F");
 
       // Gauge 2: Net Surplus Goal
-      const targetProfitGoal = 10000;
+      const targetProfitGoal = netProfitTarget > 0 ? netProfitTarget : (monthlyMetrics.profit > 0 ? Math.round(monthlyMetrics.profit * 1.5) : 10000);
       const profPct = Math.min(100, Math.max(0, (monthlyMetrics.profit / targetProfitGoal) * 100));
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text("NET SURPLUS TARGET MILESTONE (Monthly Goal: INR 10,000)", 26, bY + 31);
+      doc.text(`NET SURPLUS TARGET MILESTONE (Monthly Goal: ${formatCurrencyPDF(targetProfitGoal)})`, 26, bY + 31);
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
