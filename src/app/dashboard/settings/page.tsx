@@ -52,7 +52,7 @@ export default function SettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!shopName || !userName || !userEmail || !mobileNumber || !selectedCountry) return;
+    if (!shopName.trim() || !userName.trim() || !userEmail.trim() || !selectedCountry) return;
 
     const matchedCountry = SUPPORTED_COUNTRIES.find(c => c.country === selectedCountry);
     const currencyCode = matchedCountry?.currencyCode || "INR";

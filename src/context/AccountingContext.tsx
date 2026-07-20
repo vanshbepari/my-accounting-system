@@ -693,13 +693,14 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             return {
               ...prev,
               name: settings.ownerName || prev.name,
+              email: settings.email || prev.email,
               businessName: settings.businessName || "My Retail Shop",
               currencyCode: settings.currencyCode,
               currencySymbol: settings.currencySymbol,
               startingBalance: settings.startingBalance ?? 0,
-              mobileNumber: settings.mobileNumber,
-              country: settings.country,
-              onboarded: settings.onboarded,
+              mobileNumber: settings.mobileNumber ?? prev.mobileNumber,
+              country: settings.country ?? prev.country,
+              onboarded: settings.onboarded ?? prev.onboarded,
             };
           });
         }

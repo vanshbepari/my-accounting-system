@@ -13,9 +13,19 @@ Manages profile information, localized currency preferences, and global settings
 - `user_id` (uuid, Primary Key): Links directly to the `auth.users` identifier.
 - `business_name` (text, Required): Name of the retail shop or business workspace.
 - `currency_code` (text, Required): Three-letter currency identifier (e.g., `INR`, `USD`).
-- `currency_symbol` (text, Required): Symbol symbol (e.g., `₹`, `$`).
+- `currency_symbol` (text, Required): Currency symbol (e.g., `₹`, `$`).
 - `owner_name` (text, Optional): Full name of the business owner.
 - `starting_balance` (numeric, Required): Baseline reserve starting balance (defaults to `0`).
+- `mobile_number` (text, Optional): Primary contact mobile phone number.
+- `country` (text, Optional): Base country of business operations.
+- `onboarded` (boolean, Optional): Flag indicating onboarding completion.
+- `email` (text, Optional): Dedicated email address captured from Google OAuth user login.
+
+```sql
+-- Migration snippet for user_settings table schema
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS mobile_number text;
+ALTER TABLE public.user_settings ADD COLUMN IF NOT EXISTS email text;
+```
 
 ### `forecasting`
 Stores user-specific cash flow forecasting options.
