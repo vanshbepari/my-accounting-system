@@ -76,10 +76,10 @@ export default function CustomMonthDropdown({
 
   const alignClass =
     align === "right"
-      ? "left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0"
+      ? "fixed left-1/2 -translate-x-1/2 sm:absolute sm:inset-auto sm:right-0 sm:left-auto sm:translate-x-0"
       : align === "center"
-      ? "left-1/2 -translate-x-1/2"
-      : "left-1/2 -translate-x-1/2 sm:left-0 sm:right-auto sm:translate-x-0";
+      ? "fixed left-1/2 -translate-x-1/2 sm:absolute sm:left-1/2 sm:-translate-x-1/2"
+      : "fixed left-1/2 -translate-x-1/2 sm:absolute sm:inset-auto sm:left-0 sm:right-auto sm:translate-x-0";
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
@@ -120,7 +120,7 @@ export default function CustomMonthDropdown({
             animate={{ opacity: 1, y: 4, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.96 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className={`absolute ${alignClass} z-[9999] mt-1.5 w-[calc(100vw-2rem)] sm:w-[280px] max-w-[320px] sm:max-w-none max-h-[240px] sm:max-h-[320px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
+            className={`${alignClass} z-[9999] mt-1.5 w-[calc(100vw-2rem)] sm:w-[280px] max-w-[320px] sm:max-w-none max-h-[240px] sm:max-h-[320px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
             style={{ WebkitOverflowScrolling: "touch" }}
           >
             <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
