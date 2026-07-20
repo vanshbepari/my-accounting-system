@@ -659,12 +659,30 @@ function AddEntryContent() {
                   </AnimatePresence>
                 </div>
 
-                {expensesList.length > 2 && (
-                  <div className="flex items-center justify-center space-x-1.5 mt-2.5 text-[10px] font-black text-rose-500/90 tracking-wide uppercase">
-                    <ChevronsUpDown className="w-3.5 h-3.5 animate-bounce text-rose-500" />
-                    <span>Scroll to view all {expensesList.length} itemized expenses</span>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {expensesList.length > 2 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.95 }}
+                      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      className="flex justify-center mt-3 relative z-20"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="inline-flex items-center space-x-2 bg-gradient-to-r from-rose-600 via-rose-500 to-red-600 text-white px-4 py-1.5 rounded-full shadow-lg shadow-rose-600/25 border border-white/20 text-xs font-black tracking-wide cursor-default"
+                      >
+                        <motion.div
+                          animate={{ y: [0, 3, 0] }}
+                          transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                        >
+                          <ChevronsUpDown className="w-4 h-4 text-white shrink-0" />
+                        </motion.div>
+                        <span>Scroll to view all {expensesList.length} itemized expenses</span>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="space-y-4 pt-2">
