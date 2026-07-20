@@ -983,28 +983,11 @@ export default function ReportsPage() {
       
       const expIsDown = monthlyMetrics.expGrowth <= 0;
       doc.setTextColor(expIsDown ? successEmerald[0] : warningAmber[0], expIsDown ? successEmerald[1] : warningAmber[1], expIsDown ? successEmerald[2] : warningAmber[2]);
-      doc.setFontSize(7.5);
-      doc.text(formatGrowthPDF(monthlyMetrics.expGrowth) + " MoM Burn", 25 + cardGap, cardY + 23);
-
-      // KPI Card 3: Net Profit
-      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
-      doc.roundedRect(20 + cardGap * 2, cardY, cardW, cardH, 2, 2, "F");
-      doc.roundedRect(20 + cardGap * 2, cardY, cardW, cardH, 2, 2, "S");
-      const isSurplus = monthlyMetrics.profit >= 0;
-      doc.setFillColor(isSurplus ? successEmerald[0] : dangerRed[0], isSurplus ? successEmerald[1] : dangerRed[1], isSurplus ? successEmerald[2] : dangerRed[2]);
-      doc.rect(20 + cardGap * 2, cardY, 1.8, cardH, "F");
-
-      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-      doc.setFont("helvetica", "bold");
-      doc.text("NET SURPLUS / DEFICIT", 25 + cardGap * 2, cardY + 7);
-      doc.setTextColor(isSurplus ? successEmerald[0] : dangerRed[0], isSurplus ? successEmerald[1] : dangerRed[1], isSurplus ? successEmerald[2] : dangerRed[2]);
-      doc.setFontSize(11);
-      doc.text(formatCurrencyPDF(monthlyMetrics.profit), 25 + cardGap * 2, cardY + 16);
-      
-      const profIsUp = monthlyMetrics.profitGrowth >= 0;
-      doc.setTextColor(profIsUp ? successEmerald[0] : dangerRed[0], profIsUp ? successEmerald[1] : dangerRed[1], profIsUp ? successEmerald[2] : dangerRed[2]);
-      doc.setFontSize(7.5);
-      doc.text(formatGrowthPDF(monthlyMetrics.profitGrowth) + " MoM Net", 25 + cardGap * 2, cardY + 23);
+      // Dynamic text sanitizer to prevent currency symbol code glitches (e.g. replacing '₹' or '¹' with 'INR')
+      const sanitizePDF = (str: string) => {
+        const code = user?.currencyCode || "INR";
+        return str.replace(/₹/g, code).replace(/¹/g, code);
+      };
 
       // Executive Performance Summary Section
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
@@ -1015,7 +998,8 @@ export default function ReportsPage() {
       doc.setLineWidth(0.3);
       doc.line(20, 89.5, 190, 89.5);
 
-      const adviceParagraph = smartAdvancedSummary || "Operating ledger reports stable cash runway for this billing cycle.";
+      const rawSummaryText = smartAdvancedSummary || "Operating ledger reports stable cash runway for this billing cycle.";
+      const adviceParagraph = sanitizePDF(rawSummaryText);
       const splitAdvice = doc.splitTextToSize(adviceParagraph, 162);
       const summaryBoxH = splitAdvice.length * 4.5 + 8;
 
@@ -1031,7 +1015,7 @@ export default function ReportsPage() {
       doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
       doc.text(splitAdvice, 24, 96.5);
 
-      // Smart Insights Cards Section
+      // Smart Insights Cards Section with DYNAMIC CARD HEIGHT (Prevents text clipping)
       const insightsY = 91.5 + summaryBoxH + 10;
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFontSize(10);
@@ -1042,10 +1026,14 @@ export default function ReportsPage() {
       let insightItemY = insightsY + 7.5;
       
       smartInsights.slice(0, 4).forEach((insight) => {
+        const cleanDescText = sanitizePDF(`${insight.title}: ${insight.desc}`);
+        const cleanLines = doc.splitTextToSize(cleanDescText, 125);
+        const cardH = Math.max(14, cleanLines.length * 4.2 + 5);
+
         doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
-        doc.roundedRect(20, insightItemY - 3, 170, 13.5, 1, 1, "F");
+        doc.roundedRect(20, insightItemY - 3, 170, cardH, 1, 1, "F");
         doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-        doc.roundedRect(20, insightItemY - 3, 170, 13.5, 1, 1, "S");
+        doc.roundedRect(20, insightItemY - 3, 170, cardH, 1, 1, "S");
         
         let accentColor = brandBlue;
         if (insight.type === "success") accentColor = successEmerald;
@@ -1054,20 +1042,19 @@ export default function ReportsPage() {
         else if (insight.type === "info") accentColor = warningAmber;
 
         doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-        doc.rect(20, insightItemY - 3, 1.5, 13.5, "F");
+        doc.rect(20, insightItemY - 3, 1.8, cardH, "F");
 
         doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.text(`[${insight.badge}]`, 24, insightItemY + 4.5);
+        doc.text(`[${insight.badge}]`, 24, insightItemY + 4);
 
         doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        const cleanDesc = doc.splitTextToSize(`${insight.title}: ${insight.desc}`, 125);
-        doc.text(cleanDesc, 60, insightItemY + 3.5);
+        doc.setFontSize(8.2);
+        doc.text(cleanLines, 60, insightItemY + 4);
 
-        insightItemY += 16;
+        insightItemY += cardH + 3.5;
       });
 
       addFooter(1, 4);
@@ -1079,12 +1066,12 @@ export default function ReportsPage() {
       drawHeaderBanner("FINANCIAL CHARTS & TREND ANALYSIS");
 
       // 1. Channel Share Donut Vector Chart
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
-      doc.text("INCOME SOURCE BREAKDOWN (ONLINE VS CASH)", 20, 29);
+      doc.text("INCOME SOURCE BREAKDOWN (ONLINE VS CASH)", 20, 28);
       doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
-      doc.line(20, 32, 190, 32);
+      doc.line(20, 30.5, 190, 30.5);
 
       const monthTxs = transactions.filter(t => t.date.startsWith(activeMonth));
       const onlineSum = monthTxs.reduce((sum, t) => sum + t.onlineAmount, 0);
@@ -1095,62 +1082,63 @@ export default function ReportsPage() {
       const ratioCash = totalSum > 0 ? cashSum / totalSum : 0.5;
 
       // Draw Donut Card background
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, 36, 170, 48, 2, 2, "F");
-      doc.roundedRect(20, 36, 170, 48, 2, 2, "S");
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.roundedRect(20, 34, 170, 48, 2, 2, "F");
+      doc.roundedRect(20, 34, 170, 48, 2, 2, "S");
 
-      // Render vector donut chart: Center cx=60, cy=60, radius=18, innerRadius=10
+      // Render vector donut chart: Center cx=58, cy=58, radius=18, innerRadius=10
       const donutData = [
-        { value: onlineSum || 1, color: primaryBlue },
+        { value: onlineSum || 1, color: brandBlue },
         { value: cashSum || 1, color: secondaryPurple }
       ];
-      drawDonutChart(60, 60, 18, 10, donutData);
+      drawDonutChart(58, 58, 18, 10, donutData);
 
       // Donut Center Text overlay
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(7);
-      doc.text("TOTAL", 60, 58.5, { align: "center" });
+      doc.setFontSize(6.5);
+      doc.text("TOTAL INFLOWS", 58, 56.5, { align: "center" });
       doc.setFontSize(8);
-      doc.text(formatCurrencyPDF(totalSum), 60, 62.5, { align: "center" });
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
+      doc.text(formatCurrencyPDF(totalSum), 58, 60.5, { align: "center" });
 
       // Legends on the right side of Card
       const legendX = 105;
-      doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-      doc.circle(legendX, 52, 1.5, "F");
+      doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+      doc.circle(legendX, 50, 1.5, "F");
       doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
-      doc.text(`UPI / Online Stream:`, legendX + 5, 53.5);
+      doc.text(`UPI / Online Stream:`, legendX + 5, 51.5);
       doc.setFont("helvetica", "normal");
-      doc.text(`${formatCurrencyPDF(onlineSum)} (${(ratioOnline * 100).toFixed(1)}%)`, legendX + 45, 53.5);
+      doc.text(`${formatCurrencyPDF(onlineSum)} (${(ratioOnline * 100).toFixed(1)}%)`, legendX + 45, 51.5);
 
       doc.setFillColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]);
-      doc.circle(legendX, 64, 1.5, "F");
+      doc.circle(legendX, 62, 1.5, "F");
       doc.setFont("helvetica", "bold");
-      doc.text(`Drawer Cash Stream:`, legendX + 5, 65.5);
+      doc.text(`Drawer Cash Stream:`, legendX + 5, 63.5);
       doc.setFont("helvetica", "normal");
-      doc.text(`${formatCurrencyPDF(cashSum)} (${(ratioCash * 100).toFixed(1)}%)`, legendX + 45, 65.5);
+      doc.text(`${formatCurrencyPDF(cashSum)} (${(ratioCash * 100).toFixed(1)}%)`, legendX + 45, 63.5);
 
-      // 2. Month-over-Month Comparative Columns (2 or 3 months side-by-side)
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      // 2. Month-over-Month Comparative Columns
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
-      doc.text("MONTH-OVER-MONTH COMPARATIVE GRAPH", 20, 93);
-      doc.line(20, 96, 190, 96);
+      doc.text("MONTH-OVER-MONTH COMPARATIVE GRAPH", 20, 89);
+      doc.line(20, 91.5, 190, 91.5);
 
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, 100, 170, 80, 2, 2, "F");
-      doc.roundedRect(20, 100, 170, 80, 2, 2, "S");
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.roundedRect(20, 95, 170, 78, 2, 2, "F");
+      doc.roundedRect(20, 95, 170, 78, 2, 2, "S");
 
       // Draw Gridlines & Axes
       doc.setDrawColor(226, 232, 240);
       doc.setLineWidth(0.3);
-      doc.line(35, 110, 35, 160); // Y axis
-      doc.line(35, 160, 180, 160); // X axis
-      doc.line(35, 147, 180, 147);
-      doc.line(35, 134, 180, 134);
-      doc.line(35, 122, 180, 122);
+      doc.line(35, 103, 35, 155); // Y axis
+      doc.line(35, 155, 180, 155); // X axis
+      doc.line(35, 142, 180, 142);
+      doc.line(35, 129, 180, 129);
+      doc.line(35, 116, 180, 116);
 
       const m1 = monthCompData.m1;
       const m2 = monthCompData.m2;
@@ -1165,37 +1153,29 @@ export default function ReportsPage() {
         const gap = 2;
 
         // Group 1: Gross Inflows
-        // Month A (blue)
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-        doc.rect(48, 160 - m1.rev * scaleComp, barW, m1.rev * scaleComp, "F");
-        // Month B (purple)
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+        doc.rect(48, 155 - m1.rev * scaleComp, barW, m1.rev * scaleComp, "F");
         doc.setFillColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]);
-        doc.rect(48 + barW + gap, 160 - m2.rev * scaleComp, barW, m2.rev * scaleComp, "F");
-        // Month C (emerald)
+        doc.rect(48 + barW + gap, 155 - m2.rev * scaleComp, barW, m2.rev * scaleComp, "F");
         doc.setFillColor(successEmerald[0], successEmerald[1], successEmerald[2]);
-        doc.rect(48 + (barW + gap) * 2, 160 - m3.rev * scaleComp, barW, m3.rev * scaleComp, "F");
+        doc.rect(48 + (barW + gap) * 2, 155 - m3.rev * scaleComp, barW, m3.rev * scaleComp, "F");
 
         // Group 2: Outflows
-        // Month A
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-        doc.rect(118, 160 - m1.exp * scaleComp, barW, m1.exp * scaleComp, "F");
-        // Month B
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+        doc.rect(118, 155 - m1.exp * scaleComp, barW, m1.exp * scaleComp, "F");
         doc.setFillColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]);
-        doc.rect(118 + barW + gap, 160 - m2.exp * scaleComp, barW, m2.exp * scaleComp, "F");
-        // Month C
+        doc.rect(118 + barW + gap, 155 - m2.exp * scaleComp, barW, m2.exp * scaleComp, "F");
         doc.setFillColor(successEmerald[0], successEmerald[1], successEmerald[2]);
-        doc.rect(118 + (barW + gap) * 2, 160 - m3.exp * scaleComp, barW, m3.exp * scaleComp, "F");
+        doc.rect(118 + (barW + gap) * 2, 155 - m3.exp * scaleComp, barW, m3.exp * scaleComp, "F");
 
-        // Axis texts
         doc.setFontSize(8);
-        doc.setTextColor(71, 85, 105);
+        doc.setTextColor(slateText[0], slateText[1], slateText[2]);
         doc.setFont("helvetica", "bold");
-        doc.text("Gross Inflows comparison", 58, 166, { align: "center" });
-        doc.text("Total Outflows comparison", 128, 166, { align: "center" });
+        doc.text("Gross Inflows comparison", 58, 161, { align: "center" });
+        doc.text("Total Outflows comparison", 128, 161, { align: "center" });
 
-        // Legends
-        const lY = 173;
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+        const lY = 167;
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
         doc.circle(42, lY, 1.2, "F");
         doc.setFont("helvetica", "normal");
         doc.text(`${m1.label}`, 46, lY + 1);
@@ -1208,31 +1188,27 @@ export default function ReportsPage() {
         doc.circle(142, lY, 1.2, "F");
         doc.text(`${m3.label}`, 146, lY + 1);
       } else {
-        // Compare 2 months (standard layout)
+        // Compare 2 months
         const barW = 11;
 
-        // Group 1: Inflows
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-        doc.rect(52, 160 - m1.rev * scaleComp, barW, m1.rev * scaleComp, "F");
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+        doc.rect(52, 155 - m1.rev * scaleComp, barW, m1.rev * scaleComp, "F");
         doc.setFillColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]);
-        doc.rect(65, 160 - m2.rev * scaleComp, barW, m2.rev * scaleComp, "F");
+        doc.rect(65, 155 - m2.rev * scaleComp, barW, m2.rev * scaleComp, "F");
 
-        // Group 2: Outflows
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
-        doc.rect(122, 160 - m1.exp * scaleComp, barW, m1.exp * scaleComp, "F");
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
+        doc.rect(122, 155 - m1.exp * scaleComp, barW, m1.exp * scaleComp, "F");
         doc.setFillColor(secondaryPurple[0], secondaryPurple[1], secondaryPurple[2]);
-        doc.rect(135, 160 - m2.exp * scaleComp, barW, m2.exp * scaleComp, "F");
+        doc.rect(135, 155 - m2.exp * scaleComp, barW, m2.exp * scaleComp, "F");
 
-        // Axis texts
         doc.setFontSize(8);
-        doc.setTextColor(71, 85, 105);
+        doc.setTextColor(slateText[0], slateText[1], slateText[2]);
         doc.setFont("helvetica", "bold");
-        doc.text("Gross Inflows comparison", 64, 166, { align: "center" });
-        doc.text("Total Outflows comparison", 134, 166, { align: "center" });
+        doc.text("Gross Inflows comparison", 64, 161, { align: "center" });
+        doc.text("Total Outflows comparison", 134, 161, { align: "center" });
 
-        // Legends
-        const lY = 173;
-        doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+        const lY = 167;
+        doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
         doc.circle(52, lY, 1.2, "F");
         doc.setFont("helvetica", "normal");
         doc.text(`${m1.label}`, 56, lY + 1);
@@ -1243,20 +1219,20 @@ export default function ReportsPage() {
       }
 
       // 3. Shaded Daily Profit Line Chart
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
-      doc.text("DAILY NET PROFIT RUNWAY TREND", 20, 189);
-      doc.line(20, 192, 190, 192);
+      doc.text("DAILY NET PROFIT RUNWAY TREND", 20, 180);
+      doc.line(20, 182.5, 190, 182.5);
 
-      doc.setFillColor(248, 250, 252);
-      doc.roundedRect(20, 196, 170, 78, 2, 2, "F");
-      doc.roundedRect(20, 196, 170, 78, 2, 2, "S");
+      doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+      doc.roundedRect(20, 186, 170, 78, 2, 2, "F");
+      doc.roundedRect(20, 186, 170, 78, 2, 2, "S");
 
       // Draw Gridlines & Axes
       doc.setDrawColor(226, 232, 240);
-      doc.line(35, 204, 35, 260); // Y axis
-      doc.line(35, 260, 180, 260); // X axis
+      doc.line(35, 194, 35, 250); // Y axis
+      doc.line(35, 250, 180, 250); // X axis
 
       const monthEntries = dailySummaries
         .filter(s => s.date.startsWith(activeMonth))
@@ -1266,7 +1242,7 @@ export default function ReportsPage() {
         const maxPLVal = Math.max(...monthEntries.map(s => Math.abs(s.netPL)), 100);
         const scalePL = 25 / maxPLVal;
         const stepX = 140 / (monthEntries.length - 1);
-        const baselineY = 232; // Centered baseline in card
+        const baselineY = 222; // Centered baseline in card
 
         // Draw 0 line indicator
         doc.setDrawColor(203, 213, 225);
@@ -1288,11 +1264,11 @@ export default function ReportsPage() {
 
         // B. Main Trend line
         doc.setLineWidth(0.6);
-        doc.setDrawColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+        doc.setDrawColor(brandBlue[0], brandBlue[1], brandBlue[2]);
         monthEntries.forEach((s, idx) => {
           const ptX = 35 + idx * stepX;
           const ptY = baselineY - s.netPL * scalePL;
-          doc.setFillColor(primaryBlue[0], primaryBlue[1], primaryBlue[2]);
+          doc.setFillColor(brandBlue[0], brandBlue[1], brandBlue[2]);
           doc.circle(ptX, ptY, 0.7, "F");
           if (idx < monthEntries.length - 1) {
             const nextX = 35 + (idx + 1) * stepX;
@@ -1302,12 +1278,12 @@ export default function ReportsPage() {
         });
 
         doc.setFontSize(7.5);
-        doc.setTextColor(148, 163, 184);
-        doc.text(`Timeline scope (${monthEntries[0].date.substring(8)} - ${monthEntries[monthEntries.length - 1].date.substring(8)})`, 107, 269, { align: "center" });
+        doc.setTextColor(mutedText[0], mutedText[1], mutedText[2]);
+        doc.text(`Timeline scope (${monthEntries[0].date.substring(8)} - ${monthEntries[monthEntries.length - 1].date.substring(8)})`, 107, 259, { align: "center" });
       } else {
         doc.setFont("helvetica", "italic");
         doc.setTextColor(150, 150, 150);
-        doc.text("Insufficient daily records to construct trend visualization.", 107, 232, { align: "center" });
+        doc.text("Insufficient daily records to construct trend visualization.", 107, 222, { align: "center" });
       }
 
       addFooter(2, 4);
@@ -1319,14 +1295,15 @@ export default function ReportsPage() {
       drawHeaderBanner("STATEMENT COMPONENT MATRIX");
 
       // 1. Month Comparison Statement Table
-      doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
-      doc.text("MONTH-OVER-MONTH PERFORMANCE COMPARISON SHEET", 20, 29);
-      doc.line(20, 32, 190, 32);
+      doc.text("MONTH-OVER-MONTH PERFORMANCE COMPARISON SHEET", 20, 28);
+      doc.setDrawColor(borderGray[0], borderGray[1], borderGray[2]);
+      doc.line(20, 30.5, 190, 30.5);
 
-      let tableY = 36;
-      doc.setFillColor(30, 41, 59);
+      let tableY = 34;
+      doc.setFillColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
 
       if (m3) {
         // Render 3 months table
@@ -1350,7 +1327,7 @@ export default function ReportsPage() {
         doc.setFont("helvetica", "normal");
         rows3.forEach((row, idx) => {
           if (idx % 2 === 1) {
-            doc.setFillColor(248, 250, 252);
+            doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
             doc.rect(20, tableY, 170, 9, "F");
           }
           doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
@@ -1359,7 +1336,8 @@ export default function ReportsPage() {
           doc.text(formatCurrencyPDF(row.v2), 105, tableY + 6);
           doc.text(formatCurrencyPDF(row.v3), 135, tableY + 6);
 
-          const diff = row.v3 - row.v1;
+          // Correct Net Variance: Period A (v1) minus Period C (v3)
+          const diff = row.v1 - row.v3;
           const isPos = diff >= 0;
           let color = successEmerald;
           if ((row.name.includes("Expense") && isPos) || (!row.name.includes("Expense") && !isPos)) {
