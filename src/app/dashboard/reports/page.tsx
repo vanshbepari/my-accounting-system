@@ -2225,10 +2225,10 @@ export default function ReportsPage() {
       // System Metadata Card
       let cY = 43;
       doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
-      doc.roundedRect(20, cY, 170, 48, 2, 2, "F");
-      doc.roundedRect(20, cY, 170, 48, 2, 2, "S");
+      doc.roundedRect(20, cY, 170, 44, 2, 2, "F");
+      doc.roundedRect(20, cY, 170, 44, 2, 2, "S");
       doc.setFillColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.rect(20, cY, 1.8, 48, "F");
+      doc.rect(20, cY, 1.8, 44, "F");
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(8.5);
@@ -2246,31 +2246,24 @@ export default function ReportsPage() {
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-      doc.text("DATABASE SOURCE:", 25, cY + 23);
+      doc.text("STATEMENT PERIOD:", 25, cY + 24);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text("Supabase PostgreSQL Realtime Ledger", 65, cY + 23);
+      doc.text(getMonthLabel(activeMonth), 65, cY + 24);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-      doc.text("STATEMENT PERIOD:", 25, cY + 29);
-      doc.setFont("helvetica", "normal");
-      doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text(getMonthLabel(activeMonth), 65, cY + 29);
-
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-      doc.text("CRYPTOGRAPHIC HASH:", 25, cY + 35);
+      doc.text("CRYPTOGRAPHIC HASH:", 25, cY + 31);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(brandBlue[0], brandBlue[1], brandBlue[2]);
-      doc.text(`#${pdfRefHash}`, 65, cY + 35);
+      doc.text(`#${pdfRefHash}`, 65, cY + 31);
 
       doc.setFont("helvetica", "bold");
       doc.setTextColor(slateText[0], slateText[1], slateText[2]);
-      doc.text("AUDIT GENERATION TIME:", 25, cY + 41);
+      doc.text("AUDIT GENERATION TIME:", 25, cY + 38);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(primaryNavy[0], primaryNavy[1], primaryNavy[2]);
-      doc.text(new Date().toLocaleString("en-US", { hour12: true }), 65, cY + 41);
+      doc.text(new Date().toLocaleString("en-US", { hour12: true }), 65, cY + 38);
 
       // Data Authenticity Statement
       cY += 56;
