@@ -448,7 +448,7 @@ export default function BudgetPage() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
-                className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden"
+                className="bg-white rounded-3xl border border-slate-200 shadow-xl relative z-20 overflow-visible"
               >
                 {/* Notebook spine details */}
                 <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 border-b border-slate-200" />
@@ -704,7 +704,7 @@ export default function BudgetPage() {
           transition={{ duration: 0.4, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           className="lg:col-span-5 space-y-6"
         >
-          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm">
+          <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-sm relative z-20 overflow-visible">
             <div className="flex flex-col space-y-3.5">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>

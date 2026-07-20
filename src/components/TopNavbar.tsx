@@ -142,9 +142,9 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden border border-border-color/80"
+                    className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 sm:w-96 bg-white rounded-2xl shadow-2xl z-[9999] overflow-hidden border border-slate-200/90 max-h-[80vh] flex flex-col"
                   >
-                    <div className="p-4 border-b border-border-color flex items-center justify-between bg-slate-50/50">
+                    <div className="p-4 border-b border-border-color flex items-center justify-between bg-slate-50/80 shrink-0">
                       <span className="font-display font-bold text-xs text-text-primary uppercase tracking-wider">
                         Notifications ({notifications.length})
                       </span>
@@ -158,7 +158,7 @@ export default function TopNavbar({ onMobileMenuToggle }: TopNavbarProps) {
                         </button>
                       )}
                     </div>
-                    <div className="max-h-72 overflow-y-auto divide-y divide-border-color">
+                    <div className="max-h-72 sm:max-h-80 overflow-y-auto overscroll-contain divide-y divide-border-color" style={{ WebkitOverflowScrolling: "touch" }}>
                       {notifications.length === 0 ? (
                         <div className="p-8 text-center text-xs text-text-secondary">
                           All caught up! No notifications.

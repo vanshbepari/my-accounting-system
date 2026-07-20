@@ -24,7 +24,7 @@ export default function MobileBottomNavbar({ onQuickAddTrigger }: MobileBottomNa
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.06)] transition-all py-1.5 px-2 pb-safe-bottom">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/80 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] transition-all py-1.5 px-2 pb-[env(safe-area-inset-bottom,0px)] pointer-events-auto">
         <div className="grid grid-cols-5 h-14 w-full relative items-center justify-items-center">
           {navItems.map((item, idx) => {
             if (item.path === "action_trigger") {
@@ -32,7 +32,7 @@ export default function MobileBottomNavbar({ onQuickAddTrigger }: MobileBottomNa
                 <div key="quick-add-btn" className="relative flex flex-col items-center justify-center w-full h-full">
                   <button
                     onClick={onQuickAddTrigger}
-                    className="absolute -top-6 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-secondary text-white shadow-lg shadow-primary/30 border-[3.5px] border-white focus:outline-none hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+                    className="absolute -top-6 flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-secondary text-white shadow-lg shadow-primary/30 border-[3.5px] border-white focus:outline-none hover:scale-105 active:scale-95 transition-all z-30 cursor-pointer pointer-events-auto"
                     aria-label="Add Transaction Entry"
                   >
                     <Plus className="w-5.5 h-5.5 stroke-[2.5]" />
