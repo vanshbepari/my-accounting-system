@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, ChevronDown, Check, Sparkles } from "lucide-react";
 
@@ -31,12 +32,50 @@ export default function CustomMonthDropdown({
   align = "left"
 }: CustomMonthDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  const updateCoords = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom + 6,
+        left: rect.left + rect.width / 2
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener("resize", updateCoords);
+      window.addEventListener("scroll", updateCoords, true);
+      return () => {
+        window.removeEventListener("resize", updateCoords);
+        window.removeEventListener("scroll", updateCoords, true);
+      };
+    }
+  }, [isOpen]);
 
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Also check if click is inside portal element
+        const portalEl = document.getElementById("custom-dropdown-portal-menu");
+        if (portalEl && portalEl.contains(event.target as Node)) {
+          return;
+        }
         setIsOpen(false);
       }
     };
@@ -74,12 +113,79 @@ export default function CustomMonthDropdown({
       ? "px-4 py-3 text-sm rounded-2xl"
       : "px-3.5 py-2 text-xs sm:text-sm rounded-xl";
 
-  const alignClass =
+  const alignClassDesktop =
     align === "right"
       ? "right-0 left-auto"
       : align === "center"
       ? "left-1/2 -translate-x-1/2"
       : "left-0 right-auto";
+
+  const menuItemsList = (
+    <>
+      <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
+        <span>Select Ledger Period</span>
+        <Sparkles className="w-3 h-3 text-primary" />
+      </div>
+
+      <div className="py-1 space-y-0.5">
+        {options.map((opt) => {
+          const isSelected = opt.value === value;
+
+          let badgeClass = "bg-slate-100 text-slate-600 border-slate-200";
+          if (opt.badge === "current") {
+            badgeClass = "bg-purple-100 text-purple-700 border-purple-200";
+          } else if (opt.badge === "future") {
+            badgeClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
+          } else if (opt.badge === "past") {
+            badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
+          } else if (opt.badge === "all") {
+            badgeClass = "bg-indigo-100 text-indigo-700 border-indigo-200";
+          }
+
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleSelect(opt.value)}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none ${
+                isSelected
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 border border-transparent"
+              }`}
+            >
+              <div className="flex items-center space-x-2.5 min-w-0">
+                <div
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    isSelected ? "bg-primary" : "bg-slate-300"
+                  }`}
+                />
+                <div className="truncate">
+                  <span className="block truncate">{opt.label}</span>
+                  {opt.sublabel && (
+                    <span className="block text-[10px] font-normal text-slate-400 truncate">
+                      {opt.sublabel}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 shrink-0 ml-2">
+                {opt.badge && (
+                  <span
+                    className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border ${badgeClass}`}
+                  >
+                    {opt.badge}
+                  </span>
+                )}
+
+                {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={containerRef}>
@@ -112,80 +218,39 @@ export default function CustomMonthDropdown({
         </motion.div>
       </button>
 
-      {/* Animated Dropdown Menu */}
+      {/* Render Dropdown Menu */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
-            animate={{ opacity: 1, y: 4, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className={`absolute top-full ${alignClass} z-[9999] mt-1.5 w-[260px] sm:w-[280px] max-w-[calc(100vw-2rem)] max-h-[240px] sm:max-h-[320px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400">
-              <span>Select Ledger Period</span>
-              <Sparkles className="w-3 h-3 text-primary" />
-            </div>
-
-            <div className="py-1 space-y-0.5">
-              {options.map((opt) => {
-                const isSelected = opt.value === value;
-
-                let badgeClass = "bg-slate-100 text-slate-600 border-slate-200";
-                if (opt.badge === "current") {
-                  badgeClass = "bg-purple-100 text-purple-700 border-purple-200";
-                } else if (opt.badge === "future") {
-                  badgeClass = "bg-emerald-100 text-emerald-700 border-emerald-200";
-                } else if (opt.badge === "past") {
-                  badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
-                } else if (opt.badge === "all") {
-                  badgeClass = "bg-indigo-100 text-indigo-700 border-indigo-200";
-                }
-
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => handleSelect(opt.value)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none ${
-                      isSelected
-                        ? "bg-primary/10 text-primary border border-primary/20"
-                        : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 border border-transparent"
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2.5 min-w-0">
-                      <div
-                        className={`w-2 h-2 rounded-full shrink-0 ${
-                          isSelected ? "bg-primary" : "bg-slate-300"
-                        }`}
-                      />
-                      <div className="truncate">
-                        <span className="block truncate">{opt.label}</span>
-                        {opt.sublabel && (
-                          <span className="block text-[10px] font-normal text-slate-400 truncate">
-                            {opt.sublabel}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2 shrink-0 ml-2">
-                      {opt.badge && (
-                        <span
-                          className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-md border ${badgeClass}`}
-                        >
-                          {opt.badge}
-                        </span>
-                      )}
-
-                      {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
+          isMobile && mounted ? (
+            createPortal(
+              <motion.div
+                id="custom-dropdown-portal-menu"
+                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className={`fixed left-1/2 -translate-x-1/2 z-[99999] w-[calc(100vw-2rem)] max-w-[320px] max-h-[260px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
+                style={{
+                  top: `${coords?.top ?? 100}px`,
+                  WebkitOverflowScrolling: "touch"
+                }}
+              >
+                {menuItemsList}
+              </motion.div>,
+              document.body
+            )
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 4, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.96 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className={`absolute ${alignClassDesktop} z-[9999] mt-1.5 w-[280px] max-h-[320px] overflow-y-auto overscroll-contain rounded-2xl border p-1.5 space-y-1 shadow-2xl ${menuVariantClass}`}
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              {menuItemsList}
+            </motion.div>
+          )
         )}
       </AnimatePresence>
     </div>
