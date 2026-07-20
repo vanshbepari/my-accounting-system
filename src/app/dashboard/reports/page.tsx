@@ -1771,7 +1771,7 @@ export default function ReportsPage() {
       const projExp = Math.round(avgExp * (1 - sRate / 100));
       const projNet = projRev - projExp;
 
-      let runningReserve = (user?.startingBalance || 0) + cashFlowMetrics.opening + monthlyMetrics.profit;
+      let runningReserve = 0;
       const forecastRows = Array.from({ length: 6 }, (_, idx) => {
         runningReserve += projNet;
         return {
@@ -1938,42 +1938,56 @@ export default function ReportsPage() {
       bY += 8;
       doc.setFont("helvetica", "normal");
 
-      // Reconcile budget caps directly with user budgets array if configured, else 15% operating buffer
-      const budgetRows = expenseBreakdownData.slice(0, 6).map(item => {
-        const foundBudget = (budgets || []).find(b => b.category.toLowerCase() === item.name.toLowerCase());
-        const allocatedCap = foundBudget ? foundBudget.limitAmount : Math.round(item.value * 1.15);
-        const remaining = allocatedCap - item.value;
+      // Reconcile budget caps directly with user's explicit budgets array (NO phantom categories or fake 1.15 multiplier caps)
+      const activeMonthBudgets = (budgets || []).filter(b => !activeMonth || activeMonth === "All" || b.month === activeMonth);
+      const targetBudgets = activeMonthBudgets.length > 0 ? activeMonthBudgets : (budgets || []);
+
+      const budgetRows = targetBudgets.map(b => {
+        const categoryName = b.category.trim();
+        const foundExpense = expenseBreakdownData.find(item => item.name.toLowerCase() === categoryName.toLowerCase());
+        const burn = foundExpense ? foundExpense.value : 0;
+        const remaining = b.limitAmount - burn;
         const isSafe = remaining >= 0;
         return {
-          name: item.name,
-          cap: allocatedCap,
-          burn: item.value,
+          name: categoryName,
+          cap: b.limitAmount,
+          burn: burn,
           buffer: remaining,
           isSafe
         };
       });
 
-      budgetRows.forEach((r, idx) => {
-        if (idx % 2 === 1) {
-          doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
-          doc.rect(20, bY, 170, 7.5, "F");
-        }
-        doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-        doc.text(r.name, 24, bY + 5);
-        doc.text(formatCurrencyPDF(r.cap), 78, bY + 5);
-        doc.text(formatCurrencyPDF(r.burn), 112, bY + 5);
-
-        doc.setTextColor(r.isSafe ? successEmerald[0] : dangerRed[0], r.isSafe ? successEmerald[1] : dangerRed[1], r.isSafe ? successEmerald[2] : dangerRed[2]);
-        doc.text(formatCurrencyPDF(r.buffer), 146, bY + 5);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(7.5);
-        doc.text(r.isSafe ? "[SAFE]" : "[ALERT]", 186, bY + 5, { align: "right" });
+      if (budgetRows.length === 0) {
+        doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+        doc.rect(20, bY, 170, 7.5, "F");
+        doc.setTextColor(slateText[0], slateText[1], slateText[2]);
+        doc.setFont("helvetica", "italic");
+        doc.text("No active category budget limits configured for this period.", 24, bY + 5);
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-
         bY += 7.5;
-      });
+      } else {
+        budgetRows.forEach((r, idx) => {
+          if (idx % 2 === 1) {
+            doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
+            doc.rect(20, bY, 170, 7.5, "F");
+          }
+          doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+          doc.text(r.name, 24, bY + 5);
+          doc.text(formatCurrencyPDF(r.cap), 78, bY + 5);
+          doc.text(formatCurrencyPDF(r.burn), 112, bY + 5);
+
+          doc.setTextColor(r.isSafe ? successEmerald[0] : dangerRed[0], r.isSafe ? successEmerald[1] : dangerRed[1], r.isSafe ? successEmerald[2] : dangerRed[2]);
+          doc.text(formatCurrencyPDF(r.buffer), 146, bY + 5);
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(7.5);
+          doc.text(r.isSafe ? "[SAFE]" : "[ALERT]", 186, bY + 5, { align: "right" });
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(8);
+
+          bY += 7.5;
+        });
+      }
 
       // Section 2: Financial Milestone Target Acceleration Gauges
       bY += 8;
