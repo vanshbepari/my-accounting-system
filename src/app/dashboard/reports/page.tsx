@@ -240,9 +240,7 @@ export default function ReportsPage() {
 
   // Sync initial month from context
   useEffect(() => {
-    const current = selectedMonth && selectedMonth !== "All"
-      ? selectedMonth
-      : new Date().toISOString().split("T")[0].substring(0, 7);
+    const current = selectedMonth || new Date().toISOString().split("T")[0].substring(0, 7);
     
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveMonth(current);

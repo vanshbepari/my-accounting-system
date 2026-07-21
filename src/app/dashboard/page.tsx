@@ -93,13 +93,6 @@ export default function DashboardPage() {
   // Exclusively on Dashboard: display only past months and current month (0 future months)
   const dashboardMonthOptions = useMemo(() => generateMonthOptions(12, 0, true), []);
 
-  // Clamp selected month to current month if a future month was selected elsewhere
-  useEffect(() => {
-    if (selectedMonth && selectedMonth !== "All" && selectedMonth > currentMonthStr) {
-      setSelectedMonth(currentMonthStr);
-    }
-  }, [selectedMonth, currentMonthStr, setSelectedMonth]);
-
   // Hydration safety mount check + back button interceptor
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect

@@ -14,6 +14,7 @@ import {
   ArrowUpRight
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
+import CustomDatePicker from "@/components/CustomDatePicker";
 
 export default function IncomePage() {
   const { transactions, saveDailyRecord, user, formatCurrency } = useAccounting();
@@ -229,20 +230,12 @@ export default function IncomePage() {
                 </div>
 
                 {/* Date */}
-                <div>
-                  <label className="block text-xs font-bold text-text-secondary mb-1 uppercase tracking-wider">
-                    Deposit Date
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2.5 text-xs font-semibold border border-border-color rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-text-primary"
-                    />
-                    <Calendar className="w-4 h-4 text-text-secondary absolute left-3 top-3.5" />
-                  </div>
+                <div className="sm:col-span-2">
+                  <CustomDatePicker
+                    value={date}
+                    onChange={(newDate) => setDate(newDate)}
+                    label="Deposit Date"
+                  />
                 </div>
               </div>
 

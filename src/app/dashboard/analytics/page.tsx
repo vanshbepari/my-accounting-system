@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import { useAccounting } from "@/context/AccountingContext";
 import { triggerBlobDownload } from "@/utils/downloadHelper";
+import CustomMonthDropdown from "@/components/CustomMonthDropdown";
+import { generateMonthOptions } from "@/utils/dateDropdownHelpers";
 
 const PIE_CHART_COLORS = [
   "#6366F1", "#06B6D4", "#10B981",
@@ -40,6 +42,7 @@ export default function AnalyticsPage() {
     addNotification,
     user,
     selectedMonth,
+    setSelectedMonth,
     revenueTarget,
     netProfitTarget,
     expenseCeiling,
@@ -275,14 +278,24 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleDownloadPDF}
-          disabled={isGeneratingPdf}
-          className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white rounded-xl font-extrabold text-xs shadow-lg hover:shadow-xl transition-all duration-200 shrink-0"
-        >
-          <FileText className="w-4 h-4" />
-          <span>{isGeneratingPdf ? "GENERATING REPORT..." : "DOWNLOAD PDF REPORT"}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          <CustomMonthDropdown
+            value={selectedMonth}
+            onChange={(newMonth) => setSelectedMonth(newMonth)}
+            options={generateMonthOptions(12, 0, true)}
+            variant="glass"
+            size="sm"
+            align="right"
+          />
+          <button
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPdf}
+            className="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 text-white rounded-xl font-extrabold text-xs shadow-lg hover:shadow-xl transition-all duration-200 shrink-0 cursor-pointer"
+          >
+            <FileText className="w-4 h-4" />
+            <span>{isGeneratingPdf ? "GENERATING REPORT..." : "DOWNLOAD PDF REPORT"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Grid: Charts */}
