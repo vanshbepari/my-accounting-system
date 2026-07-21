@@ -142,11 +142,11 @@ export default function BudgetPage() {
   // Local Form state (Notebook-style entry rows)
   const [formRows, setFormRows] = useState<BudgetFormRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [editingMonth, setEditingMonth] = useState<string>("");
   const [, setSaveSuccess] = useState(false);
 
   // Local session cache for custom future budgets saved manually in Notebook Entry modal
   const [sessionSavedFutureMonths, setSessionSavedFutureMonths] = useState<Record<string, BudgetFormRow[]>>({});
-  const monthBeforeEditingRef = useRef<string>("");
   const deletedCategoriesRef = useRef<Set<string>>(new Set());
 
   const currentMonthStr = useMemo(() => {
@@ -183,7 +183,7 @@ export default function BudgetPage() {
 
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
-    monthBeforeEditingRef.current = activeMonth;
+    setEditingMonth(activeMonth);
     deletedCategoriesRef.current.clear();
     loadBudgetRowsForMonth(activeMonth);
     setIsEditing(true);
@@ -191,16 +191,13 @@ export default function BudgetPage() {
 
   // Revert active month display when user clicks "Cancel" in Notebook Entry
   const handleCancelEditing = () => {
-    if (monthBeforeEditingRef.current && monthBeforeEditingRef.current !== activeMonth) {
-      setSelectedMonth(monthBeforeEditingRef.current);
-    }
     deletedCategoriesRef.current.clear();
     setIsEditing(false);
   };
 
-  // Change month inside the Modify Budgets entry panel and load its limits
+  // Change month inside the Modify Budgets entry panel and load its limits without altering main dashboard activeMonth
   const handleEditMonthChange = (newMonth: string) => {
-    setSelectedMonth(newMonth);
+    setEditingMonth(newMonth);
     loadBudgetRowsForMonth(newMonth);
   };
 
@@ -231,6 +228,7 @@ export default function BudgetPage() {
 
   // Submit budget form to database
   const handleSaveForm = async () => {
+    const targetMonth = editingMonth || activeMonth;
     const validRows = formRows.filter(r => r.category.trim() !== "" && parseFloat(r.limitAmount) > 0);
     if (validRows.length === 0 && deletedCategoriesRef.current.size === 0) {
       addNotification("Validation Failed", "Please enter at least one category name and positive limit.", "warning");
@@ -238,16 +236,16 @@ export default function BudgetPage() {
     }
 
     try {
-      const isFuture = activeMonth > currentMonthStr;
+      const isFuture = targetMonth > currentMonthStr;
       if (isFuture) {
         setSessionSavedFutureMonths(prev => ({
           ...prev,
-          [activeMonth]: validRows
+          [targetMonth]: validRows
         }));
       }
 
-      // Find deleted rows (either explicitly via dustbin icon OR missing from remaining form categories)
-      const activeBudgets = budgets.filter(b => b.month === activeMonth);
+      // Find deleted rows (either explicitly via dustbin icon OR missing from remaining form categories) for targetMonth
+      const activeBudgets = budgets.filter(b => b.month === targetMonth);
       const remainingCategories = new Set(validRows.map(r => r.category.trim().toLowerCase()));
 
       const toDelete = activeBudgets.filter(b => {
@@ -257,7 +255,7 @@ export default function BudgetPage() {
 
       // Execute permanent deletions in Supabase and local context state
       for (const b of toDelete) {
-        await deleteBudget(b.id, b.category, activeMonth);
+        await deleteBudget(b.id, b.category, targetMonth);
       }
 
       // Execute upserts for remaining valid rows
@@ -266,17 +264,16 @@ export default function BudgetPage() {
           id: row.id.startsWith("row-") || row.id.startsWith("init-") || row.id.startsWith("fresh-") ? undefined : row.id,
           category: row.category.trim(),
           limitAmount: parseFloat(row.limitAmount),
-          month: activeMonth,
+          month: targetMonth,
           isRecurring: row.isRecurring
         });
       }
 
       deletedCategoriesRef.current.clear();
-      monthBeforeEditingRef.current = activeMonth;
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2500);
       setIsEditing(false);
-      addNotification("Budgets Updated", `Category budget limits for ${activeMonth} have been saved successfully to the backend database.`, "success");
+      addNotification("Budgets Updated", `Category budget limits for ${targetMonth} have been saved successfully to the backend database.`, "success");
     } catch {
       addNotification("Save Error", "Failed to update category budget limits.", "danger");
     }
@@ -487,7 +484,7 @@ export default function BudgetPage() {
                   <div className="flex items-center space-x-3.5">
                     {/* Custom Month selector for setting future budgets (current + 3 future months, 0 past months) */}
                     <CustomMonthDropdown
-                      value={activeMonth}
+                      value={editingMonth}
                       onChange={(newMonth) => handleEditMonthChange(newMonth)}
                       options={generateMonthOptions(0, 3, false)}
                       variant="glass"
