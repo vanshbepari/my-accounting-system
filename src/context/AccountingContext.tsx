@@ -1306,13 +1306,18 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const rolloverRecurringBudgets = useCallback((activeMonthStr: string) => {
     if (!user?.id || budgets.length === 0 || activeMonthStr === "All") return;
 
-    const recurringBudgets = budgets.filter(b => b.isRecurring);
+    // STRICT MONTHLY DATA ISOLATION:
+    // Only roll forward recurring budgets that originated in EARLIER months (b.month < activeMonthStr).
+    // NEVER roll backwards from future months into current or past months!
+    const earlierRecurringBudgets = budgets.filter(b => b.isRecurring && b.month < activeMonthStr);
+    if (earlierRecurringBudgets.length === 0) return;
+
     const activeMonthCategories = new Set(
       budgets.filter(b => b.month === activeMonthStr).map(b => b.category.toLowerCase())
     );
 
     const toAdd: Omit<Budget, "id">[] = [];
-    recurringBudgets.forEach(b => {
+    earlierRecurringBudgets.forEach(b => {
       if (!activeMonthCategories.has(b.category.toLowerCase())) {
         const alreadyPlanned = toAdd.some(x => x.category.toLowerCase() === b.category.toLowerCase());
         if (!alreadyPlanned) {
