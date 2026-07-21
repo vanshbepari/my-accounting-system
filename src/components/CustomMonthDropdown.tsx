@@ -34,8 +34,6 @@ export default function CustomMonthDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
-  const touchStartYRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -57,30 +55,12 @@ export default function CustomMonthDropdown({
     label: value === "All" ? "All Time (Cumulative)" : value
   };
 
-  const handleSelect = (val: string) => {
+  const handleSelect = (val: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     onChange(val);
     setIsOpen(false);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    isScrollingRef.current = false;
-    touchStartYRef.current = e.touches[0].clientY;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartYRef.current !== null) {
-      const deltaY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
-      if (deltaY > 6) {
-        isScrollingRef.current = true;
-      }
-    }
-  };
-
-  const handleItemClick = (val: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isScrollingRef.current) {
-      handleSelect(val);
-    }
   };
 
   // Variant styles
@@ -119,7 +99,7 @@ export default function CustomMonthDropdown({
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="sm:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+            className="sm:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -129,8 +109,6 @@ export default function CustomMonthDropdown({
       <div
         className="py-1 space-y-1 max-h-[60vh] sm:max-h-[280px] overflow-y-auto overscroll-contain touch-pan-y"
         style={{ WebkitOverflowScrolling: "touch" }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
       >
         {options.map((opt) => {
           const isSelected = opt.value === value;
@@ -150,7 +128,7 @@ export default function CustomMonthDropdown({
             <button
               key={opt.value}
               type="button"
-              onClick={(e) => handleItemClick(opt.value, e)}
+              onClick={(e) => handleSelect(opt.value, e)}
               className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none active:scale-[0.99] ${
                 isSelected
                   ? "bg-primary/10 text-primary border border-primary/20"
