@@ -148,6 +148,19 @@ export default function BudgetPage() {
   // Local session cache for custom future budgets saved manually in Notebook Entry modal
   const [sessionSavedFutureMonths, setSessionSavedFutureMonths] = useState<Record<string, BudgetFormRow[]>>({});
   const deletedCategoriesRef = useRef<Set<string>>(new Set());
+  const userSavedFutureMonthsRef = useRef<Set<string>>(new Set());
+
+  // Load user explicitly saved future months from localStorage on client mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("user_explicit_saved_future_months");
+      if (saved) {
+        userSavedFutureMonthsRef.current = new Set(JSON.parse(saved));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const currentMonthStr = useMemo(() => {
     const now = new Date();
@@ -169,25 +182,33 @@ export default function BudgetPage() {
     const isFuture = targetMonth > currentMonthStr;
 
     if (isFuture) {
-      // Check if user has explicitly saved budget rows for this future month (session cache or database)
-      if (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0) {
-        setFormRows(sessionSavedFutureMonths[targetMonth]);
-        return;
+      // STRICT MANDATE:
+      // Whenever a user navigates to any future month for which no budget data has been explicitly
+      // created and saved by the user, all entry fields MUST be explicitly reset to entirely blank, zero-value fields.
+      // Prohibit any carrying over or pre-population of data from previous months under any circumstances.
+      const isExplicitlySavedByUser =
+        userSavedFutureMonthsRef.current.has(targetMonth) ||
+        (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0);
+
+      if (isExplicitlySavedByUser) {
+        if (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0) {
+          setFormRows(sessionSavedFutureMonths[targetMonth]);
+          return;
+        }
+
+        const userSavedBudgets = budgets.filter(b => b.month === targetMonth);
+        if (userSavedBudgets.length > 0) {
+          setFormRows(userSavedBudgets.map(b => ({
+            id: b.id,
+            category: b.category,
+            limitAmount: b.limitAmount.toString(),
+            isRecurring: b.isRecurring
+          })));
+          return;
+        }
       }
 
-      const explicitFutureBudgets = budgets.filter(b => b.month === targetMonth);
-      if (explicitFutureBudgets.length > 0) {
-        setFormRows(explicitFutureBudgets.map(b => ({
-          id: b.id,
-          category: b.category,
-          limitAmount: b.limitAmount.toString(),
-          isRecurring: b.isRecurring
-        })));
-        return;
-      }
-
-      // For any future month where no budget data has been created or saved yet:
-      // Fields MUST be completely blank, reset to zero!
+      // Unsaved future month: FORCE ENTIRELY BLANK ZERO-VALUE FIELDS!
       setFormRows(createFreshRows());
       return;
     }
@@ -267,6 +288,12 @@ export default function BudgetPage() {
           ...prev,
           [targetMonth]: validRows
         }));
+        userSavedFutureMonthsRef.current.add(targetMonth);
+        try {
+          localStorage.setItem("user_explicit_saved_future_months", JSON.stringify(Array.from(userSavedFutureMonthsRef.current)));
+        } catch {
+          // ignore
+        }
       }
 
       // Find deleted rows (either explicitly via dustbin icon OR missing from remaining form categories) for targetMonth
