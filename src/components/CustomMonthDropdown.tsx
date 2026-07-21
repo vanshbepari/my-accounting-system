@@ -34,6 +34,7 @@ export default function CustomMonthDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const executedRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -50,15 +51,34 @@ export default function CustomMonthDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedOption = options.find((opt) => opt.value === value) || options[0] || {
-    value: value || "All",
-    label: value === "All" ? "All Time (Cumulative)" : value
+  // Resilience value matching for YYYY-MM-DD vs YYYY-MM vs "All"
+  const normalizeMonthValue = (val: string) => {
+    if (!val) return "All";
+    if (val.length > 7 && val.includes("-")) return val.substring(0, 7);
+    return val;
   };
 
-  const handleSelect = (val: string, e?: React.MouseEvent) => {
+  const targetValue = normalizeMonthValue(value);
+
+  const selectedOption =
+    options.find((opt) => opt.value === targetValue || (targetValue !== "All" && opt.value.startsWith(targetValue))) ||
+    options.find((opt) => opt.value === value) ||
+    options[0] || {
+      value: value || "All",
+      label: value === "All" ? "All Time (Cumulative)" : value
+    };
+
+  const handleSelect = (val: string, e?: React.SyntheticEvent) => {
     if (e) {
+      e.preventDefault();
       e.stopPropagation();
     }
+    if (executedRef.current) return;
+    executedRef.current = true;
+    setTimeout(() => {
+      executedRef.current = false;
+    }, 250);
+
     onChange(val);
     setIsOpen(false);
   };
@@ -98,7 +118,8 @@ export default function CustomMonthDropdown({
           <Sparkles className="w-3 h-3 text-primary" />
           <button
             type="button"
-            onClick={() => setIsOpen(false)}
+            onTouchEnd={(e) => { e.stopPropagation(); setIsOpen(false); }}
+            onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
             className="sm:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -111,7 +132,7 @@ export default function CustomMonthDropdown({
         style={{ WebkitOverflowScrolling: "touch" }}
       >
         {options.map((opt) => {
-          const isSelected = opt.value === value;
+          const isSelected = opt.value === value || opt.value === targetValue;
 
           let badgeClass = "bg-slate-100 text-slate-600 border-slate-200";
           if (opt.badge === "current") {
@@ -128,6 +149,7 @@ export default function CustomMonthDropdown({
             <button
               key={opt.value}
               type="button"
+              onTouchEnd={(e) => handleSelect(opt.value, e)}
               onClick={(e) => handleSelect(opt.value, e)}
               className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none active:scale-[0.99] ${
                 isSelected
@@ -174,7 +196,8 @@ export default function CustomMonthDropdown({
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onTouchEnd={(e) => { e.stopPropagation(); setIsOpen((prev) => !prev); }}
+        onClick={(e) => { e.stopPropagation(); setIsOpen((prev) => !prev); }}
         className={`flex items-center space-x-2.5 font-bold transition-all duration-200 cursor-pointer select-none border active:scale-[0.98] ${buttonVariantClass} ${sizeClass}`}
       >
         <div className="w-5 h-5 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -204,7 +227,8 @@ export default function CustomMonthDropdown({
       {isOpen && mounted && createPortal(
         <div 
           className="fixed inset-0 z-[99999] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 sm:hidden"
-          onClick={() => setIsOpen(false)}
+          onTouchEnd={(e) => { e.stopPropagation(); setIsOpen(false); }}
+          onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.92, y: 10 }}
@@ -212,6 +236,7 @@ export default function CustomMonthDropdown({
             exit={{ opacity: 0, scale: 0.92, y: 10 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className={`w-full max-w-xs rounded-3xl border p-2 space-y-1 shadow-2xl ${menuVariantClass}`}
+            onTouchEnd={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             {menuItemsList}

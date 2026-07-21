@@ -18,6 +18,7 @@ export default function CustomDatePicker({
   className = ""
 }: CustomDatePickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const executedRef = useRef(false);
 
   // Quick preset helpers
   const getTodayStr = () => new Date().toISOString().split("T")[0];
@@ -47,6 +48,17 @@ export default function CustomDatePicker({
     } catch {
       return dateStr;
     }
+  };
+
+  const handlePresetSelect = (val: string, e: React.SyntheticEvent) => {
+    e.stopPropagation();
+    if (executedRef.current) return;
+    executedRef.current = true;
+    setTimeout(() => {
+      executedRef.current = false;
+    }, 250);
+
+    onChange(val);
   };
 
   const isToday = value === getTodayStr();
@@ -123,8 +135,8 @@ export default function CustomDatePicker({
           />
         </motion.div>
 
-        {/* Quick Presets Bar with Framer Motion Spring Animations */}
-        <div className="flex items-center space-x-2 pt-1 overflow-x-auto no-scrollbar relative z-10">
+        {/* Quick Presets Bar with Elevated z-20 Touch Layer */}
+        <div className="flex items-center space-x-2 pt-1 overflow-x-auto no-scrollbar relative z-20">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0 flex items-center space-x-1 mr-1">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             <span>Presets:</span>
@@ -136,7 +148,8 @@ export default function CustomDatePicker({
               type="button"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => onChange(preset.value)}
+              onTouchEnd={(e) => handlePresetSelect(preset.value, e)}
+              onClick={(e) => handlePresetSelect(preset.value, e)}
               className={`relative px-3.5 py-1.5 rounded-xl text-xs font-black transition-all duration-200 cursor-pointer shrink-0 border select-none ${
                 preset.active
                   ? "bg-gradient-to-r from-primary to-indigo-600 text-white border-primary shadow-md shadow-primary/20"
