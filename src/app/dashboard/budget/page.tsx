@@ -128,6 +128,14 @@ export default function BudgetPage() {
     setCompareMonth(getPreviousMonth(activeMonth));
   }, [activeMonth]);
 
+  // Force initial layout measurement for Recharts on component mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new Event("resize"));
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Month selector for historical budget-to-budget/actual analysis
   const [compareMonth, setCompareMonth] = useState("");
 
@@ -154,58 +162,33 @@ export default function BudgetPage() {
     ];
   };
 
+  // Helper to load budget rows for any target month (past, active, or future) from database/context
+  const loadBudgetRowsForMonth = (targetMonth: string) => {
+    const monthBudgets = budgets.filter(b => b.month === targetMonth);
+    if (monthBudgets.length > 0) {
+      setFormRows(monthBudgets.map(b => ({
+        id: b.id,
+        category: b.category,
+        limitAmount: b.limitAmount.toString(),
+        isRecurring: b.isRecurring
+      })));
+    } else if (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0) {
+      setFormRows(sessionSavedFutureMonths[targetMonth]);
+    } else {
+      setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
+    }
+  };
+
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
-    const isFuture = activeMonth > currentMonthStr;
-
-    if (isFuture) {
-      if (sessionSavedFutureMonths[activeMonth]) {
-        setFormRows(sessionSavedFutureMonths[activeMonth]);
-      } else {
-        // ALWAYS complete reset for future months in Notebook Entry: clear category names & set amounts to 0
-        setFormRows(createFreshRows());
-      }
-    } else {
-      const activeBudgets = budgets.filter(b => b.month === activeMonth);
-      if (activeBudgets.length > 0) {
-        setFormRows(activeBudgets.map(b => ({
-          id: b.id,
-          category: b.category,
-          limitAmount: b.limitAmount.toString(),
-          isRecurring: b.isRecurring
-        })));
-      } else {
-        setFormRows([{ id: "init-1", category: "", limitAmount: "", isRecurring: true }]);
-      }
-    }
+    loadBudgetRowsForMonth(activeMonth);
     setIsEditing(true);
   };
 
   // Change month inside the Modify Budgets entry panel and load its limits
   const handleEditMonthChange = (newMonth: string) => {
     setSelectedMonth(newMonth);
-    const isFuture = newMonth > currentMonthStr;
-
-    if (isFuture) {
-      if (sessionSavedFutureMonths[newMonth]) {
-        setFormRows(sessionSavedFutureMonths[newMonth]);
-      } else {
-        // ALWAYS complete reset for future months in Notebook Entry: clear category names & set amounts to 0
-        setFormRows(createFreshRows());
-      }
-    } else {
-      const activeBudgets = budgets.filter(b => b.month === newMonth);
-      if (activeBudgets.length > 0) {
-        setFormRows(activeBudgets.map(b => ({
-          id: b.id,
-          category: b.category,
-          limitAmount: b.limitAmount.toString(),
-          isRecurring: b.isRecurring
-        })));
-      } else {
-        setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
-      }
-    }
+    loadBudgetRowsForMonth(newMonth);
   };
 
   const handleAddRow = () => {
@@ -359,13 +342,28 @@ export default function BudgetPage() {
         }
       });
 
-    // Display categories with spending in either month
-    const categoriesWithSpending = allCategories.filter(cat => {
-      const key = cat.toLowerCase();
-      return (activeSpending[key] || 0) > 0 || (compareSpending[key] || 0) > 0;
+    // Display categories with spending OR configured budget limits in either active or compare month
+    const activeBudgetsMap: Record<string, number> = {};
+    budgets.filter(b => b.month === activeMonth).forEach(b => {
+      activeBudgetsMap[b.category.toLowerCase().trim()] = b.limitAmount;
     });
 
-    return categoriesWithSpending.map(cat => {
+    const compareBudgetsMap: Record<string, number> = {};
+    budgets.filter(b => b.month === targetCompareMonth).forEach(b => {
+      compareBudgetsMap[b.category.toLowerCase().trim()] = b.limitAmount;
+    });
+
+    const categoriesWithData = allCategories.filter(cat => {
+      const key = cat.toLowerCase();
+      return (
+        (activeSpending[key] || 0) > 0 ||
+        (compareSpending[key] || 0) > 0 ||
+        (activeBudgetsMap[key] || 0) > 0 ||
+        (compareBudgetsMap[key] || 0) > 0
+      );
+    });
+
+    return categoriesWithData.map(cat => {
       const key = cat.toLowerCase();
       const valActive = activeSpending[key] || 0;
       const valCompare = compareSpending[key] || 0;
