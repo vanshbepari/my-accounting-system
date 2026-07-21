@@ -34,6 +34,8 @@ export default function CustomMonthDropdown({
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const touchStartYRef = useRef<number | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -58,6 +60,27 @@ export default function CustomMonthDropdown({
   const handleSelect = (val: string) => {
     onChange(val);
     setIsOpen(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    isScrollingRef.current = false;
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartYRef.current !== null) {
+      const deltaY = Math.abs(e.touches[0].clientY - touchStartYRef.current);
+      if (deltaY > 6) {
+        isScrollingRef.current = true;
+      }
+    }
+  };
+
+  const handleItemClick = (val: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isScrollingRef.current) {
+      handleSelect(val);
+    }
   };
 
   // Variant styles
@@ -89,11 +112,12 @@ export default function CustomMonthDropdown({
 
   const menuItemsList = (
     <>
-      <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
+      <div className="px-3.5 py-2.5 border-b border-slate-100 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-slate-400 select-none">
         <span>Select Ledger Period</span>
         <div className="flex items-center space-x-2">
           <Sparkles className="w-3 h-3 text-primary" />
           <button
+            type="button"
             onClick={() => setIsOpen(false)}
             className="sm:hidden p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600"
           >
@@ -102,7 +126,12 @@ export default function CustomMonthDropdown({
         </div>
       </div>
 
-      <div className="py-1 space-y-0.5 max-h-[60vh] sm:max-h-[280px] overflow-y-auto overscroll-contain">
+      <div
+        className="py-1 space-y-1 max-h-[60vh] sm:max-h-[280px] overflow-y-auto overscroll-contain touch-pan-y"
+        style={{ WebkitOverflowScrolling: "touch" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
         {options.map((opt) => {
           const isSelected = opt.value === value;
 
@@ -121,18 +150,11 @@ export default function CustomMonthDropdown({
             <button
               key={opt.value}
               type="button"
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                handleSelect(opt.value);
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelect(opt.value);
-              }}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none ${
+              onClick={(e) => handleItemClick(opt.value, e)}
+              className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left select-none active:scale-[0.99] ${
                 isSelected
                   ? "bg-primary/10 text-primary border border-primary/20"
-                  : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 border border-transparent"
+                  : "text-slate-700 hover:bg-slate-100/80 active:bg-slate-200/80 hover:text-slate-900 border border-transparent"
               }`}
             >
               <div className="flex items-center space-x-2.5 min-w-0">
