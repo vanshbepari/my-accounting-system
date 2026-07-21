@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet,
@@ -146,6 +146,8 @@ export default function BudgetPage() {
 
   // Local session cache for custom future budgets saved manually in Notebook Entry modal
   const [sessionSavedFutureMonths, setSessionSavedFutureMonths] = useState<Record<string, BudgetFormRow[]>>({});
+  const monthBeforeEditingRef = useRef<string>("");
+  const deletedCategoriesRef = useRef<Set<string>>(new Set());
 
   const currentMonthStr = useMemo(() => {
     const now = new Date();
@@ -181,8 +183,19 @@ export default function BudgetPage() {
 
   // Populate form rows when clicking "Edit Budgets"
   const startEditing = () => {
+    monthBeforeEditingRef.current = activeMonth;
+    deletedCategoriesRef.current.clear();
     loadBudgetRowsForMonth(activeMonth);
     setIsEditing(true);
+  };
+
+  // Revert active month display when user clicks "Cancel" in Notebook Entry
+  const handleCancelEditing = () => {
+    if (monthBeforeEditingRef.current && monthBeforeEditingRef.current !== activeMonth) {
+      setSelectedMonth(monthBeforeEditingRef.current);
+    }
+    deletedCategoriesRef.current.clear();
+    setIsEditing(false);
   };
 
   // Change month inside the Modify Budgets entry panel and load its limits
@@ -199,8 +212,13 @@ export default function BudgetPage() {
   };
 
   const handleRemoveRow = (id: string) => {
+    const rowToRemove = formRows.find(r => r.id === id);
+    if (rowToRemove && rowToRemove.category.trim() !== "") {
+      deletedCategoriesRef.current.add(rowToRemove.category.trim().toLowerCase());
+    }
+
     if (formRows.length === 1) {
-      setFormRows([{ id: "init-1", category: "", limitAmount: "", isRecurring: true }]);
+      setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
     } else {
       setFormRows(prev => prev.filter(r => r.id !== id));
     }
@@ -213,9 +231,8 @@ export default function BudgetPage() {
 
   // Submit budget form to database
   const handleSaveForm = async () => {
-    // Validate rows
     const validRows = formRows.filter(r => r.category.trim() !== "" && parseFloat(r.limitAmount) > 0);
-    if (validRows.length === 0) {
+    if (validRows.length === 0 && deletedCategoriesRef.current.size === 0) {
       addNotification("Validation Failed", "Please enter at least one category name and positive limit.", "warning");
       return;
     }
@@ -229,17 +246,21 @@ export default function BudgetPage() {
         }));
       }
 
-      // Find deleted rows
+      // Find deleted rows (either explicitly via dustbin icon OR missing from remaining form categories)
       const activeBudgets = budgets.filter(b => b.month === activeMonth);
-      const rowIds = new Set(validRows.map(r => r.id));
-      const toDelete = activeBudgets.filter(b => !rowIds.has(b.id));
+      const remainingCategories = new Set(validRows.map(r => r.category.trim().toLowerCase()));
 
-      // Execute deletions
+      const toDelete = activeBudgets.filter(b => {
+        const catLower = b.category.trim().toLowerCase();
+        return !remainingCategories.has(catLower) || deletedCategoriesRef.current.has(catLower);
+      });
+
+      // Execute permanent deletions in Supabase and local context state
       for (const b of toDelete) {
-        await deleteBudget(b.id);
+        await deleteBudget(b.id, b.category, activeMonth);
       }
 
-      // Execute upserts
+      // Execute upserts for remaining valid rows
       for (const row of validRows) {
         await saveBudget({
           id: row.id.startsWith("row-") || row.id.startsWith("init-") || row.id.startsWith("fresh-") ? undefined : row.id,
@@ -250,6 +271,8 @@ export default function BudgetPage() {
         });
       }
 
+      deletedCategoriesRef.current.clear();
+      monthBeforeEditingRef.current = activeMonth;
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2500);
       setIsEditing(false);
@@ -551,7 +574,7 @@ export default function BudgetPage() {
                 {/* Notebook entry foot Actions */}
                 <div className="bg-slate-50 px-6 py-4 flex items-center justify-between border-t border-slate-100">
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancelEditing}
                     className="text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer px-2"
                   >
                     Cancel

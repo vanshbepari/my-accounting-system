@@ -352,6 +352,33 @@ export async function deleteUserBudget(userId: string, budgetId: string): Promis
 }
 
 /**
+ * Delete a budget limit by category and month in Supabase.
+ */
+export async function deleteUserBudgetByCategoryAndMonth(
+  userId: string,
+  category: string,
+  month: string
+): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from("budgets")
+      .delete()
+      .eq("user_id", userId)
+      .eq("category", category)
+      .eq("month", month);
+
+    if (error) {
+      console.error("[deleteUserBudgetByCategoryAndMonth] error:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[deleteUserBudgetByCategoryAndMonth] error:", err);
+    return false;
+  }
+}
+
+/**
  * Fetch all backend notifications for a user. Returns null if table does not exist.
  */
 export async function fetchUserNotifications(userId: string): Promise<NotificationItem[] | null> {

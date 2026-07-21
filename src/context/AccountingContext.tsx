@@ -11,6 +11,7 @@ import {
   fetchUserBudgets,
   upsertUserBudget,
   deleteUserBudget,
+  deleteUserBudgetByCategoryAndMonth,
   fetchUserNotifications,
   insertUserNotification,
   markUserNotificationRead,
@@ -157,7 +158,7 @@ interface AccountingContextType {
   // Budgeting feature state
   budgets: Budget[];
   saveBudget: (budget: Omit<Budget, "id"> & { id?: string }) => Promise<void>;
-  deleteBudget: (id: string) => Promise<void>;
+  deleteBudget: (id: string, category?: string, month?: string) => Promise<void>;
 }
 
 const AccountingContext = createContext<AccountingContextType | undefined>(undefined);
@@ -1179,15 +1180,24 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 
   const deleteBudget = useCallback(
-    async (budgetId: string) => {
+    async (budgetId: string, category?: string, month?: string) => {
       if (!user?.id) return;
 
-      if (useSupabaseForBudgets && budgetId.length === 36) {
-        await deleteUserBudget(user.id, budgetId);
+      if (useSupabaseForBudgets) {
+        if (budgetId && budgetId.length === 36) {
+          await deleteUserBudget(user.id, budgetId);
+        }
+        if (category && month) {
+          await deleteUserBudgetByCategoryAndMonth(user.id, category, month);
+        }
       }
 
       setBudgets(prev => {
-        const updated = prev.filter(b => b.id !== budgetId);
+        const updated = prev.filter(b => {
+          if (budgetId && b.id === budgetId) return false;
+          if (category && month && b.category.trim().toLowerCase() === category.trim().toLowerCase() && b.month === month) return false;
+          return true;
+        });
         localStorage.setItem(`budgets_${user.id}`, JSON.stringify(updated));
         return updated;
       });
