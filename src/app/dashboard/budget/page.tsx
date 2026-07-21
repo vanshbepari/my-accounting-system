@@ -166,6 +166,33 @@ export default function BudgetPage() {
 
   // Helper to load budget rows for any target month (past, active, or future) from database/context
   const loadBudgetRowsForMonth = (targetMonth: string) => {
+    const isFuture = targetMonth > currentMonthStr;
+
+    if (isFuture) {
+      // Check if user has explicitly saved budget rows for this future month (session cache or database)
+      if (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0) {
+        setFormRows(sessionSavedFutureMonths[targetMonth]);
+        return;
+      }
+
+      const explicitFutureBudgets = budgets.filter(b => b.month === targetMonth);
+      if (explicitFutureBudgets.length > 0) {
+        setFormRows(explicitFutureBudgets.map(b => ({
+          id: b.id,
+          category: b.category,
+          limitAmount: b.limitAmount.toString(),
+          isRecurring: b.isRecurring
+        })));
+        return;
+      }
+
+      // For any future month where no budget data has been created or saved yet:
+      // Fields MUST be completely blank, reset to zero!
+      setFormRows(createFreshRows());
+      return;
+    }
+
+    // Active or past month:
     const monthBudgets = budgets.filter(b => b.month === targetMonth);
     if (monthBudgets.length > 0) {
       setFormRows(monthBudgets.map(b => ({
@@ -174,8 +201,6 @@ export default function BudgetPage() {
         limitAmount: b.limitAmount.toString(),
         isRecurring: b.isRecurring
       })));
-    } else if (sessionSavedFutureMonths[targetMonth] && sessionSavedFutureMonths[targetMonth].length > 0) {
-      setFormRows(sessionSavedFutureMonths[targetMonth]);
     } else {
       setFormRows([{ id: `init-${Date.now()}`, category: "", limitAmount: "", isRecurring: true }]);
     }

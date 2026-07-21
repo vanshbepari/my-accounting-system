@@ -1316,6 +1316,10 @@ export const AccountingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const rolloverRecurringBudgets = useCallback((activeMonthStr: string) => {
     if (!user?.id || budgets.length === 0 || activeMonthStr === "All") return;
 
+    // Future months must remain blank until explicitly created/saved by user
+    const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+    if (activeMonthStr > currentMonthStr) return;
+
     // STRICT MONTHLY DATA ISOLATION:
     // Only roll forward recurring budgets that originated in EARLIER months (b.month < activeMonthStr).
     // NEVER roll backwards from future months into current or past months!
