@@ -63,10 +63,13 @@ export default function TargetPage() {
   const [mounted, setMounted] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  // Local state for the configuration inputs
-  const [localRev, setLocalRev] = useState(50000);
-  const [localNet, setLocalNet] = useState(20000);
-  const [localExp, setLocalExp] = useState(15000);
+  // Local state for the configuration inputs (defaults to 0 for unset months)
+  const [localRev, setLocalRev] = useState(0);
+  const [localNet, setLocalNet] = useState(0);
+  const [localExp, setLocalExp] = useState(0);
+
+  // Map of explicitly set and saved monthly milestone targets strictly for Target Control Center
+  const [monthlyMilestoneTargets, setMonthlyMilestoneTargets] = useState<Record<string, { revenue: number; netProfit: number; expenseCeiling: number }>>({});
 
   // Generate target month options (3 months past, 2 months future, plus All Time)
   const targetMonthOptions = useMemo(() => generateMonthOptions(3, 2, true), []);
@@ -80,25 +83,64 @@ export default function TargetPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   }, []);
 
-  const isFutureMonth = selectedMonth && selectedMonth !== "All" && selectedMonth > currentMonthStr;
+  // Determine active month scope
+  const activeMonth = selectedMonth && selectedMonth !== "All"
+    ? selectedMonth
+    : new Date().toISOString().split("T")[0].substring(0, 7);
 
-  // Sync inputs when context data is parsed from Supabase OR reset to 0 for future months
+  // Load user's explicitly saved monthly milestone targets from localStorage on mount/user change
   useEffect(() => {
-    if (isFutureMonth) {
+    try {
+      const storageKey = `explicit_monthly_milestone_targets_${user?.id || "guest"}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setMonthlyMilestoneTargets(JSON.parse(saved));
+      }
+    } catch {
+      // ignore
+    }
+  }, [user?.id]);
+
+  // TARGET CONTROL CENTER MANDATE:
+  // In the "Set Milestone Targets" section, whenever a user views any month where no milestone targets
+  // were explicitly set and saved, all milestone input fields must be strictly blank or display a zero.
+  // Prohibit carrying over values from any other month under any circumstances.
+  useEffect(() => {
+    if (monthlyMilestoneTargets[activeMonth]) {
+      const explicit = monthlyMilestoneTargets[activeMonth];
+      setLocalRev(explicit.revenue || 0);
+      setLocalNet(explicit.netProfit || 0);
+      setLocalExp(explicit.expenseCeiling || 0);
+    } else {
+      // STRICT RESET TO ZERO / BLANK FOR UNSET MONTHS:
       setLocalRev(0);
       setLocalNet(0);
       setLocalExp(0);
-    } else {
-      if (revenueTarget !== undefined) setLocalRev(revenueTarget);
-      if (netProfitTarget !== undefined) setLocalNet(netProfitTarget);
-      if (expenseCeiling !== undefined) setLocalExp(expenseCeiling);
     }
-  }, [isFutureMonth, revenueTarget, netProfitTarget, expenseCeiling, selectedMonth]);
+  }, [activeMonth, monthlyMilestoneTargets]);
 
-  // Save targets directly to Supabase via React Context
+  // Save targets for activeMonth
   const handleSaveTargets = async (e: React.FormEvent) => {
     e.preventDefault();
-    await saveTargets(localRev, localNet, localExp);
+
+    const updatedMap = {
+      ...monthlyMilestoneTargets,
+      [activeMonth]: { revenue: localRev, netProfit: localNet, expenseCeiling: localExp }
+    };
+
+    setMonthlyMilestoneTargets(updatedMap);
+
+    try {
+      const storageKey = `explicit_monthly_milestone_targets_${user?.id || "guest"}`;
+      localStorage.setItem(storageKey, JSON.stringify(updatedMap));
+    } catch {
+      // ignore
+    }
+
+    if (activeMonth === currentMonthStr) {
+      await saveTargets(localRev, localNet, localExp);
+    }
+
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
   };
@@ -111,10 +153,6 @@ export default function TargetPage() {
   };
 
   // Determine active month scope
-  const activeMonth = selectedMonth && selectedMonth !== "All"
-    ? selectedMonth
-    : new Date().toISOString().split("T")[0].substring(0, 7);
-
   const isAllTime = selectedMonth === "All";
 
   // Calculate actual ledger numbers based on current filter context
@@ -239,11 +277,10 @@ export default function TargetPage() {
                   </span>
                   <input
                     type="number"
-                    value={localRev}
+                    value={localRev === 0 ? "" : localRev}
                     onChange={(e) => setLocalRev(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-full pl-8 pr-4 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50/50 text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary focus:shadow-md focus:shadow-secondary/10 transition-all duration-200"
-                    placeholder="e.g. 50000"
-                    required
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -259,11 +296,10 @@ export default function TargetPage() {
                   </span>
                   <input
                     type="number"
-                    value={localNet}
+                    value={localNet === 0 ? "" : localNet}
                     onChange={(e) => setLocalNet(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-full pl-8 pr-4 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50/50 text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary focus:shadow-md focus:shadow-secondary/10 transition-all duration-200"
-                    placeholder="e.g. 20000"
-                    required
+                    placeholder="0"
                   />
                 </div>
               </div>
@@ -279,11 +315,10 @@ export default function TargetPage() {
                   </span>
                   <input
                     type="number"
-                    value={localExp}
+                    value={localExp === 0 ? "" : localExp}
                     onChange={(e) => setLocalExp(Math.max(0, parseInt(e.target.value) || 0))}
                     className="w-full pl-8 pr-4 py-2.5 text-xs font-bold rounded-xl border border-border-color bg-slate-50/50 text-text-primary focus:outline-none focus:ring-2 focus:ring-secondary/25 focus:border-secondary focus:shadow-md focus:shadow-secondary/10 transition-all duration-200"
-                    placeholder="e.g. 15000"
-                    required
+                    placeholder="0"
                   />
                 </div>
               </div>
